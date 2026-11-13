@@ -1,0 +1,46 @@
+{
+  "format": 1,
+  "title": {
+    "en": "DSHRSI",
+    "zh": "DSHRSI"
+  },
+  "description": {
+    "en": "The DeepSeek Harness that rewrites itself.",
+    "zh": "会自己改造自己的 DeepSeek Harness。"
+  },
+  "plugins": [
+    {
+      "name": "dsh-rsi",
+      "title": {
+        "en": "DSHRSI: the harness that rewrites itself",
+        "zh": "DSHRSI：会自己改造自己的 Harness"
+      },
+      "description": {
+        "en": "Watches every session for trouble that repeats: a command this machine does not have, a correction you had to give, a turn that ends without checking its work. When it finds one, it has the session model write a small piece of harness code for it, checks that code, and mounts it into the running session; what works is kept for later sessions. Adaptations belong to one of three layers (this machine, you, this project), and project ones can be written into the repository under .dsh-rsi and shared. In the Web UI, a \"RSI\" badge in the session header and a \"Harness adapted to you\" pill under the message box show what is at work; type /rsi for the full account. Writing an adaptation costs one extra model request on the session's own model. Nothing leaves the machine. Adaptations can refuse or question a tool call and add text for the model; they cannot allow what the harness would refuse. Switching the plugin off unmounts every adaptation and leaves the library on disk.",
+        "zh": "盯着每一次会话里反复出现的麻烦：这台机器上没有的命令、你不得不说第二遍的纠正、没验证就收工的一轮。发现之后，让会话里的模型当场写一小段 Harness 代码，校验通过后挂进正在运行的会话；有效的留给以后的会话。适配分三层（这台机器、你、这个项目），项目层的可以写进仓库的 .dsh-rsi 目录随项目共享。在 Web 界面里，会话标题栏的 “RSI” 徽标和输入框下方的 “Harness 已为你适配” 状态条显示正在生效的适配；输入 /rsi 查看完整情况。每写一个适配会多用一次当前会话模型的请求。数据不离开本机。适配可以拒绝或要求确认一次工具调用，可以给模型加说明；不能放行 Harness 本来会拒绝的操作。关掉插件会卸下所有适配，磁盘上的适配库保留。"
+      },
+      "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzNiAzNiIgd2lkdGg9IjM2IiBoZWlnaHQ9IjM2Ij4KICA8ZGVmcz4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iZHNocnNpLWluayIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiM3YzVjZmYiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMTJiNWU1Ii8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogIDwvZGVmcz4KICA8cGF0aCBkPSJNMjguNjMgMTUuMTVBMTEgMTEgMCAxIDEgMjQuNDcgOS4xIiBmaWxsPSJub25lIiBzdHJva2U9InVybCgjZHNocnNpLWluaykiIHN0cm9rZS13aWR0aD0iMi4zIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICA8cGF0aCBkPSJNMjMuMiA0LjQgMjQuNiA5LjIgMTkuNiA5LjUiIGZpbGw9Im5vbmUiIHN0cm9rZT0idXJsKCNkc2hyc2ktaW5rKSIgc3Ryb2tlLXdpZHRoPSIyLjMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgogIDxwYXRoIGQ9Ik0xOS4yIDExLjQgMTMuNiAxOWgzLjhsLS45IDUuNkwyMi40IDE3aC00bC44LTUuNloiIGZpbGw9InVybCgjZHNocnNpLWluaykiLz4KPC9zdmc+Cg==",
+      "author": "qybaihe",
+      "homepage": "https://github.com/qybaihe/dshrsi#readme",
+      "repository": {
+        "url": "https://github.com/qybaihe/dshrsi",
+        "directory": "packages/dsh-rsi"
+      },
+      "versions": [
+        {
+          "version": "0.1.0",
+          "publishTimestamp": 1794587689,
+          "source": {
+            "type": "git",
+            "url": "https://github.com/qybaihe/dshrsi",
+            "commit": "e7d074a89015202bda89677b01cf8e53b6bc1c44",
+            "path": "packages/dsh-rsi"
+          },
+          "engines": {
+            "dsh": ">=0.2.2-rc.0 <0.3.0"
+          }
+        }
+      ]
+    }
+  ]
+}
