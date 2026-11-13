@@ -1,0 +1,6 @@
+node_modules/
+.dsh-dev/
+*.log
+*.tgz
+# read-only reference checkout of DeepSeek Harness, not part of this repository
+deepseek-harness/

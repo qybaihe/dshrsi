@@ -1,0 +1,63 @@
+{
+  "name": "dsh-rsi",
+  "version": "0.1.0",
+  "description": "DSHRSI: a DeepSeek Harness plugin through which the harness rewrites itself around its machine, its user and its project",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./icon": "./icon.svg",
+    "./src/*": "./src/*",
+    "./package.json": "./package.json",
+    "./locale/*.json": "./locale/*.json"
+  },
+  "bin": {
+    "dsh-rsi": "bin/rsi.js"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "src",
+    "bin",
+    "locale/*.json",
+    "docs",
+    "icon.svg",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "deepseek-harness",
+    "dsh-plugin",
+    "self-improvement",
+    "agent-harness"
+  ],
+  "author": "qybaihe",
+  "license": "MIT",
+  "homepage": "https://github.com/qybaihe/dshrsi#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/qybaihe/dshrsi.git",
+    "directory": "packages/dsh-rsi"
+  },
+  "engines": {
+    "dsh": ">=0.2.2-rc.0 <0.3.0"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-conversation"
+      ]
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh-llm": "*",
+    "@deepseek-ai/dsh-tools": "*",
+    "@deepseek-ai/schemastery": "*"
+  }
+}
