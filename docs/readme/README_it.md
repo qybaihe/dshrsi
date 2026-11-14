@@ -320,6 +320,12 @@ Viene distribuito come un normale plugin di terze parti, con i metadati che le p
 </details>
 
 <details>
+<summary><strong>E se un miglioramento si rivela sbagliato?</strong></summary>
+
+Si può sempre tornare indietro: il codice dell'harness stesso non viene mai toccato, e nessuna versione di un adattamento viene mai cancellata. L'harness fa marcia indietro da solo quando un adattamento continua a fallire, o quando si scopre che una chiamata che aveva rifiutato in realtà funziona. Puoi farlo anche tu: `/rsi undo` annulla l'ultima modifica, `dsh-rsi restore` riporta l'intero harness a un punto precedente, e `/rsi off` fa girare l'harness di serie. Tutto questo ha effetto nella sessione già in corso. [Come si torna indietro](../../packages/dsh-rsi/README.md#going-back).
+</details>
+
+<details>
 <summary><strong>Come faccio a vedere, annullare o disattivare ciò che ha imparato?</strong></summary>
 
 `/rsi` in una sessione, oppure `dsh-rsi status` in un terminale. `dsh-rsi show <id>` stampa il sorgente di un adattamento e il suo report di validazione; `disable`, `retire` e `rollback` lo tolgono o lo riportano indietro. Imposta `mode: observe` per registrare senza cambiare nulla.
