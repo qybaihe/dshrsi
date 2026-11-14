@@ -169,8 +169,9 @@ export function openLibrary(home, options = {}) {
     return records.sort((a, b) => a.createdAt - b.createdAt)
   }
 
-  function readSource(id) {
-    return fs.readFileSync(sourceFile(id), 'utf8')
+  /** Source of the version in use, or of any stored version. */
+  function readSource(id, version) {
+    return fs.readFileSync(version === undefined || version === get(id)?.version ? sourceFile(id) : versionSource(id, version), 'utf8')
   }
 
   /** Stores a new adaptation and returns its record. */
@@ -219,8 +220,8 @@ export function openLibrary(home, options = {}) {
     const held = versions(id)
     let target = to
     if (target === undefined) {
-      const condemned = record.condemned ?? []
-      target = held.filter(version => version < record.version && !condemned.includes(version)).at(-1)
+      const withdrawn = (record.withdrawn ?? []).map(entry => entry.version)
+      target = held.filter(version => version < record.version && !withdrawn.includes(version)).at(-1)
       if (target === undefined) throw new Error(`adaptation ${id} has no earlier version`)
     } else if (target === record.version) throw new Error(`adaptation ${id} is already at version ${target}`)
     else if (!held.includes(target)) throw new Error(`adaptation ${id} has no version ${target}; it has ${held.join(', ')}`)

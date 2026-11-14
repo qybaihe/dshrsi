@@ -83,7 +83,7 @@ test('library: a version number means one source for good, and going back brings
   assert.throws(() => library.rollback(id, 3), /already at version 3/)
   assert.throws(() => library.rollback(id, 7), /has no version 7; it has 1, 2, 3/)
   // A version withdrawn for doing harm is not what "the previous one" means.
-  library.update(id, { condemned: [2] })
+  library.update(id, { withdrawn: [{ version: 2, reason: 'refused a call that works' }] })
   assert.equal(library.rollback(id).version, 1)
 })
 
