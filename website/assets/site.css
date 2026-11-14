@@ -250,8 +250,8 @@ figure { margin: var(--space-5) 0; }
 .reel img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; border-radius: var(--radius-card); border: 1px solid var(--border); box-shadow: 0 24px 60px rgba(13, 17, 23, 0.14); background: var(--bg-soft); }
 .pit { margin: 0 0 var(--space-7, 40px); }
 .pit picture { display: block; }
-.pit img { display: block; width: 100%; height: auto; aspect-ratio: 1280 / 752; border-radius: var(--radius-card); border: 1px solid var(--border); }
-.pit figcaption { margin-top: var(--space-3); text-align: center; color: var(--text-3); font-size: 14px; }
+.pit img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; border-radius: var(--radius-card); border: 1px solid var(--border); }
+.figure.shot figcaption { text-align: center; color: var(--text-2); font-size: 16px; }
 .reel figcaption { margin-top: var(--space-3); text-align: center; color: var(--text-3); font-size: 14px; }
 
 /* ---------- footer ---------- */

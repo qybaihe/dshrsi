@@ -77,9 +77,8 @@
       <h2><span lang="zh">从踩坑到改好，发生在同一轮任务里</span><span lang="en">From hitting the wall to fixing it, inside one turn</span></h2>
     </div>
     <figure class="pit">
-      <picture lang="zh"><source media="(prefers-color-scheme: dark)" srcset="assets/img/pit-stop.zh.dark.svg"><img src="assets/img/pit-stop.zh.svg" width="1280" height="752" loading="lazy" alt="用一次进站画出 DSHRSI 的原理：赛车是 Harness，车手是模型，新零件是这一轮进行到一半时写出的 Harness 代码"></picture>
-      <picture lang="en"><source media="(prefers-color-scheme: dark)" srcset="assets/img/pit-stop.dark.svg"><img src="assets/img/pit-stop.svg" width="1280" height="752" loading="lazy" alt="How DSHRSI works, drawn as a pit stop: the car is the harness, the driver is the model, and the new part is harness code written in the middle of a turn"></picture>
-      <figcaption><span lang="zh">赛车手觉得车不对劲，不会等到下一场比赛。图里的 36.9 秒和 7 → 1 来自同一次真实运行。</span><span lang="en">A driver who feels the car is wrong does not wait for the next race. The 36.9 s and the 7 → 1 in the picture come from one real run.</span></figcaption>
+      <picture lang="zh"><source media="(prefers-color-scheme: dark)" srcset="assets/img/pit-stop.zh.dark.svg"><img src="assets/img/pit-stop.zh.svg" width="1280" height="720" loading="lazy" alt="用一次进站画出 DSHRSI 的原理：赛车是 Harness，车手是模型，新零件是这一轮进行到一半时写出的 Harness 代码"></picture>
+      <picture lang="en"><source media="(prefers-color-scheme: dark)" srcset="assets/img/pit-stop.dark.svg"><img src="assets/img/pit-stop.svg" width="1280" height="720" loading="lazy" alt="How DSHRSI works, drawn as a pit stop: the car is the harness, the driver is the model, and the new part is harness code written in the middle of a turn"></picture>
     </figure>
     <ol class="steps">
       <li><h3><span lang="zh">观察</span><span lang="en">Observe</span></h3><p><span lang="zh">16 个判断点读会话事件：重复失败的调用、反复出现的失败原因、用户的纠正、没验证就收工的一轮。</span><span lang="en">16 detectors read the session's events: calls that fail again, causes that keep coming back, corrections from the user, turns that end with nothing verified.</span></p></li>
@@ -136,8 +135,8 @@
       <h2><span lang="zh">它改了什么，你一眼看得见</span><span lang="en">You can see what it changed</span></h2>
     </div>
     <div class="grid c2">
-      <figure class="figure" style="margin:0"><img src="assets/img/ui-evolving.png" alt="The DeepSeek Harness web UI at the moment the harness improves itself: the RSI badge and the pill under the composer are lit" loading="lazy"><figcaption><span lang="zh">两次失败之后：标题栏的 RSI 徽标和输入框下方的状态条亮起。</span><span lang="en">After two failures: the RSI badge in the header and the pill under the composer light up.</span></figcaption></figure>
-      <figure class="figure" style="margin:0"><img src="assets/img/ui-panel-dark.png" alt="The next session in dark mode: the pill is open and lists the adaptation at work and the call it refused" loading="lazy"><figcaption><span lang="zh">下一次会话：展开状态条，能看到生效的适配和它拦下的调用。</span><span lang="en">The next session: the open pill lists the adaptation at work and the call it refused.</span></figcaption></figure>
+      <figure class="figure shot" style="margin:0"><img src="assets/img/ui-evolving.png" alt="The DeepSeek Harness web UI at the moment the harness improves itself: the RSI badge and the pill under the composer are lit" loading="lazy"><figcaption><span lang="zh">同一个麻烦再来时，RSI 徽标和状态条亮起</span><span lang="en">When the trouble comes back, the RSI badge and the pill light up</span></figcaption></figure>
+      <figure class="figure shot" style="margin:0"><img src="assets/img/ui-panel-dark.png" alt="The next session in dark mode: the pill is open and lists the adaptation at work and the call it refused" loading="lazy"><figcaption><span lang="zh">点开状态条，看它改了什么、拦下了什么</span><span lang="en">Open the pill to see what it changed and what it refused</span></figcaption></figure>
     </div>
   </div>
 </section>
