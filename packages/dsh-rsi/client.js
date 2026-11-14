@@ -44,7 +44,8 @@ window.__ModuleLoader__.load({
         'chip.evolved': 'learned in this session',
         'chip.refused': 'stopped {count}×',
         'chip.notes': 'spoke up {count}×',
-        'list.hint': 'Full record and controls: run /rsi, or dsh-rsi status in a terminal.',
+        'chip.withdrawn': 'taken back',
+        'list.hint': 'Not what you wanted? /rsi undo takes the last change back, /rsi off runs the stock harness. Full record: /rsi.',
       },
       zh: {
         'badge.title': '本会话中有 {count} 个 Harness 自己写的适配在生效',
@@ -62,7 +63,8 @@ window.__ModuleLoader__.load({
         'chip.evolved': '本会话中学到',
         'chip.refused': '拦下 {count} 次调用',
         'chip.notes': '提醒 {count} 次',
-        'list.hint': '完整记录与开关：输入 /rsi，或在终端运行 dsh-rsi status。',
+        'chip.withdrawn': '已撤回',
+        'list.hint': '不对劲？输入 /rsi undo 撤销最近一次改进，/rsi off 回到原版 Harness。完整记录：/rsi。',
       },
     }
 
@@ -87,6 +89,7 @@ window.__ModuleLoader__.load({
 .dshrsi-name{display:flex;flex-wrap:wrap;align-items:center;gap:6px;color:var(--dsw-alias-label-primary);font-weight:500}
 .dshrsi-chip{padding:1px 7px;border-radius:999px;border:0.5px solid var(--dsw-alias-border-l2);color:var(--dsw-alias-label-secondary);font-size:11px;font-weight:400;white-space:nowrap}
 .dshrsi-chip-new{border-color:var(--dsw-alias-link);color:var(--dsw-alias-link)}
+.dshrsi-chip-back{border-color:var(--dsw-alias-state-warning-primary,#d97706);color:var(--dsw-alias-state-warning-primary,#d97706)}
 .dshrsi-text{margin:3px 0 0;color:var(--dsw-alias-label-secondary);overflow-wrap:anywhere}
 .dshrsi-hint{padding:8px 0 0;border-top:0.5px solid var(--dsw-alias-border-l1);color:var(--dsw-alias-label-tertiary);font-size:11.5px}
 .dshrsi-fresh.dshrsi-pill{border-color:var(--dsw-alias-link);background:color-mix(in srgb,var(--dsw-alias-link) 7%,transparent)}
@@ -167,6 +170,7 @@ window.__ModuleLoader__.load({
     function Item(props) {
       const { entry, t } = props
       const chips = []
+      if (entry.withdrawn) chips.push(h('span', { key: 'w', className: 'dshrsi-chip dshrsi-chip-back' }, t('chip.withdrawn')))
       if (entry.evolved) chips.push(h('span', { key: 'e', className: 'dshrsi-chip dshrsi-chip-new' }, h(Lights, { t }), t('chip.evolved')))
       if (entry.standing) chips.push(h('span', { key: 's', className: 'dshrsi-chip' }, t('chip.standing')))
       if (entry.refused > 0) chips.push(h('span', { key: 'r', className: 'dshrsi-chip' }, t('chip.refused', { count: entry.refused })))
