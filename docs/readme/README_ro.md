@@ -320,6 +320,12 @@ Se livrează ca un plugin terț obișnuit, cu metadatele pe care le citesc pagin
 </details>
 
 <details>
+<summary><strong>Ce se întâmplă dacă o îmbunătățire se dovedește greșită?</strong></summary>
+
+Poate fi retrasă oricând: codul propriu al harness-ului nu e atins niciodată și nicio versiune a unei adaptări nu e ștearsă vreodată. Harness-ul dă singur înapoi când o adaptare continuă să eșueze sau când se dovedește că un apel pe care ea l-a refuzat funcționează. O poți face și tu: `/rsi undo` anulează ultima schimbare, `dsh-rsi restore` readuce întregul harness la un moment anterior, iar `/rsi off` rulează harness-ul standard. Toate acestea au efect în sesiunea care rulează deja. [Cum funcționează revenirea](../../packages/dsh-rsi/README.md#going-back).
+</details>
+
+<details>
 <summary><strong>Cum văd, anulez sau opresc ce a învățat?</strong></summary>
 
 `/rsi` într-o sesiune sau `dsh-rsi status` într-un terminal. `dsh-rsi show <id>` afișează sursa unei adaptări și raportul ei de validare; `disable`, `retire` și `rollback` o scot sau o dau înapoi. Setează `mode: observe` ca să înregistreze fără să schimbe nimic.
