@@ -320,6 +320,12 @@ define({
 </details>
 
 <details>
+<summary><strong>개선이 잘못된 것으로 드러나면 어떻게 되나요?</strong></summary>
+
+언제든지 되돌릴 수 있습니다. 하네스 자체의 코드는 절대 건드리지 않으며, 어댑테이션의 어떤 버전도 삭제되지 않습니다. 어댑테이션이 계속 실패하거나, 어댑테이션이 거부한 호출이 실제로는 성공하는 것으로 드러나면 하네스가 스스로 되돌립니다. 사용자가 직접 되돌릴 수도 있습니다. `/rsi undo`는 마지막 변경을 취소하고, `dsh-rsi restore`는 하네스 전체를 이전 시점으로 되돌리며, `/rsi off`는 순정 하네스를 실행합니다. 이 모든 것은 이미 실행 중인 세션에 적용됩니다. [되돌리기가 동작하는 방식](../../packages/dsh-rsi/README.md#going-back).
+</details>
+
+<details>
 <summary><strong>배운 내용을 확인하거나, 되돌리거나, 끄려면 어떻게 하나요?</strong></summary>
 
 세션에서는 `/rsi`, 터미널에서는 `dsh-rsi status`를 사용합니다. `dsh-rsi show <id>`는 어댑테이션의 소스와 검증 보고서를 출력하고, `disable`, `retire`, `rollback`은 어댑테이션을 빼거나 이전으로 되돌립니다. 아무것도 바꾸지 않고 기록만 하려면 `mode: observe`로 설정하세요.
