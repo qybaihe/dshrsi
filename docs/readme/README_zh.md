@@ -21,14 +21,11 @@
 
 [![RSI](https://img.shields.io/badge/RSI-Recursive_Self--Improvement-4d6bfe?style=for-the-badge)](#rsi)
 [![DeepSeek Harness](https://img.shields.io/badge/DeepSeek_Harness-0.2.2--rc.3_plugin-7c5cff?style=for-the-badge)](https://github.com/deepseek-ai/deepseek-harness)
-[![Detectors](https://img.shields.io/badge/Detectors-16-12b5e5?style=for-the-badge)](#coverage)
 [![Validation](https://img.shields.io/badge/Validation-5--Stage_Gate-0ea5e9?style=for-the-badge)](#how-it-works)
-[![Layers](https://img.shields.io/badge/Layers-Machine_%C2%B7_User_%C2%B7_Project-0284c7?style=for-the-badge)](#project-harness)
 [![Benchmarks](https://img.shields.io/badge/Benchmarks-4_Suites_%C2%B7_2_Models-2563eb?style=for-the-badge)](#benchmarks)
-[![Tests](https://img.shields.io/badge/Tests-130_unit_%C2%B7_29_e2e-1d4ed8?style=for-the-badge)](#contributing)
 [![MIT License](https://img.shields.io/badge/License-MIT-38bdf8?style=for-the-badge)](../../LICENSE)
 
-**[🌐 官网](https://qybaihe.github.io/dshrsi/) · [📖 插件参考文档](../../packages/dsh-rsi/README.zh.md) · [🧩 项目 Harness](../../packages/dsh-rsi/README.zh.md#layers-and-the-project-harness) · [🔬 校验关](../../packages/dsh-rsi/README.zh.md#the-validation-gate) · [⚠️ 已知限制](../../packages/dsh-rsi/README.zh.md#known-limits) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
+**[🌐 官网](https://qybaihe.github.io/dshrsi/) · [📖 插件参考文档](../../packages/dsh-rsi/README.zh.md) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
 
 [RSI 是什么](#rsi) · [快速开始](#quick-start) · [工作原理](#how-it-works) · [实测结果](#measured) · [基准评测](#benchmarks) · [判断点与能力](#coverage) · [项目 Harness](#project-harness) · [安全默认值](#security) · [常见问题](#faq)
 
@@ -116,26 +113,6 @@ dsh web
 
 在任意会话里输入 `/rsi`，可以看到挂载了哪些适配、各属于哪一层、哪些在等你批准。
 
-### 3. 给仓库一份专属的 Harness
-在一个仓库里学到的规矩可以放在这个仓库里，一个文件一个适配：
-
-```bash
-# 这个命令随插件一起装在 profile 里
-alias dsh-rsi="$HOME/.dsh/profiles/web/node_modules/.bin/dsh-rsi"
-
-dsh-rsi project init      # 在仓库里运行：建立 .dsh-rsi/，然后提交它
-dsh-rsi trust             # 在其他每台机器上：读过这些文件之后接受它们
-```
-
-### 4. 从源码运行
-
-```bash
-git clone https://github.com/qybaihe/dshrsi.git && cd dshrsi
-npm install               # 带来一个固定版本的 dsh 和它要调用的 pnpm
-npx dsh plugin --profile web add "$PWD/packages/dsh-rsi"
-npx dsh web
-```
-
 `desktop` 和 `headless` profile、插件源索引、本地 tarball、只在单次运行时加载，见[插件参考文档](../../packages/dsh-rsi/README.zh.md#install)。
 
 ---
@@ -155,36 +132,13 @@ Skill、记忆文件、更长的系统提示词，都是上下文层面的做法
 
 **DSHRSI 做在 Harness 这一层。它学到的东西变成挂在 Harness 扩展点上的代码：**
 
-```mermaid
-flowchart LR
-  subgraph S1["1 · 观察"]
-    A["会话事件"] --> B["16 个判断点"]
-  end
-  subgraph S2["2 · 决策"]
-    B --> C["摩擦签名<br/>+ 适配库 + 历史会话"]
-  end
-  subgraph S3["3 · 改写"]
-    C --> D["会话里的模型<br/>写一段适配"]
-    D --> E["五道校验关"]
-    E -. "带着原因打回" .-> D
-  end
-  subgraph S4["4 · 挂载"]
-    E --> F["独立的 node:vm 上下文<br/>下一次模型请求之前生效"]
-  end
-  subgraph S5["5 · 沉淀与共享"]
-    F --> G["适配库：转正 · 隔离 · 修订"]
-    G --> H["仓库里的 .dsh-rsi/"]
-  end
-  G -. "下一次会话从这里开始" .-> A
-```
-
 | 阶段 | 机制 | 效果 |
 | :--- | :--- | :--- |
-| **1. 观察** | 16 个判断点读归一化后的会话事件：再次失败的调用、反复出现的失败原因、乱试命令、用户的纠正、没验证就收工的一轮。 | 麻烦有了一个跨会话稳定的签名，比如 `bash:command-not-found:python`。 |
+| **1. 观察** | 16 个判断点读归一化后的会话事件：再次失败的调用、反复出现的失败原因、乱试命令、用户的纠正、没验证就收工的一轮。 | 麻烦有了一个签名，换到下一次会话也还是同一个。 |
 | **2. 改写** | 会话里的模型按一套 10 种能力的 API 写一段 JavaScript 适配。没通过的带着原因打回重写，最多两次，再不行用内置模板。 | 修复是 Harness 代码，不是提示词里再多一段话。 |
 | **3. 校验** | 静态 → 加载 → 重演 → 回归 → 权限。适配必须对触发它的调用有所动作，并且不能碰本次会话里任何一个成功的调用。 | 什么都不做的代码、把本来好好的东西弄坏的代码，永远挂不上去。 |
-| **4. 挂载** | 适配运行在独立的 `node:vm` 上下文里，和宿主之间只有一个 JSON 桥，每次调用都有超时；下一次模型请求之前生效。 | 踩坑的那一轮自己就先受益。 |
-| **5. 沉淀与共享** | 每台机器一个适配库，带账本和审计记录。有效的转正，出错的隔离，没拦住的改写成更严的版本，项目规矩写进 `.dsh-rsi/`。 | 下一次会话一开始就是适配过的；同事 `dsh-rsi trust` 之后拿到项目的规矩。 |
+| **4. 挂载** | 适配运行在自己的隔离上下文里，每次调用都有超时；下一次模型请求之前生效。 | 踩坑的那一轮自己就先受益。 |
+| **5. 沉淀与共享** | 每台机器都有自己的适配库。有效的转正，出错的隔离，没拦住的改写成更严的版本，项目规矩写进仓库。 | 下一次会话一开始就是适配过的；同事接受之后，就能拿到项目的规矩。 |
 | **↻ 再来一遍** | 下一次会话跑在第 5 步留下的 Harness 上，第 1 步带着所有已挂载的适配去观察它。 | 改进建立在改进之上。这就是递归。 |
 
 ---
@@ -199,46 +153,9 @@ flowchart LR
 
 | 场景 | 没有 DSHRSI | 有 DSHRSI | Harness 写了什么 |
 | :--- | :--- | :--- | :--- |
-| **缺命令**：README 写的是 `python stats.py`，机器上只有 `python3` | ❌ **5 / 5** 次会话发出了失败调用 | ✅ 适配写出之后 **0 / 7** 次（之前 9 / 9 次） | `deny` + `prompt`，模型所写，一次通过校验 |
-| **用户只说过一次的规矩**：“不要直接改 `notes.txt`，写到 `notes.draft.txt`” | ❌ 下一次会话改了 `notes.txt` | ✅ 下一次会话不用提醒就写到了 `notes.draft.txt` | `deny` + `prompt`，模型在被纠正后当场所写 |
+| **缺命令**：说明里写的是 `python`，机器上只有 `python3` | ❌ **5 / 5** 次会话发出了失败调用 | ✅ 适配写出之后 **0 / 7** 次（之前 9 / 9 次） | `deny` + `prompt`，模型所写，一次通过校验 |
+| **用户只说过一次的规矩**：某个文件不要直接改，要写就写到它的草稿里 | ❌ 下一次会话改了那个文件 | ✅ 下一次会话不用提醒就写到了草稿里 | `deny` + `prompt`，模型在被纠正后当场所写 |
 | **没人要求验证的修改** | 未运行 | ⚪ 什么都没写：3 / 3 次会话模型都自己验证了，没有可学的 | 无 |
-
-第一个场景装着插件跑了三轮，每轮从空的适配库开始，另有一轮对照。第二个场景装和不装各跑了一轮。
-
-**缺命令场景，逐次会话**（每次会话的失败工具调用数）：
-
-| 轮次 | S1 | S2 | S3 | S4 | S5 | S6 |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **没有 DSHRSI** | ❌ 1 | ❌ 1 | ❌ 1 | ❌ 1 | ❌ 1 | |
-| **有 DSHRSI · 第 1 轮** | ❌ 1 | ❌ 1 | ❌ 1 → 🧬 | ✅ 0 | ✅ 0 | ✅ 0 |
-| **有 DSHRSI · 第 2 轮** | ❌ 1 | ❌ 1 | ❌ 1 → 🧬 | ✅ 0 | ✅ 0 | |
-| **有 DSHRSI · 第 3 轮** | ❌ 1 | ❌ 1 | ❌ 1 → 🧬 | ✅ 0 | ✅ 0 | |
-
-🧬 表示模型在这一轮写出适配、Harness 当轮挂载。此后的 7 次会话里有 3 次模型仍然想跑 `python`，被 Harness 在执行前拦下。这个场景里所有会话的最终答案都正确，装不装插件都一样。
-
-本地复现：
-
-```bash
-MIMO_API_KEY=... npm run test:live -- python --sessions 6          # 装了插件
-MIMO_API_KEY=... npm run test:live -- python --sessions 5 --off    # 对照组，不装
-```
-
-<details>
-<summary><strong>没有在这台机器上验证过的部分（点击展开）</strong></summary>
-
-<br />
-
-这些路径代码里都有，也有单元测试或用模拟模型跑的端到端测试，但没有在真实会话或真实 App 里观察到过：
-
-| 范围 | 为什么没验证 |
-| :--- | :--- |
-| DeepSeek Harness 桌面 App | 开发用的机器上没有安装。验证做在它所包的 `web` profile 和安装机制上 |
-| `negative-feedback`、`approval-denied`、`context-pressure`、`model-instability` | 只用构造的事件测过，没有在真实会话里触发过 |
-| 自动化的浏览器测试 | 没有。界面是在真实的 `dsh web` 页面里手工走查的，亮色和暗色都看过 |
-| ACP 和 SDK profile | 没有界面，也没有验证 |
-| MiMo v2.6 系列以外的模型 | 还没有跑过。基准评测用了 `mimo-v2.6-pro` 和 `mimo-v2.6-flash`，上面三个场景用的是 `mimo-v2.6-pro` |
-
-</details>
 
 ---
 
@@ -270,26 +187,17 @@ MIMO_API_KEY=... npm run test:live -- python --sessions 5 --off    # 对照组�
 
 **DSHRSI 确实做了的事，是在没有任何提示的情况下改自己。** 八轮运行里，模型一共写出 **56 个适配**，其中 15 个起过作用，这当中又有 10 个扩大到了整台机器。对这 10 个，我们逐个取它生效之后才开始的题，和原版 DSH 在同样这些题上比：
 
-| 模型写出的适配 | 它针对的失败 | 原版 DSH | DSH + DSHRSI | p |
-| :--- | :--- | ---: | ---: | ---: |
-| *Stop inline python checks that abort on first mismatch*（MBPP，`mimo-v2.6-pro`） | 测试脚本在第一个断言不符时就中断 | 310 题里 16 题 | **310 题里 3 题** | 0.002 |
-| *Redirect missing lib.rs reads to a glob lookup*（Polyglot，`mimo-v2.6-flash`） | 去一个不存在的路径读 `lib.rs` | 151 题里 7 题 | **151 题里 1 题** | 0.07 |
-| 另外 8 个 | | 量不出变化 | | |
+| Harness 自己学会避开的失败 | 原版 DSH | DSH + DSHRSI | p |
+| :--- | ---: | ---: | ---: |
+| 测试脚本在第一个断言不符时就中断（MBPP，`mimo-v2.6-pro`） | 310 题里 16 题 | **310 题里 3 题** | 0.002 |
+| 去一个不存在的路径读文件（Polyglot，`mimo-v2.6-flash`） | 151 题里 7 题 | **151 题里 1 题** | 0.07 |
+| 另外 8 个适配 | 量不出变化 | | |
 
-这两个都没有让更多的题通过；装上插件多花大约 8–9% 的用时和输入 token。十个都列在 [`bench/README.md`](../../bench/README.md#did-those-adaptations-work) 里。
+这两个都没有让更多的题通过；装上插件多花大约 8–9% 的用时和输入 token。十个都列在[基准评测说明](../../bench/README.md#did-those-adaptations-work)里。
 
 **LiveCodeBench v6 没有跑完**：模型账户的余额在中途用尽。只看两边都在那之前完成的题：`mimo-v2.6-pro` 是 105 题里原版解出 94、DSHRSI 解出 96，`mimo-v2.6-flash` 是 51 题里 42 对 42。第 2 轮（带着第 1 轮留下的适配库把同样的题再跑一遍）也因为同样的原因还没有跑。
 
-在本地复现：
-
-```bash
-bench/setup.sh                                                        # 工具链、数据集、评分代码
-MIMO_API_KEY=... node bench/run.mjs polyglot --arm dsh --run dsh-p1   # 原版 DeepSeek Harness
-MIMO_API_KEY=... node bench/run.mjs polyglot --arm rsi --run rsi-p1   # 装上插件
-node bench/report.mjs --write                                         # 表格和 bench/results/*.json
-```
-
-评测方法、开销和失败调用的表格、已知限制都在 [`bench/README.md`](../../bench/README.md) 里；每道题的结果在 [`bench/results/`](../../bench/results) 里。
+评测方法、开销和失败调用的表格、已知限制，还有复现这一切的命令，都在[基准评测说明](../../bench/README.md)里。
 
 ---
 
@@ -297,26 +205,7 @@ node bench/report.mjs --write                                         # 表格�
 
 ## 🛡️ 判断点与能力
 
-**16 个判断点**决定 Harness 什么时候该改。同一套判断点既跑在实时会话上，也能跑在磁盘上存着的历史会话上（`dsh-rsi mine`）：
-
-| 判断点 | 发现什么 | 响应 |
-| :--- | :--- | :---: |
-| `repeat-failing-call` | 同一个调用用同样的参数再次失败 | 适配 |
-| `failure-signature` | 同一个失败原因反复出现：缺命令、缺依赖、网络、权限、端口占用、路径不存在、编辑不匹配、参数非法、内存不足 | 适配 |
-| `command-flailing` | 同一类命令换着参数连续失败 | 适配 |
-| `read-thrash` | 同一个文件没改过却被反复读 | 适配 |
-| `edit-churn` | 一轮里对同一个文件改了很多次 | 适配 |
-| `error-storm` | 最近的工具调用大部分在失败 | 适配 |
-| `stall` | 连续失败，中间没有一次成功 | 适配 |
-| `timeout-recurrence` | 同一类命令反复超时 | 适配 |
-| `output-flood` | 同一类命令反复吐出超大输出 | 适配 |
-| `approval-denied` / `denied-repeat` | 同类操作反复被用户拒绝，或被拒后原样重试 | 适配 |
-| `user-correction` | 用户纠正了模型，或打断后改了方向 | 适配 |
-| `premature-completion` | 改了代码，没跑任何检查就要结束这一轮 | 适配 |
-| `negative-feedback` | 用户给某条回复点了差评并写了原因 | 适配 |
-| `user-interrupt` | 用户中途打断 | 只记录 |
-| `model-instability` | 模型请求反复失败、重试、撞输出上限 | 只记录 |
-| `context-pressure` | 任务中途发生了上下文压缩 | 只记录 |
+**16 个判断点**决定 Harness 什么时候该改。[完整列表](../../packages/dsh-rsi/README.zh.md#detectors)在插件参考文档里。
 
 **10 种能力**是一段适配能做的全部事情。它只能通过这些能力接触 Harness：
 
@@ -360,17 +249,9 @@ define({
 | :--- | :--- | :--- | :--- |
 | **`machine`** | 这台电脑的事实 | 没有 `python`、端口被占、内网域名解析不了 | 学到它的工作区；第二个工作区再遇到就扩大到全机 |
 | **`user`** | 你希望怎样被对待 | 给回复点了差评并说“太长了” | 全机 |
-| **`project`** | 一个仓库的规矩和习惯 | “这个仓库一律用 pnpm” | 工作区，以及通过 `.dsh-rsi/` 跟着仓库走 |
+| **`project`** | 一个仓库的规矩和习惯 | “这个仓库一律用 pnpm” | 工作区，以及仓库本身：规矩随代码一起提交 |
 
 **项目层跟着代码走：**
-
-```
-.dsh-rsi/
-  harness.json           格式标记，和项目级设置
-  adaptations/
-    remember-the-user-s-instruction-3f2a1c.js     学到之后写在这里
-    no-force-push.js                              手写的也一样
-```
 
 - **提交就是共享，删掉就是拔掉。** 一个文件就是一个适配。
 - **不会因为克隆下来就运行。** 每台机器用 `dsh-rsi trust` 接受这些文件的确切内容，文件变了要重新接受。
@@ -387,7 +268,7 @@ define({
 - **强能力要批准（`autonomy: tighten`）** — 改写结果、新增工具、执行命令的适配以 `proposed` 状态存下来，等 `dsh-rsi approve <id>`。
 - **不需要时不可见** — 没有摩擦、没有挂载任何适配时，系统提示词、工具列表和消息逐字节不变，有端到端用例守着。
 - **出错不扩散** — 处理函数抛错不会影响它所挂的那次工具调用；累计三次，这个适配就被隔离。
-- **全部留痕** — 每个决定记在 `audit.jsonl` 里，每次摩擦、挂载、生效记在 `ledger.jsonl` 里。`dsh-rsi disable`、`retire`、`rollback` 可以把一个适配关掉、移除或退回上一版。
+- **全部留痕** — 每个决定、每次摩擦、挂载和生效都记录在案。`dsh-rsi disable`、`retire`、`rollback` 可以把一个适配关掉、移除或退回上一版。
 - **三种模式** — `adapt` 直接挂载（默认），`propose` 生成后等你批准，`observe` 只记录。
 
 ---
@@ -457,7 +338,6 @@ define({
 - [🛠️ `dsh-rsi` 命令行](../../packages/dsh-rsi/README.zh.md#command-line) · [⚙️ 配置](../../packages/dsh-rsi/README.zh.md#configuration)
 - [⚠️ 已知限制](../../packages/dsh-rsi/README.zh.md#known-limits)
 - [📊 评测方法与结果](../../bench/README.md)
-- [🌐 官网源码](../../website) — 递归自我改进、技术路线、怎么写适配、评测；用浏览器打开 `website/index.html`
 - [🧱 DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) — 这个插件所接入的 Harness
 
 <a id="contributing"></a>
@@ -471,23 +351,6 @@ npm install && npm test    # 先跑 130 个单元测试，再跑 29 个端到端
 ```
 
 端到端测试用一个模拟的模型服务顶替模型接口，其余都是真的：真实的 `dsh` 进程、工具执行、会话日志和插件安装。
-
-```
-packages/dsh-rsi/        插件包本体（纯 ESM，无构建步骤）
-  index.js               宿主部分：与 DSH 扩展点的绑定
-  client.js              浏览器部分：RSI 徽标和状态条
-  src/engine.js          观察 → 决策 → 生成 → 校验 → 挂载 → 沉淀 → 共享
-  src/signals.js         16 个判断点
-  src/validate.js        校验关
-  src/sandbox.js         适配代码的运行环境
-  src/project.js         项目 Harness：<仓库>/.dsh-rsi
-  bin/rsi.js             dsh-rsi 命令
-market/index.json        可以加进 DSH 的插件源索引
-test/unit/  test/e2e/    单元测试，和跑在真实 dsh 进程上的端到端测试
-test/live/               真实模型实测（需要 MIMO_API_KEY）
-bench/                   基准评测：原版 DSH 对 DSH + dsh-rsi
-website/                 官网（静态页面，无构建步骤）
-```
 
 ## 📄 许可证
 
