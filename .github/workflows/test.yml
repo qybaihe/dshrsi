@@ -1,0 +1,28 @@
+# Runs the unit tests and the README check on every push and pull request, on the platform the project is
+# developed on. The end-to-end tests drive a real `dsh` under the harness's own sandbox and are run locally (npm test).
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26
+          cache: npm
+      - run: npm ci
+      - run: npm run test:unit
+      - run: npm run readme:check
