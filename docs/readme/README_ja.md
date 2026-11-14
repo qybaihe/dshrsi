@@ -320,6 +320,12 @@ define({
 </details>
 
 <details>
+<summary><strong>改善が間違っていたと分かったら、どうなりますか？</strong></summary>
+
+いつでも元に戻せます。ハーネス自体のコードには一切触れず、アダプテーションのバージョンは一つも削除されません。アダプテーションが失敗し続けるときや、拒否した呼び出しが実際には成功すると分かったときは、ハーネスが自ら元に戻します。あなた自身で戻すこともできます。`/rsi undo` は直前の変更を取り消し、`dsh-rsi restore` はハーネス全体を以前の時点に戻し、`/rsi off` は素のハーネスで動かします。いずれも、すでに実行中のセッションに反映されます。[元に戻す仕組み](../../packages/dsh-rsi/README.md#going-back)。
+</details>
+
+<details>
 <summary><strong>学習した内容を確認したり、取り消したり、オフにしたりするには？</strong></summary>
 
 セッション内では `/rsi`、ターミナルでは `dsh-rsi status` を使います。`dsh-rsi show <id>` はアダプテーションのソースと検証レポートを表示し、`disable`、`retire`、`rollback` で外したり元に戻したりできます。何も変更せずに記録だけしたい場合は、`mode: observe` を設定します。
