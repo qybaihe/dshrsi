@@ -21,14 +21,11 @@
 
 [![RSI](https://img.shields.io/badge/RSI-Recursive_Self--Improvement-4d6bfe?style=for-the-badge)](#rsi)
 [![DeepSeek Harness](https://img.shields.io/badge/DeepSeek_Harness-0.2.2--rc.3_plugin-7c5cff?style=for-the-badge)](https://github.com/deepseek-ai/deepseek-harness)
-[![Detectors](https://img.shields.io/badge/Detectors-16-12b5e5?style=for-the-badge)](#coverage)
 [![Validation](https://img.shields.io/badge/Validation-5--Stage_Gate-0ea5e9?style=for-the-badge)](#how-it-works)
-[![Layers](https://img.shields.io/badge/Layers-Machine_%C2%B7_User_%C2%B7_Project-0284c7?style=for-the-badge)](#project-harness)
 [![Benchmarks](https://img.shields.io/badge/Benchmarks-4_Suites_%C2%B7_2_Models-2563eb?style=for-the-badge)](#benchmarks)
-[![Tests](https://img.shields.io/badge/Tests-130_unit_%C2%B7_29_e2e-1d4ed8?style=for-the-badge)](#contributing)
 [![MIT License](https://img.shields.io/badge/License-MIT-38bdf8?style=for-the-badge)](../../LICENSE)
 
-**[🌐 เว็บไซต์](https://qybaihe.github.io/dshrsi/) · [📖 เอกสารอ้างอิงของ Plugin](../../packages/dsh-rsi/README.md) · [🧩 Harness ประจำโปรเจกต์](../../packages/dsh-rsi/README.md#layers-and-the-project-harness) · [🔬 ด่านตรวจสอบ](../../packages/dsh-rsi/README.md#the-validation-gate) · [⚠️ ข้อจำกัดที่ทราบแล้ว](../../packages/dsh-rsi/README.md#known-limits) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
+**[🌐 เว็บไซต์](https://qybaihe.github.io/dshrsi/) · [📖 เอกสารอ้างอิงของ Plugin](../../packages/dsh-rsi/README.md) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
 
 [RSI คืออะไร](#rsi) · [เริ่มต้นใช้งาน](#quick-start) · [หลักการทำงาน](#how-it-works) · [ผลที่วัดได้จริง](#measured) · [Benchmark](#benchmarks) · [ตัวตรวจจับและความสามารถ](#coverage) · [Harness ประจำโปรเจกต์](#project-harness) · [ค่าเริ่มต้นด้านความปลอดภัย](#security) · [คำถามที่พบบ่อย](#faq)
 
@@ -116,26 +113,6 @@ dsh web
 
 พิมพ์ `/rsi` ในเซสชันใดก็ได้ เพื่อดูว่ามีอะไร mount อยู่บ้าง แต่ละตัวอยู่ในเลเยอร์ไหน และมีอะไรรอการอนุมัติจากคุณ
 
-### 3. ให้ repository มี harness เป็นของตัวเอง
-กฎที่เรียนรู้ได้ใน repository หนึ่ง เก็บไว้ใน repository นั้นได้เลย หนึ่งไฟล์ต่อหนึ่ง adaptation:
-
-```bash
-# คำสั่งนี้มาพร้อมกับ plugin อยู่ใน profile ที่ติดตั้ง plugin ไว้
-alias dsh-rsi="$HOME/.dsh/profiles/web/node_modules/.bin/dsh-rsi"
-
-dsh-rsi project init      # รันใน repository: สร้าง .dsh-rsi/ จากนั้น commit มัน
-dsh-rsi trust             # บนเครื่องอื่นทุกเครื่อง: ยอมรับไฟล์หลังจากอ่านแล้ว
-```
-
-### 4. รันจากซอร์สโค้ด
-
-```bash
-git clone https://github.com/qybaihe/dshrsi.git && cd dshrsi
-npm install               # ได้ dsh เวอร์ชันที่ pin ไว้ พร้อม pnpm ที่มันเรียกใช้
-npx dsh plugin --profile web add "$PWD/packages/dsh-rsi"
-npx dsh web
-```
-
 ส่วน profile `desktop` และ `headless`, plugin index, tarball ในเครื่อง และการโหลดเฉพาะการรันครั้งเดียว ดูได้ใน[เอกสารอ้างอิงของ plugin](../../packages/dsh-rsi/README.md#install)
 
 ---
@@ -155,36 +132,13 @@ Skill, ไฟล์ memory และ system prompt ที่ยาวขึ้�
 
 **DSHRSI ทำงานในระดับ harness สิ่งที่มันเรียนรู้จะกลายเป็นโค้ดบน extension point ของ harness เอง:**
 
-```mermaid
-flowchart LR
-  subgraph S1["1 · สังเกต"]
-    A["event ของเซสชัน"] --> B["ตัวตรวจจับ 16 ตัว"]
-  end
-  subgraph S2["2 · ตัดสินใจ"]
-    B --> C["signature ของ friction<br/>+ คลัง adaptation + เซสชันที่ผ่านมา"]
-  end
-  subgraph S3["3 · เขียนใหม่"]
-    C --> D["โมเดลของเซสชัน<br/>เขียน adaptation"]
-    D --> E["ด่านตรวจสอบ 5 ขั้น"]
-    E -. "ตีกลับ พร้อมเหตุผล" .-> D
-  end
-  subgraph S4["4 · Mount"]
-    E --> F["context node:vm ที่แยกขาด<br/>มีผลก่อน request ถัดไปที่ส่งถึงโมเดล"]
-  end
-  subgraph S5["5 · เก็บและแชร์"]
-    F --> G["คลัง: เลื่อนขั้น · กักกัน · แก้ไขใหม่"]
-    G --> H[".dsh-rsi/ ใน repository"]
-  end
-  G -. "เซสชันถัดไปเริ่มจากตรงนี้" .-> A
-```
-
 | ขั้นตอน | กลไก | ผลลัพธ์ |
 | :--- | :--- | :--- |
-| **1. สังเกต** | ตัวตรวจจับ 16 ตัวอ่าน event ของเซสชันที่ผ่านการ normalize แล้ว: การเรียกที่ล้มเหลวซ้ำ สาเหตุของความล้มเหลวที่วนกลับมาเรื่อย ๆ การลองคำสั่งแบบสะเปะสะปะ การทักแก้จากผู้ใช้ และเทิร์นที่จบลงโดยไม่ได้ตรวจสอบอะไรเลย | ปัญหาได้ signature ที่คงที่ข้ามเซสชัน เช่น `bash:command-not-found:python` |
+| **1. สังเกต** | ตัวตรวจจับ 16 ตัวอ่าน event ของเซสชันที่ผ่านการ normalize แล้ว: การเรียกที่ล้มเหลวซ้ำ สาเหตุของความล้มเหลวที่วนกลับมาเรื่อย ๆ การลองคำสั่งแบบสะเปะสะปะ การทักแก้จากผู้ใช้ และเทิร์นที่จบลงโดยไม่ได้ตรวจสอบอะไรเลย | ปัญหาได้ signature ที่คงเดิมจากเซสชันหนึ่งไปยังเซสชันถัดไป |
 | **2. เขียนใหม่** | โมเดลของเซสชันนั้นเองเขียน adaptation เป็น JavaScript ตาม API ที่มี 10 ความสามารถ โค้ดที่ไม่ผ่านจะถูกส่งกลับพร้อมเหตุผล ไม่เกินสองครั้ง จากนั้น template ที่มีมาในตัวจะเข้ามารับช่วงแทน | วิธีแก้คือโค้ด harness ไม่ใช่ prompt ที่งอกเพิ่มอีกหนึ่งย่อหน้า |
 | **3. ตรวจสอบ** | ตรวจตามลำดับ static → load → replay → regression → permission โดย adaptation ต้องมีผลกับการเรียกที่ trigger มัน และต้องไม่แตะการเรียกใดเลยที่สำเร็จในเซสชันนี้ | โค้ดที่ไม่ทำอะไรเลย หรือทำให้ของที่เคยใช้ได้พัง จะไม่มีวันถูก mount |
-| **4. Mount** | adaptation รันใน context `node:vm` ของตัวเองหลัง JSON bridge มี timeout กำกับทุกการเรียก และมีผลก่อน request ถัดไปที่ส่งถึงโมเดล | เทิร์นที่เจอปัญหาคือเทิร์นแรกที่ได้ประโยชน์ |
-| **5. เก็บและแชร์** | หนึ่งคลังต่อหนึ่งเครื่อง พร้อม ledger และ audit log ตัวที่ได้ผลถูกเลื่อนขั้น ตัวที่ throw error ถูกกักกัน ตัวที่เอาไม่อยู่ถูกเขียนใหม่ให้เข้มขึ้น และกฎของโปรเจกต์ถูกเขียนลง `.dsh-rsi/` | เซสชันถัดไปเริ่มต้นแบบปรับตัวมาแล้ว และเพื่อนร่วมทีมได้กฎของโปรเจกต์หลังรัน `dsh-rsi trust` |
+| **4. Mount** | adaptation รันใน context ของตัวเองที่ถูกแยกส่วนไว้ มี timeout กำกับทุกการเรียก และมีผลก่อน request ถัดไปที่ส่งถึงโมเดล | เทิร์นที่เจอปัญหาคือเทิร์นแรกที่ได้ประโยชน์ |
+| **5. เก็บและแชร์** | แต่ละเครื่องมีคลัง adaptation ของตัวเอง ตัวที่ได้ผลถูกเลื่อนขั้น ตัวที่ throw error ถูกกักกัน ตัวที่เอาไม่อยู่ถูกเขียนใหม่ให้เข้มขึ้น และกฎของโปรเจกต์ถูกเขียนลงใน repository | เซสชันถัดไปเริ่มต้นแบบปรับตัวมาแล้ว และเพื่อนร่วมทีมได้กฎของโปรเจกต์เมื่อยอมรับกฎเหล่านั้นแล้ว |
 | **↻ วนอีกรอบ** | เซสชันถัดไปรันบน harness ที่ขั้นตอน 5 ทิ้งไว้ให้ และขั้นตอน 1 สังเกตมันโดยมี adaptation ทุกตัวอยู่ครบ | การปรับปรุงต่อยอดบนการปรับปรุง นี่แหละคือการเรียกซ้ำ |
 
 ---
@@ -199,46 +153,9 @@ flowchart LR
 
 | สถานการณ์ | ไม่มี DSHRSI | มี DSHRSI | สิ่งที่ harness เขียน |
 | :--- | :--- | :--- | :--- |
-| **คำสั่งที่ไม่มีในเครื่อง**: README เขียนว่า `python stats.py` แต่เครื่องมีแค่ `python3` | ❌ **5 / 5** เซสชันเรียกคำสั่งที่ล้มเหลว | ✅ **0 / 7** เซสชันหลังมี adaptation (ก่อนหน้านั้น 9 / 9) | `deny` + `prompt` เขียนโดยโมเดล ผ่านด่านตรวจสอบตั้งแต่ครั้งแรก |
-| **กฎที่ผู้ใช้บอกไว้ครั้งเดียว**: "ห้ามแก้ `notes.txt` ให้เขียนลง `notes.draft.txt`" | ❌ เซสชันถัดไปแก้ `notes.txt` | ✅ เซสชันถัดไปเขียนลง `notes.draft.txt` เองโดยไม่ต้องบอก | `deny` + `prompt` เขียนโดยโมเดลทันทีหลังถูกทักแก้ |
+| **คำสั่งที่ไม่มีในเครื่อง**: คำแนะนำเขียนว่า `python` แต่เครื่องมีแค่ `python3` | ❌ **5 / 5** เซสชันเรียกคำสั่งที่ล้มเหลว | ✅ **0 / 7** เซสชันหลังมี adaptation (ก่อนหน้านั้น 9 / 9) | `deny` + `prompt` เขียนโดยโมเดล ผ่านด่านตรวจสอบตั้งแต่ครั้งแรก |
+| **กฎที่ผู้ใช้บอกไว้ครั้งเดียว**: ห้ามแก้ไฟล์ไฟล์หนึ่ง ให้เขียนลงฉบับร่างของไฟล์นั้นแทน | ❌ เซสชันถัดไปแก้ไฟล์นั้น | ✅ เซสชันถัดไปเขียนลงฉบับร่างเองโดยไม่ต้องบอก | `deny` + `prompt` เขียนโดยโมเดลทันทีหลังถูกทักแก้ |
 | **การแก้ไขที่ไม่มีใครสั่งให้ตรวจสอบ** | ไม่ได้รัน | ⚪ ไม่ได้เขียนอะไร: โมเดลตรวจสอบการแก้ไขของตัวเองใน 3 / 3 เซสชัน จึงไม่มีอะไรให้เรียนรู้ | ไม่มี |
-
-สถานการณ์แรกรันสามรอบโดยมี plugin แต่ละรอบเริ่มจากคลังว่างเปล่า บวกกับรอบควบคุมอีกหนึ่งรอบ สถานการณ์ที่สองรันแบบมี plugin หนึ่งรอบ และไม่มีอีกหนึ่งรอบ
-
-**คำสั่งที่ไม่มีในเครื่อง ไล่ทีละเซสชัน** (จำนวน tool call ที่ล้มเหลวต่อเซสชัน):
-
-| รอบการรัน | S1 | S2 | S3 | S4 | S5 | S6 |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **ไม่มี DSHRSI** | ❌ 1 | ❌ 1 | ❌ 1 | ❌ 1 | ❌ 1 | |
-| **มี DSHRSI · รอบ 1** | ❌ 1 | ❌ 1 | ❌ 1 → 🧬 | ✅ 0 | ✅ 0 | ✅ 0 |
-| **มี DSHRSI · รอบ 2** | ❌ 1 | ❌ 1 | ❌ 1 → 🧬 | ✅ 0 | ✅ 0 | |
-| **มี DSHRSI · รอบ 3** | ❌ 1 | ❌ 1 | ❌ 1 → 🧬 | ✅ 0 | ✅ 0 | |
-
-🧬 คือเทิร์นที่โมเดลเขียน adaptation และ harness ก็ mount มันเข้าไป ส่วนใน 3 จาก 7 เซสชันหลังจากนั้น โมเดลยังพยายามเรียก `python` อยู่ และ harness ปฏิเสธการเรียกนั้นก่อนที่มันจะรัน ทุกเซสชันในสถานการณ์นี้จบด้วยคำตอบที่ถูกต้อง ไม่ว่าจะมีหรือไม่มี plugin
-
-ทำซ้ำบนเครื่องของคุณ:
-
-```bash
-MIMO_API_KEY=... npm run test:live -- python --sessions 6          # มี plugin
-MIMO_API_KEY=... npm run test:live -- python --sessions 5 --off    # รอบควบคุม ไม่มี plugin
-```
-
-<details>
-<summary><strong>ส่วนที่ยังไม่ได้ตรวจสอบบนเครื่องนี้ (คลิกเพื่อขยาย)</strong></summary>
-
-<br />
-
-เส้นทางการทำงานเหล่านี้มีอยู่ในโค้ด และมี unit test หรือ end-to-end test ที่ใช้โมเดลจำลองครอบคลุมอยู่ แต่ยังไม่เคยเห็นทำงานในเซสชันจริงหรือแอปจริง:
-
-| ส่วน | เหตุผลที่ยังไม่ได้ตรวจสอบ |
-| :--- | :--- |
-| แอปเดสก์ท็อปของ DeepSeek Harness | ไม่ได้ติดตั้งบนเครื่องที่ใช้พัฒนา ตรวจสอบแล้วบน profile `web` และกลไกการติดตั้งที่แอปครอบอยู่ |
-| `negative-feedback`, `approval-denied`, `context-pressure`, `model-instability` | ทดสอบด้วย event ที่สร้างขึ้นเองเท่านั้น ยังไม่เคยถูก trigger ในเซสชันจริง |
-| การทดสอบเบราว์เซอร์แบบอัตโนมัติ | ไม่มีเลย ที่ผ่านมาไล่ตรวจ UI ด้วยมือบนหน้า `dsh web` จริง ทั้งโหมดสว่างและโหมดมืด |
-| profile แบบ ACP และ SDK | ไม่มี UI ในนั้น และยังไม่ได้ตรวจสอบ |
-| โมเดลนอกตระกูล MiMo v2.6 | ยังไม่เคยรันเลย ฝั่ง benchmark ใช้ `mimo-v2.6-pro` และ `mimo-v2.6-flash` ส่วนสามสถานการณ์ข้างต้นใช้ `mimo-v2.6-pro` |
-
-</details>
 
 ---
 
@@ -270,26 +187,17 @@ DeepSeek Harness ตัวมาตรฐาน เทียบกับ DeepSee
 
 **สิ่งที่ DSHRSI ทำจริง ๆ โดยไม่มีคำใบ้แม้แต่คำเดียว คือเปลี่ยนตัวเอง** ตลอดแปดรอบการรัน โมเดลเขียน **adaptation 56 ตัว** โดย 15 ตัวในนั้นได้ทำงานจริง และ 10 ตัวจากกลุ่มนั้นถูกขยายขอบเขตไปทั้งเครื่อง สำหรับแต่ละตัวใน 10 ตัวนี้ เรานำโจทย์ที่เริ่มหลังจากมันมาเทียบกับโจทย์ชุดเดียวกันนั้นภายใต้ DSH ตัวมาตรฐาน:
 
-| adaptation ที่โมเดลเขียน | ความล้มเหลวที่มันรับมือ | DSH มาตรฐาน | DSH + DSHRSI | p |
-| :--- | :--- | ---: | ---: | ---: |
-| *Stop inline python checks that abort on first mismatch* (MBPP, `mimo-v2.6-pro`) | การรันเทสต์ที่ตายตั้งแต่ assertion แรกที่ไม่ผ่าน | 16 จาก 310 โจทย์ | **3 จาก 310** | 0.002 |
-| *Redirect missing lib.rs reads to a glob lookup* (Polyglot, `mimo-v2.6-flash`) | การอ่าน `lib.rs` จาก path ที่ไม่มีอยู่จริง | 7 จาก 151 โจทย์ | **1 จาก 151** | 0.07 |
-| อีก 8 ตัวที่เหลือ | | ไม่มีการเปลี่ยนแปลงที่วัดได้ | | |
+| ความล้มเหลวที่ harness สอนตัวเองให้หลีกเลี่ยง | DSH มาตรฐาน | DSH + DSHRSI | p |
+| :--- | ---: | ---: | ---: |
+| การรันเทสต์ที่ตายตั้งแต่ assertion แรกที่ไม่ผ่าน (MBPP, `mimo-v2.6-pro`) | 16 จาก 310 โจทย์ | **3 จาก 310** | 0.002 |
+| การอ่านไฟล์จาก path ที่ไม่มีอยู่จริง (Polyglot, `mimo-v2.6-flash`) | 7 จาก 151 โจทย์ | **1 จาก 151** | 0.07 |
+| adaptation อีก 8 ตัวที่เหลือ | ไม่มีการเปลี่ยนแปลงที่วัดได้ | | |
 
-ทั้งสองตัวนี้ไม่ได้ทำให้โจทย์ผ่านมากขึ้น และ plugin ทำให้ใช้เวลาของ agent กับ input token เพิ่มขึ้นราว 8–9% ทั้งสิบตัวมีรายการอยู่ใน [`bench/README.md`](../../bench/README.md#did-those-adaptations-work)
+ทั้งสองตัวนี้ไม่ได้ทำให้โจทย์ผ่านมากขึ้น และ plugin ทำให้ใช้เวลาของ agent กับ input token เพิ่มขึ้นราว 8–9% ทั้งสิบตัวมีรายการอยู่ใน[บันทึกประกอบ benchmark](../../bench/README.md#did-those-adaptations-work)
 
 **LiveCodeBench v6 ถูกตัดจบกลางคัน:** ยอดเงินในบัญชีโมเดลหมดกลางทาง เมื่อดูเฉพาะโจทย์ที่ทั้งสองฝั่งทำเสร็จแล้ว ณ ตอนนั้น DSH ตัวมาตรฐานแก้ได้ 94 และ DSHRSI แก้ได้ 96 จาก 105 โจทย์กับ `mimo-v2.6-pro` และ 42 ต่อ 42 จาก 51 โจทย์กับ `mimo-v2.6-flash` ด้วยเหตุผลเดียวกัน รอบที่สอง ซึ่งคือการรันโจทย์เดิมอีกครั้งบนคลังที่รอบแรกทิ้งไว้ จึงยังไม่ได้รัน
 
-ทำซ้ำบนเครื่องของคุณ:
-
-```bash
-bench/setup.sh                                                        # toolchain, dataset, โค้ดให้คะแนน
-MIMO_API_KEY=... node bench/run.mjs polyglot --arm dsh --run dsh-p1   # DeepSeek Harness ตัวมาตรฐาน
-MIMO_API_KEY=... node bench/run.mjs polyglot --arm rsi --run rsi-p1   # มี plugin
-node bench/report.mjs --write                                         # ตาราง และ bench/results/*.json
-```
-
-วิธีการทดสอบ ตารางต้นทุนและความล้มเหลว รวมถึงข้อจำกัด อยู่ใน [`bench/README.md`](../../bench/README.md) ส่วนผลลัพธ์รายโจทย์อยู่ใน [`bench/results/`](../../bench/results)
+วิธีการทดสอบ ตารางต้นทุนและความล้มเหลว ข้อจำกัด รวมถึงคำสั่งสำหรับทำซ้ำทั้งหมดนี้ อยู่ใน[บันทึกประกอบ benchmark](../../bench/README.md)
 
 ---
 
@@ -297,26 +205,7 @@ node bench/report.mjs --write                                         # ตา�
 
 ## 🛡️ ตัวตรวจจับและความสามารถ
 
-**ตัวตรวจจับ 16 ตัว** ตัดสินว่า harness ควรเปลี่ยนเมื่อไร ตัวตรวจจับชุดเดียวกันนี้รันได้ทั้งบนเซสชันที่กำลังทำงานอยู่ และบนเซสชันที่เก็บไว้บนดิสก์ (`dsh-rsi mine`):
-
-| ตัวตรวจจับ | สิ่งที่ตรวจพบ | การตอบสนอง |
-| :--- | :--- | :---: |
-| `repeat-failing-call` | การเรียกเดิมล้มเหลวอีกครั้งด้วย argument เดิม | ปรับตัว |
-| `failure-signature` | สาเหตุของความล้มเหลวเดิมวนกลับมาเรื่อย ๆ: ไม่มีคำสั่ง, ขาด dependency, เครือข่าย, สิทธิ์, port ถูกใช้อยู่, ไม่พบ path, edit ไม่ตรงกับเนื้อหา, argument ไม่ถูกต้อง, หน่วยความจำไม่พอ | ปรับตัว |
-| `command-flailing` | คำสั่งประเภทเดียวกันล้มเหลวติด ๆ กัน โดยเปลี่ยน argument ไปเรื่อย ๆ | ปรับตัว |
-| `read-thrash` | ไฟล์เดิมที่ไม่มีการเปลี่ยนแปลงถูกอ่านซ้ำแล้วซ้ำอีก | ปรับตัว |
-| `edit-churn` | ไฟล์เดียวกันถูกแก้หลายครั้งในเทิร์นเดียว | ปรับตัว |
-| `error-storm` | tool call ล่าสุดส่วนใหญ่ล้มเหลว | ปรับตัว |
-| `stall` | ล้มเหลวติดต่อกันโดยไม่มีครั้งไหนสำเร็จคั่นเลย | ปรับตัว |
-| `timeout-recurrence` | คำสั่งประเภทเดียวกัน timeout ซ้ำ ๆ | ปรับตัว |
-| `output-flood` | คำสั่งประเภทเดียวกันให้ output ขนาดใหญ่เกินไปซ้ำ ๆ | ปรับตัว |
-| `approval-denied` / `denied-repeat` | ผู้ใช้ปฏิเสธการกระทำประเภทเดียวกันซ้ำ ๆ หรือการเรียกที่ถูกปฏิเสธถูกลองใหม่โดยไม่เปลี่ยนอะไรเลย | ปรับตัว |
-| `user-correction` | ผู้ใช้ทักแก้สิ่งที่โมเดลทำ หรือขัดจังหวะแล้วเปลี่ยนทิศทาง | ปรับตัว |
-| `premature-completion` | โค้ดถูกแก้ และเทิร์นกำลังจะจบโดยยังไม่ได้รันการตรวจสอบใดเลย | ปรับตัว |
-| `negative-feedback` | ผู้ใช้กดว่าคำตอบไม่ดี และเขียนเหตุผลไว้ | ปรับตัว |
-| `user-interrupt` | ผู้ใช้ขัดจังหวะกลางเทิร์น | บันทึกไว้ |
-| `model-instability` | request ไปยังโมเดลล้มเหลว ถูก retry หรือชน output limit ซ้ำ ๆ | บันทึกไว้ |
-| `context-pressure` | context ถูก compact กลางงาน | บันทึกไว้ |
+**ตัวตรวจจับ 16 ตัว** ตัดสินว่า harness ควรเปลี่ยนเมื่อไร [รายการทั้งหมด](../../packages/dsh-rsi/README.md#detectors)อยู่ในเอกสารอ้างอิงของ plugin
 
 **ความสามารถ 10 อย่าง** คือทั้งหมดที่ adaptation ทำได้ มันเข้าถึง harness ได้ผ่านความสามารถเหล่านี้เท่านั้น:
 
@@ -360,17 +249,9 @@ define({
 | :--- | :--- | :--- | :--- |
 | **`machine`** | ข้อเท็จจริงเกี่ยวกับคอมพิวเตอร์เครื่องนี้ | ไม่มี `python`; port ถูกใช้ไปแล้ว; host ภายใน resolve ไม่ได้ | workspace ที่เรียนรู้มันมา จากนั้นขยายไปทั้งเครื่องเมื่อ workspace ที่สองเจอปัญหาเดียวกัน |
 | **`user`** | วิธีที่คุณอยากให้มันปฏิบัติต่อคุณ | คำตอบที่ถูกกดว่าไม่ดี พร้อมเหตุผลว่า "ยาวเกินไป" | ทั้งเครื่อง |
-| **`project`** | กฎและธรรมเนียมของ repository หนึ่ง | "repository นี้ใช้ pnpm เสมอ" | workspace และตัว repository เองผ่าน `.dsh-rsi/` |
+| **`project`** | กฎและธรรมเนียมของ repository หนึ่ง | "repository นี้ใช้ pnpm เสมอ" | workspace และตัว repository เอง: กฎถูก commit ไปพร้อมกับโค้ด |
 
 **เลเยอร์ของโปรเจกต์เดินทางไปกับโค้ด:**
-
-```
-.dsh-rsi/
-  harness.json           ตัวบอกฟอร์แมต และการตั้งค่าระดับโปรเจกต์
-  adaptations/
-    remember-the-user-s-instruction-3f2a1c.js     เรียนรู้มา แล้วเขียนลงที่นี่
-    no-force-push.js                              ตัวที่เขียนด้วยมือก็ทำงานแบบเดียวกัน
-```
 
 - **Commit เพื่อแชร์ ลบเพื่อถอดออก** หนึ่งไฟล์คือหนึ่ง adaptation
 - **ไม่มีอะไรรันเพียงเพราะถูก clone มา** แต่ละเครื่องยอมรับเนื้อหาของไฟล์แบบตรงตัวด้วย `dsh-rsi trust` และต้องยอมรับใหม่เมื่อไฟล์เปลี่ยน
@@ -387,7 +268,7 @@ define({
 - **ความสามารถที่มีพลังสูงต้องได้รับอนุมัติ (`autonomy: tighten`)** — adaptation ที่เขียนผลลัพธ์ใหม่ เพิ่ม tool หรือรันคำสั่ง จะถูกเก็บไว้ในสถานะ `proposed` และรอ `dsh-rsi approve <id>`
 - **มองไม่เห็นจนกว่าจะจำเป็น** — เมื่อไม่มี friction และไม่มีอะไร mount อยู่ ทั้ง system prompt รายการ tool และข้อความ จะไม่เปลี่ยนแม้แต่ไบต์เดียว มี end-to-end test คอยคุมเรื่องนี้อยู่
 - **ความล้มเหลวถูกจำกัดวง** — handler ที่ throw error จะไม่กระทบ tool call ที่มันผูกอยู่ด้วยเลย เมื่อ error ครบสามครั้ง adaptation ตัวนั้นจะถูกกักกัน
-- **ทุกอย่างมีบันทึก** — ทุกการตัดสินใจอยู่ใน `audit.jsonl` ส่วนทุก friction ทุกการ mount และทุก action อยู่ใน `ledger.jsonl` คำสั่ง `dsh-rsi disable`, `retire` และ `rollback` ใช้ถอด adaptation ออกหรือย้อนกลับ
+- **ทุกอย่างมีบันทึก** — ทุกการตัดสินใจ ทุก friction ทุกการ mount และทุก action ถูกบันทึกไว้ คำสั่ง `dsh-rsi disable`, `retire` และ `rollback` ใช้ถอด adaptation ออกหรือย้อนกลับ
 - **สามโหมด** — `adapt` mount ทันที (ค่าเริ่มต้น), `propose` สร้างแล้วรอคุณ, `observe` บันทึกอย่างเดียว
 
 ---
@@ -457,7 +338,6 @@ adaptation เขียนโดยโมเดลปัจจุบันขอ
 - [🛠️ Command line ของ `dsh-rsi`](../../packages/dsh-rsi/README.md#command-line) · [⚙️ การตั้งค่า](../../packages/dsh-rsi/README.md#configuration)
 - [⚠️ ข้อจำกัดที่ทราบแล้ว](../../packages/dsh-rsi/README.md#known-limits)
 - [📊 วิธีการและผลลัพธ์ของ Benchmark](../../bench/README.md)
-- [🌐 ซอร์สโค้ดของเว็บไซต์](../../website) — การปรับปรุงตนเองแบบเรียกซ้ำ หลักการทำงาน การเขียน adaptation การประเมินผล; เปิด `website/index.html` ในเบราว์เซอร์
 - [🧱 DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) — harness ที่ plugin นี้เสียบเข้าไป
 
 <a id="contributing"></a>
@@ -471,23 +351,6 @@ npm install && npm test    # unit test 130 ตัว ตามด้วย end-t
 ```
 
 end-to-end test แทนที่ endpoint ของโมเดลด้วยตัวจำลอง นอกนั้นเป็นของจริงทั้งหมด: process `dsh`, การรัน tool, session log และการติดตั้ง plugin
-
-```
-packages/dsh-rsi/        ตัว bundle ของ plugin (ESM ล้วน ไม่มีขั้นตอน build)
-  index.js               ฝั่ง host: binding เข้ากับ extension point ของ DSH
-  client.js              ฝั่งเบราว์เซอร์: ป้าย RSI และแถบ pill แสดงสถานะ
-  src/engine.js          สังเกต → ตัดสินใจ → สร้าง → ตรวจสอบ → mount → เก็บ → แชร์
-  src/signals.js         ตัวตรวจจับทั้ง 16 ตัว
-  src/validate.js        ด่านตรวจสอบ
-  src/sandbox.js         ที่ที่โค้ดของ adaptation รัน
-  src/project.js         harness ประจำโปรเจกต์: <repository>/.dsh-rsi
-  bin/rsi.js             คำสั่ง dsh-rsi
-market/index.json        plugin index ที่เพิ่มเข้า DSH ได้
-test/unit/  test/e2e/    unit test และ end-to-end test บน process dsh จริง
-test/live/               การรันกับโมเดลจริง (ต้องมี MIMO_API_KEY)
-bench/                   benchmark: DSH ตัวมาตรฐาน เทียบกับ DSH + dsh-rsi
-website/                 เว็บไซต์ (หน้า static ไม่มีขั้นตอน build)
-```
 
 ## 📄 สัญญาอนุญาต
 
