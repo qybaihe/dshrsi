@@ -1,0 +1,10 @@
+# What GitHub counts as the project's own code, and what git should never try to merge line by line.
+package-lock.json            linguist-generated
+website/assets/bench-data.js linguist-generated
+website/assets/trace-data.js linguist-generated
+bench/results/*.json         linguist-generated
+docs/readme/*.md             linguist-documentation
+
+*.gif binary
+*.png binary
+*.pdf binary
