@@ -21,14 +21,11 @@
 
 [![RSI](https://img.shields.io/badge/RSI-Recursive_Self--Improvement-4d6bfe?style=for-the-badge)](#rsi)
 [![DeepSeek Harness](https://img.shields.io/badge/DeepSeek_Harness-0.2.2--rc.3_plugin-7c5cff?style=for-the-badge)](https://github.com/deepseek-ai/deepseek-harness)
-[![Detectors](https://img.shields.io/badge/Detectors-16-12b5e5?style=for-the-badge)](#coverage)
 [![Validation](https://img.shields.io/badge/Validation-5--Stage_Gate-0ea5e9?style=for-the-badge)](#how-it-works)
-[![Layers](https://img.shields.io/badge/Layers-Machine_%C2%B7_User_%C2%B7_Project-0284c7?style=for-the-badge)](#project-harness)
 [![Benchmarks](https://img.shields.io/badge/Benchmarks-4_Suites_%C2%B7_2_Models-2563eb?style=for-the-badge)](#benchmarks)
-[![Tests](https://img.shields.io/badge/Tests-130_unit_%C2%B7_29_e2e-1d4ed8?style=for-the-badge)](#contributing)
 [![MIT License](https://img.shields.io/badge/License-MIT-38bdf8?style=for-the-badge)](../../LICENSE)
 
-**[🌐 വെബ്സൈറ്റ്](https://qybaihe.github.io/dshrsi/) · [📖 Plugin Reference](../../packages/dsh-rsi/README.md) · [🧩 Project Harness](../../packages/dsh-rsi/README.md#layers-and-the-project-harness) · [🔬 Validation Gate](../../packages/dsh-rsi/README.md#the-validation-gate) · [⚠️ അറിയാവുന്ന പരിമിതികൾ](../../packages/dsh-rsi/README.md#known-limits) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
+**[🌐 വെബ്സൈറ്റ്](https://qybaihe.github.io/dshrsi/) · [📖 Plugin Reference](../../packages/dsh-rsi/README.md) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
 
 [RSI എന്നാൽ എന്ത്](#rsi) · [Quick Start](#quick-start) · [പ്രവർത്തിക്കുന്ന വിധം](#how-it-works) · [അളന്ന ഫലങ്ങൾ](#measured) · [Benchmarks](#benchmarks) · [Detectors-ഉം Capabilities-ഉം](#coverage) · [Project Harness](#project-harness) · [സുരക്ഷാ defaults](#security) · [FAQ](#faq)
 
@@ -116,26 +113,6 @@ Configure ചെയ്യാൻ ഒന്നുമില്ല. ഒരേ പ്
 
 ഏതു session-ലും `/rsi` എന്ന് type ചെയ്താൽ എന്തൊക്കെ mount ചെയ്തിട്ടുണ്ട്, ഓരോന്നും ഏതു layer-ൽ പെടുന്നു, നിങ്ങളുടെ അനുമതി കാത്തിരിക്കുന്നത് എന്തൊക്കെ എന്നു കാണാം.
 
-### 3. ഒരു Repository-ക്ക് അതിന്റേതായ Harness നൽകുക
-ഒരു repository-യിൽ പഠിച്ച നിയമങ്ങൾ ആ repository-യിൽ തന്നെ സൂക്ഷിക്കാം, ഒരു adaptation-ന് ഒരു ഫയൽ എന്ന കണക്കിൽ:
-
-```bash
-# ഈ കമാൻഡ് plugin-നൊപ്പം വരുന്നു, plugin install ചെയ്ത profile-നുള്ളിൽ
-alias dsh-rsi="$HOME/.dsh/profiles/web/node_modules/.bin/dsh-rsi"
-
-dsh-rsi project init      # repository-യിൽ: .dsh-rsi/ ഉണ്ടാക്കുന്നു, പിന്നെ അത് commit ചെയ്യുക
-dsh-rsi trust             # മറ്റ് ഓരോ മെഷീനിലും: ഫയലുകൾ വായിച്ച ശേഷം അവ അംഗീകരിക്കുക
-```
-
-### 4. Source-ൽ നിന്ന് ഓടിക്കുക
-
-```bash
-git clone https://github.com/qybaihe/dshrsi.git && cd dshrsi
-npm install               # pin ചെയ്ത ഒരു dsh-ഉം അത് വിളിക്കുന്ന pnpm-ഉം കൊണ്ടുവരുന്നു
-npx dsh plugin --profile web add "$PWD/packages/dsh-rsi"
-npx dsh web
-```
-
 `desktop`, `headless` profiles, plugin indexes, local tarballs, ഒറ്റ run-നു മാത്രമായുള്ള loading എന്നിവ [plugin reference-ൽ](../../packages/dsh-rsi/README.md#install) വിവരിച്ചിട്ടുണ്ട്.
 
 ---
@@ -155,36 +132,13 @@ Skills, memory files, കൂടുതൽ നീണ്ട system prompts എന�
 
 **DSHRSI പ്രവർത്തിക്കുന്നത് harness തലത്തിലാണ്. അത് പഠിക്കുന്നത് harness-ന്റെ സ്വന്തം extension points-ലെ കോഡ് ആയി മാറുന്നു:**
 
-```mermaid
-flowchart LR
-  subgraph S1["1 · നിരീക്ഷിക്കുക"]
-    A["session events"] --> B["16 detectors"]
-  end
-  subgraph S2["2 · തീരുമാനിക്കുക"]
-    B --> C["friction signature<br/>+ library + മുൻ sessions"]
-  end
-  subgraph S3["3 · മാറ്റിയെഴുതുക"]
-    C --> D["session-ലെ model<br/>ഒരു adaptation എഴുതുന്നു"]
-    D --> E["5 ഘട്ടങ്ങളുള്ള validation gate"]
-    E -. "കാരണങ്ങൾ സഹിതം നിരസിച്ചു" .-> D
-  end
-  subgraph S4["4 · Mount ചെയ്യുക"]
-    E --> F["വേറിട്ട node:vm context<br/>അടുത്ത model request-നു മുമ്പേ live"]
-  end
-  subgraph S5["5 · സൂക്ഷിക്കുക, പങ്കിടുക"]
-    F --> G["library: promote · quarantine · revise"]
-    G --> H["repository-യിലെ .dsh-rsi/"]
-  end
-  G -. "അടുത്ത session ഇവിടെ നിന്ന് തുടങ്ങുന്നു" .-> A
-```
-
 | ഘട്ടം | പ്രവർത്തനരീതി | ഫലം |
 | :--- | :--- | :--- |
-| **1. നിരീക്ഷിക്കുക** | 16 detectors normalize ചെയ്ത session events വായിക്കുന്നു: വീണ്ടും പരാജയപ്പെടുന്ന calls, ആവർത്തിച്ചു വരുന്ന പരാജയകാരണങ്ങൾ, ദിശയില്ലാത്ത തപ്പിത്തടയൽ, user-ന്റെ തിരുത്തലുകൾ, ഒന്നും verify ചെയ്യാതെ അവസാനിക്കുന്ന turns. | പ്രശ്നത്തിന് sessions മാറിയാലും മാറാത്ത ഒരു signature കിട്ടുന്നു, ഉദാഹരണത്തിന് `bash:command-not-found:python`. |
+| **1. നിരീക്ഷിക്കുക** | 16 detectors normalize ചെയ്ത session events വായിക്കുന്നു: വീണ്ടും പരാജയപ്പെടുന്ന calls, ആവർത്തിച്ചു വരുന്ന പരാജയകാരണങ്ങൾ, ദിശയില്ലാത്ത തപ്പിത്തടയൽ, user-ന്റെ തിരുത്തലുകൾ, ഒന്നും verify ചെയ്യാതെ അവസാനിക്കുന്ന turns. | പ്രശ്നത്തിന് ഒരു session-ൽ നിന്ന് അടുത്തതിലേക്ക് കടക്കുമ്പോഴും മാറാത്ത ഒരു signature കിട്ടുന്നു. |
 | **2. മാറ്റിയെഴുതുക** | Session-ലെ model തന്നെ 10 capabilities ഉള്ള ഒരു API അനുസരിച്ച് ഒരു JavaScript adaptation എഴുതുന്നു. നിരസിച്ച കോഡ് കാരണങ്ങൾ സഹിതം തിരിച്ചു പോകും, പരമാവധി രണ്ടു തവണ; പിന്നെ ഒരു built-in template ഏറ്റെടുക്കും. | Fix എന്നത് harness കോഡ് ആണ്, prompt-ൽ ഒരു ഖണ്ഡിക കൂടിയല്ല. |
 | **3. Validate ചെയ്യുക** | Static → load → replay → regression → permission. തന്നെ trigger ചെയ്ത calls-ൽ adaptation ഇടപെടണം, ഈ session-ൽ വിജയിച്ച ഒരു call-നെയും തൊടരുത്. | ഒന്നും ചെയ്യാത്ത കോഡോ, നേരത്തെ ശരിയായി നടന്നിരുന്നത് തകർക്കുന്ന കോഡോ ഒരിക്കലും mount ആകില്ല. |
-| **4. Mount ചെയ്യുക** | Adaptation ഓടുന്നത് ഒരു JSON bridge-നു പിന്നിലുള്ള സ്വന്തം `node:vm` context-ലാണ്, ഓരോ call-നും timeout ഉണ്ട്; അടുത്ത model request-നു മുമ്പേ അത് പ്രാബല്യത്തിൽ വരും. | പ്രശ്നം നേരിട്ട turn തന്നെയാണ് ആദ്യം പ്രയോജനം നേടുന്നത്. |
-| **5. സൂക്ഷിക്കുക, പങ്കിടുക** | ഓരോ മെഷീനിലും ഒരു library, ഒപ്പം ഒരു ledger-ഉം audit log-ഉം. ഫലിക്കുന്നത് promote ചെയ്യും, error throw ചെയ്യുന്നത് quarantine ചെയ്യും, ഫലിക്കാതെ പോയത് കൂടുതൽ കർശനമായി മാറ്റിയെഴുതും, project നിയമങ്ങൾ `.dsh-rsi/`-ലേക്ക് എഴുതും. | അടുത്ത session തുടങ്ങുന്നത് adapt ചെയ്ത നിലയിലാണ്; `dsh-rsi trust` കഴിഞ്ഞാൽ ടീമംഗങ്ങൾക്കും project-ന്റെ നിയമങ്ങൾ കിട്ടും. |
+| **4. Mount ചെയ്യുക** | Adaptation ഓടുന്നത് സ്വന്തമായ ഒരു വേറിട്ട context-ലാണ്, ഓരോ call-നും timeout ഉണ്ട്; അടുത്ത model request-നു മുമ്പേ അത് പ്രാബല്യത്തിൽ വരും. | പ്രശ്നം നേരിട്ട turn തന്നെയാണ് ആദ്യം പ്രയോജനം നേടുന്നത്. |
+| **5. സൂക്ഷിക്കുക, പങ്കിടുക** | ഓരോ മെഷീനും adaptations-ന്റെ ഒരു library സൂക്ഷിക്കുന്നു. ഫലിക്കുന്നത് promote ചെയ്യും, error throw ചെയ്യുന്നത് quarantine ചെയ്യും, ഫലിക്കാതെ പോയത് കൂടുതൽ കർശനമായി മാറ്റിയെഴുതും, project നിയമങ്ങൾ repository-യിലേക്ക് എഴുതും. | അടുത്ത session തുടങ്ങുന്നത് adapt ചെയ്ത നിലയിലാണ്; ടീമംഗങ്ങൾ അംഗീകരിച്ചു കഴിഞ്ഞാൽ അവർക്കും project-ന്റെ നിയമങ്ങൾ കിട്ടും. |
 | **↻ വീണ്ടും** | അടുത്ത session ഓടുന്നത് ഘട്ടം 5 ബാക്കിവെച്ച harness-ലാണ്; ഘട്ടം 1 അതിനെ നിരീക്ഷിക്കുന്നത് എല്ലാ adaptations-ഉം നിലവിലിരിക്കെയാണ്. | മെച്ചപ്പെടുത്തലിനു മുകളിൽ മെച്ചപ്പെടുത്തൽ. അതാണ് recursion. |
 
 ---
@@ -199,46 +153,9 @@ flowchart LR
 
 | Scenario | DSHRSI ഇല്ലാതെ | DSHRSI ഉള്ളപ്പോൾ | Harness എഴുതിയത് |
 | :--- | :--- | :--- | :--- |
-| **കമാൻഡ് ഇല്ല**: README പറയുന്നത് `python stats.py`, മെഷീനിലുള്ളത് `python3` മാത്രം | ❌ **5 / 5** sessions-ലും പരാജയപ്പെട്ട call നടന്നു | ✅ adaptation-നു ശേഷം **0 / 7** sessions (അതിനു മുമ്പ് 9 / 9) | `deny` + `prompt`, model എഴുതിയത്, ആദ്യ ശ്രമത്തിൽ തന്നെ gate കടന്നു |
-| **User ഒരിക്കൽ മാത്രം പറഞ്ഞ നിയമം**: "`notes.txt` ഒരിക്കലും മാറ്റരുത്, `notes.draft.txt`-ലേക്ക് എഴുതുക" | ❌ അടുത്ത session `notes.txt` edit ചെയ്തു | ✅ അടുത്ത session ആരും പറയാതെ തന്നെ `notes.draft.txt`-ലേക്ക് എഴുതി | `deny` + `prompt`, തിരുത്തൽ കിട്ടിയ ഉടനെ model എഴുതിയത് |
+| **കമാൻഡ് ഇല്ല**: നിർദേശങ്ങളിൽ പറയുന്നത് `python`, മെഷീനിലുള്ളത് `python3` മാത്രം | ❌ **5 / 5** sessions-ലും പരാജയപ്പെട്ട call നടന്നു | ✅ adaptation-നു ശേഷം **0 / 7** sessions (അതിനു മുമ്പ് 9 / 9) | `deny` + `prompt`, model എഴുതിയത്, ആദ്യ ശ്രമത്തിൽ തന്നെ gate കടന്നു |
+| **User ഒരിക്കൽ മാത്രം പറഞ്ഞ നിയമം**: ഒരു പ്രത്യേക ഫയൽ ഒരിക്കലും മാറ്റരുത്, പകരം അതിന്റെ draft-ലേക്ക് എഴുതുക | ❌ അടുത്ത session ആ ഫയൽ edit ചെയ്തു | ✅ അടുത്ത session ആരും പറയാതെ തന്നെ draft-ലേക്ക് എഴുതി | `deny` + `prompt`, തിരുത്തൽ കിട്ടിയ ഉടനെ model എഴുതിയത് |
 | **Verify ചെയ്യാൻ ആരും ആവശ്യപ്പെടാത്ത fix** | ഓടിച്ചില്ല | ⚪ ഒന്നും എഴുതിയില്ല: 3 / 3 sessions-ലും model സ്വന്തം fix verify ചെയ്തു, അതിനാൽ പഠിക്കാൻ ഒന്നുമുണ്ടായിരുന്നില്ല | ഒന്നുമില്ല |
-
-ആദ്യ scenario plugin-ഓടെ മൂന്നു തവണ ഓടിച്ചു, ഓരോ തവണയും ഒഴിഞ്ഞ library-യിൽ നിന്ന് തുടങ്ങി; കൂടെ ഒരു control run-ഉം. രണ്ടാമത്തേത് plugin-ഓടെ ഒരു തവണയും ഇല്ലാതെ ഒരു തവണയും ഓടിച്ചു.
-
-**കമാൻഡ് ഇല്ലാത്ത scenario, session തോറും** (ഓരോ session-ലെയും പരാജയപ്പെട്ട tool calls):
-
-| Run | S1 | S2 | S3 | S4 | S5 | S6 |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **DSHRSI ഇല്ലാതെ** | ❌ 1 | ❌ 1 | ❌ 1 | ❌ 1 | ❌ 1 | |
-| **DSHRSI ഉള്ളപ്പോൾ · run 1** | ❌ 1 | ❌ 1 | ❌ 1 → 🧬 | ✅ 0 | ✅ 0 | ✅ 0 |
-| **DSHRSI ഉള്ളപ്പോൾ · run 2** | ❌ 1 | ❌ 1 | ❌ 1 → 🧬 | ✅ 0 | ✅ 0 | |
-| **DSHRSI ഉള്ളപ്പോൾ · run 3** | ❌ 1 | ❌ 1 | ❌ 1 → 🧬 | ✅ 0 | ✅ 0 | |
-
-🧬 സൂചിപ്പിക്കുന്നത് model adaptation എഴുതുകയും harness അത് mount ചെയ്യുകയും ചെയ്ത turn ആണ്. അതിനു ശേഷമുള്ള 7 sessions-ൽ 3 എണ്ണത്തിൽ model പിന്നെയും `python` പരീക്ഷിച്ചു; ഓടും മുമ്പേ harness ആ call നിരസിച്ചു. ഈ scenario-യിലെ എല്ലാ session-ഉം ശരിയായ ഉത്തരത്തിൽ തന്നെ അവസാനിച്ചു, plugin ഉണ്ടായാലും ഇല്ലെങ്കിലും.
-
-Local ആയി ആവർത്തിച്ചു നോക്കാൻ:
-
-```bash
-MIMO_API_KEY=... npm run test:live -- python --sessions 6          # plugin-ഓടെ
-MIMO_API_KEY=... npm run test:live -- python --sessions 5 --off    # plugin ഇല്ലാത്ത control run
-```
-
-<details>
-<summary><strong>ഈ മെഷീനിൽ verify ചെയ്യാത്തവ (തുറക്കാൻ click ചെയ്യുക)</strong></summary>
-
-<br />
-
-ഈ paths കോഡിൽ ഉണ്ട്, simulated model ഉപയോഗിച്ചുള്ള unit tests-ഓ end-to-end tests-ഓ അവയെ cover ചെയ്യുന്നുമുണ്ട്; എന്നാൽ ഒരു യഥാർഥ session-ലോ യഥാർഥ app-ലോ ഇവ ഇതുവരെ നിരീക്ഷിച്ചിട്ടില്ല:
-
-| മേഖല | ഇവിടെ verify ചെയ്യാത്തതിന്റെ കാരണം |
-| :--- | :--- |
-| DeepSeek Harness desktop app | Development മെഷീനിൽ install ചെയ്തിട്ടില്ല. Verify ചെയ്തത് app wrap ചെയ്യുന്ന `web` profile-ലും installation mechanism-ലുമാണ് |
-| `negative-feedback`, `approval-denied`, `context-pressure`, `model-instability` | കൃത്രിമമായി നിർമ്മിച്ച events കൊണ്ടു മാത്രം test ചെയ്തു, ഒരു യഥാർഥ session-ൽ ഒരിക്കലും trigger ആയിട്ടില്ല |
-| Automated browser tests | ഇല്ല. യഥാർഥ `dsh web` page-ൽ UI കൈകൊണ്ട് പരിശോധിച്ചു, light mode-ലും dark mode-ലും |
-| ACP, SDK profiles | അവിടെ UI ഇല്ല, verify ചെയ്തിട്ടുമില്ല |
-| MiMo v2.6 കുടുംബത്തിനു പുറത്തുള്ള models | ഇതുവരെ runs ഇല്ല. Benchmarks ഉപയോഗിച്ചത് `mimo-v2.6-pro`, `mimo-v2.6-flash`; മുകളിലെ മൂന്ന് scenarios ഉപയോഗിച്ചത് `mimo-v2.6-pro` |
-
-</details>
 
 ---
 
@@ -270,26 +187,17 @@ Stock (മാറ്റമൊന്നും വരുത്താത്ത) Deep
 
 **DSHRSI ചെയ്തത് ഇതാണ്: ഒരു hint പോലുമില്ലാതെ സ്വയം മാറി.** എട്ട് runs-ലായി models **56 adaptations** എഴുതി; അതിൽ 15 എണ്ണം ഇടപെട്ടു, അവയിൽ 10 എണ്ണം മുഴുവൻ മെഷീനിലേക്കും വ്യാപിച്ചിരുന്നു. ഈ 10-ൽ ഓരോന്നിനും, അതിനു ശേഷം തുടങ്ങിയ tasks എടുത്ത് stock DSH-ലെ അതേ tasks-ഉമായി ഞങ്ങൾ താരതമ്യം ചെയ്തു:
 
-| Model എഴുതിയ adaptation | അത് നേരിടുന്ന പരാജയം | Stock DSH | DSH + DSHRSI | p |
-| :--- | :--- | ---: | ---: | ---: |
-| *Stop inline python checks that abort on first mismatch* (MBPP, `mimo-v2.6-pro`) | ആദ്യത്തെ assertion പരാജയപ്പെടുമ്പോൾ തന്നെ നിന്നുപോകുന്ന test run | 310 tasks-ൽ 16 | **310-ൽ 3** | 0.002 |
-| *Redirect missing lib.rs reads to a glob lookup* (Polyglot, `mimo-v2.6-flash`) | നിലവിലില്ലാത്ത ഒരു path-ൽ `lib.rs` വായിക്കാൻ നോക്കുന്നത് | 151 tasks-ൽ 7 | **151-ൽ 1** | 0.07 |
-| മറ്റ് 8 എണ്ണം | | അളക്കാവുന്ന മാറ്റമില്ല | | |
+| Harness ഒഴിവാക്കാൻ സ്വയം പഠിച്ച പരാജയം | Stock DSH | DSH + DSHRSI | p |
+| :--- | ---: | ---: | ---: |
+| ആദ്യത്തെ assertion പരാജയപ്പെടുമ്പോൾ തന്നെ നിന്നുപോകുന്ന test run (MBPP, `mimo-v2.6-pro`) | 310 tasks-ൽ 16 | **310-ൽ 3** | 0.002 |
+| നിലവിലില്ലാത്ത path-ൽ ഒരു ഫയൽ വായിക്കാൻ നോക്കുന്നത് (Polyglot, `mimo-v2.6-flash`) | 151 tasks-ൽ 7 | **151-ൽ 1** | 0.07 |
+| മറ്റ് 8 adaptations | അളക്കാവുന്ന മാറ്റമില്ല | | |
 
-ഈ രണ്ടിൽ ഒന്നു പോലും കൂടുതൽ tasks pass ആക്കിയില്ല; plugin ഉള്ളപ്പോൾ agent time-ഉം input tokens-ഉം ഏകദേശം 8–9% കൂടുതൽ ചെലവായി. പത്തിന്റെയും പട്ടിക [`bench/README.md`](../../bench/README.md#did-those-adaptations-work) ഫയലിലുണ്ട്.
+ഈ രണ്ടിൽ ഒന്നു പോലും കൂടുതൽ tasks pass ആക്കിയില്ല; plugin ഉള്ളപ്പോൾ agent time-ഉം input tokens-ഉം ഏകദേശം 8–9% കൂടുതൽ ചെലവായി. പത്തിന്റെയും പട്ടിക [benchmark കുറിപ്പുകളിൽ](../../bench/README.md#did-those-adaptations-work) ഉണ്ട്.
 
 **LiveCodeBench v6 പാതിവഴിയിൽ നിർത്തേണ്ടി വന്നു:** ഇടയ്ക്കുവെച്ച് model account-ലെ balance തീർന്നു. അപ്പോഴേക്കും ഇരുപക്ഷവും പൂർത്തിയാക്കിയിരുന്ന tasks-ൽ, `mimo-v2.6-pro` ഉപയോഗിച്ച് 105-ൽ stock DSH 94-ഉം DSHRSI 96-ഉം solve ചെയ്തു; `mimo-v2.6-flash` ഉപയോഗിച്ച് 51-ൽ 42-ഉം 42-ഉം. ഇതേ കാരണത്താൽ second pass, അതായത് first pass ബാക്കിവെച്ച library-യിൽ അതേ tasks ഒന്നുകൂടി ഓടിക്കൽ, ഇതുവരെ നടത്തിയിട്ടില്ല.
 
-Local ആയി ആവർത്തിച്ചു നോക്കാൻ:
-
-```bash
-bench/setup.sh                                                        # toolchains, datasets, scoring കോഡ്
-MIMO_API_KEY=... node bench/run.mjs polyglot --arm dsh --run dsh-p1   # stock DeepSeek Harness
-MIMO_API_KEY=... node bench/run.mjs polyglot --arm rsi --run rsi-p1   # plugin-ഓടെ
-node bench/report.mjs --write                                         # tables-ഉം bench/results/*.json-ഉം
-```
-
-Protocol, cost-ന്റെയും failures-ന്റെയും tables, പരിമിതികൾ എന്നിവ [`bench/README.md`](../../bench/README.md) ഫയലിലുണ്ട്; ഓരോ task-ന്റെയും results [`bench/results/`](../../bench/results) ഫോൾഡറിലുണ്ട്.
+Protocol, cost-ന്റെയും failures-ന്റെയും tables, പരിമിതികൾ, ഇതെല്ലാം ആവർത്തിച്ചു നോക്കാനുള്ള കമാൻഡുകൾ എന്നിവ [benchmark കുറിപ്പുകളിൽ](../../bench/README.md) ഉണ്ട്.
 
 ---
 
@@ -297,26 +205,7 @@ Protocol, cost-ന്റെയും failures-ന്റെയും tables, പ�
 
 ## 🛡️ Detectors-ഉം Capabilities-ഉം
 
-Harness എപ്പോൾ മാറണമെന്ന് തീരുമാനിക്കുന്നത് **16 detectors** ആണ്. ഇതേ detectors ഒരു live session-ലും disk-ൽ സൂക്ഷിച്ച session-ലും ഓടും (`dsh-rsi mine`):
-
-| Detector | കണ്ടെത്തുന്നത് | പ്രതികരണം |
-| :--- | :--- | :---: |
-| `repeat-failing-call` | ഒരേ call അതേ arguments-ഓടെ വീണ്ടും പരാജയപ്പെടുന്നു | adapt ചെയ്യും |
-| `failure-signature` | ഒരേ പരാജയകാരണം വീണ്ടും വീണ്ടും വരുന്നു: കമാൻഡ് ഇല്ല, dependency ഇല്ല, network, permission, port ഉപയോഗത്തിലാണ്, path കാണുന്നില്ല, edit mismatch, തെറ്റായ arguments, memory തീർന്നു | adapt ചെയ്യും |
-| `command-flailing` | ഒരേ തരം കമാൻഡ് arguments മാറ്റി മാറ്റി തുടർച്ചയായി പരാജയപ്പെടുന്നു | adapt ചെയ്യും |
-| `read-thrash` | മാറ്റമില്ലാത്ത ഒരേ ഫയൽ വീണ്ടും വീണ്ടും വായിക്കുന്നു | adapt ചെയ്യും |
-| `edit-churn` | ഒരേ ഫയൽ ഒറ്റ turn-ൽ പല തവണ edit ചെയ്യുന്നു | adapt ചെയ്യും |
-| `error-storm` | ഈയടുത്ത tool calls-ൽ മിക്കതും പരാജയപ്പെട്ടു | adapt ചെയ്യും |
-| `stall` | ഇടയ്ക്ക് ഒരു വിജയവുമില്ലാതെ തുടർച്ചയായ പരാജയങ്ങൾ | adapt ചെയ്യും |
-| `timeout-recurrence` | ഒരേ തരം കമാൻഡ് വീണ്ടും വീണ്ടും time out ആകുന്നു | adapt ചെയ്യും |
-| `output-flood` | ഒരേ തരം കമാൻഡ് വീണ്ടും വീണ്ടും അമിത വലിപ്പമുള്ള output തരുന്നു | adapt ചെയ്യും |
-| `approval-denied` / `denied-repeat` | ഒരേ തരം action user വീണ്ടും വീണ്ടും നിരസിക്കുന്നു, അല്ലെങ്കിൽ നിരസിച്ച call മാറ്റമില്ലാതെ വീണ്ടും ശ്രമിക്കുന്നു | adapt ചെയ്യും |
-| `user-correction` | User model-നെ തിരുത്തി, അല്ലെങ്കിൽ ഇടയ്ക്കു നിർത്തി ദിശ മാറ്റി | adapt ചെയ്യും |
-| `premature-completion` | കോഡ് മാറ്റി, ഒരു check പോലും ഓടിക്കാതെ turn അവസാനിക്കാൻ പോകുന്നു | adapt ചെയ്യും |
-| `negative-feedback` | User ഒരു reply മോശമെന്ന് mark ചെയ്ത് കാരണവും എഴുതി | adapt ചെയ്യും |
-| `user-interrupt` | Turn-നിടയിൽ user ഇടപെട്ടു നിർത്തി | രേഖപ്പെടുത്തും |
-| `model-instability` | Model requests വീണ്ടും വീണ്ടും പരാജയപ്പെടുന്നു, retry ആകുന്നു, അല്ലെങ്കിൽ output limit-ൽ തട്ടുന്നു | രേഖപ്പെടുത്തും |
-| `context-pressure` | Task-നിടയിൽ context compact ചെയ്യപ്പെട്ടു | രേഖപ്പെടുത്തും |
+Harness എപ്പോൾ മാറണമെന്ന് തീരുമാനിക്കുന്നത് **16 detectors** ആണ്. [മുഴുവൻ പട്ടിക](../../packages/dsh-rsi/README.md#detectors) plugin reference-ലുണ്ട്.
 
 ഒരു adaptation-ന് ചെയ്യാവുന്നതെല്ലാം ഈ **10 capabilities** ആണ്. അവയിലൂടെ മാത്രമേ അതിന് harness-ലേക്ക് എത്താനാകൂ:
 
@@ -360,17 +249,9 @@ define({
 | :--- | :--- | :--- | :--- |
 | **`machine`** | ഈ കമ്പ്യൂട്ടറിനെക്കുറിച്ചുള്ള വസ്തുതകൾ | `python` ഇല്ല; ഒരു port ഉപയോഗത്തിലാണ്; ഒരു internal host resolve ആകുന്നില്ല | അത് പഠിച്ച workspace-ൽ; രണ്ടാമതൊരു workspace-ലും ഇതേ പ്രശ്നം വന്നാൽ മുഴുവൻ മെഷീനിലും |
 | **`user`** | നിങ്ങളോട് എങ്ങനെ പെരുമാറണം എന്ന നിങ്ങളുടെ ഇഷ്ടം | "വല്ലാതെ നീണ്ടുപോയി" എന്ന കാരണം എഴുതി മോശമെന്ന് mark ചെയ്ത ഒരു reply | മുഴുവൻ മെഷീനിലും |
-| **`project`** | ഒരു repository-യുടെ നിയമങ്ങളും ശീലങ്ങളും | "ഈ repository-യിൽ എപ്പോഴും pnpm തന്നെ" | Workspace-ൽ, പിന്നെ `.dsh-rsi/` വഴി repository-യിൽ തന്നെയും |
+| **`project`** | ഒരു repository-യുടെ നിയമങ്ങളും ശീലങ്ങളും | "ഈ repository-യിൽ എപ്പോഴും pnpm തന്നെ" | Workspace-ൽ, പിന്നെ repository-യിൽ തന്നെയും: നിയമങ്ങൾ കോഡിനൊപ്പം commit ചെയ്യപ്പെടുന്നു |
 
 **Project layer കോഡിനൊപ്പം സഞ്ചരിക്കുന്നു:**
-
-```
-.dsh-rsi/
-  harness.json           format marker-ഉം project തലത്തിലുള്ള settings-ഉം
-  adaptations/
-    remember-the-user-s-instruction-3f2a1c.js     പഠിച്ച ശേഷം ഇവിടെ എഴുതിയത്
-    no-force-push.js                              കൈകൊണ്ട് എഴുതിയതും ഇതേ പോലെ പ്രവർത്തിക്കും
-```
 
 - **പങ്കിടാൻ commit ചെയ്യുക, ഒഴിവാക്കാൻ delete ചെയ്യുക.** ഒരു ഫയൽ എന്നാൽ ഒരു adaptation.
 - **Clone ചെയ്തതു കൊണ്ടു മാത്രം ഒന്നും ഓടില്ല.** ഓരോ മെഷീനും `dsh-rsi trust` വഴി ഫയലുകളുടെ കൃത്യമായ ഉള്ളടക്കം അംഗീകരിക്കണം; അവ മാറിയാൽ വീണ്ടും അംഗീകരിക്കണം.
@@ -387,7 +268,7 @@ define({
 - **ശക്തിയുള്ള Capabilities-ന് അനുമതി വേണം (`autonomy: tighten`)** — Results മാറ്റിയെഴുതുന്ന, tools ചേർക്കുന്ന, കമാൻഡുകൾ ഓടിക്കുന്ന adaptations `proposed` ആയി സൂക്ഷിക്കപ്പെടും; `dsh-rsi approve <id>` വരുന്നതു വരെ കാത്തിരിക്കും.
 - **ആവശ്യം വരുന്നതു വരെ അദൃശ്യം** — Friction ഇല്ലാതെ, ഒന്നും mount ചെയ്യാത്തപ്പോൾ system prompt, tool list, messages എന്നിവ byte for byte മാറ്റമില്ലാതെ തുടരും. ഒരു end-to-end test ഇത് കാക്കുന്നു.
 - **പിഴവുകൾ പടരില്ല** — Error throw ചെയ്യുന്ന ഒരു handler, അത് ഘടിപ്പിച്ചിരിക്കുന്ന tool call-നെ ഒരിക്കലും ബാധിക്കില്ല. മൂന്ന് errors കഴിഞ്ഞാൽ ആ adaptation quarantine ചെയ്യപ്പെടും.
-- **എല്ലാം രേഖയിലുണ്ട്** — ഓരോ തീരുമാനവും `audit.jsonl`-ൽ, ഓരോ friction-ഉം mount-ഉം action-ഉം `ledger.jsonl`-ൽ. `dsh-rsi disable`, `retire`, `rollback` എന്നിവ ഒരു adaptation-നെ പുറത്താക്കുകയോ പഴയ നിലയിലേക്ക് മടക്കുകയോ ചെയ്യും.
+- **എല്ലാം രേഖയിലുണ്ട്** — ഓരോ തീരുമാനവും friction-ഉം mount-ഉം action-ഉം log-ൽ രേഖപ്പെടുത്തുന്നു. `dsh-rsi disable`, `retire`, `rollback` എന്നിവ ഒരു adaptation-നെ പുറത്താക്കുകയോ പഴയ നിലയിലേക്ക് മടക്കുകയോ ചെയ്യും.
 - **മൂന്ന് Modes** — `adapt` നേരിട്ട് mount ചെയ്യും (default), `propose` generate ചെയ്ത് നിങ്ങൾക്കായി കാത്തിരിക്കും, `observe` രേഖപ്പെടുത്തുക മാത്രം ചെയ്യും.
 
 ---
@@ -457,7 +338,6 @@ Session-ൽ `/rsi`, അല്ലെങ്കിൽ terminal-ൽ `dsh-rsi status`
 - [🛠️ `dsh-rsi` Command Line](../../packages/dsh-rsi/README.md#command-line) · [⚙️ Configuration](../../packages/dsh-rsi/README.md#configuration)
 - [⚠️ അറിയാവുന്ന പരിമിതികൾ](../../packages/dsh-rsi/README.md#known-limits)
 - [📊 Benchmark Protocol-ഉം Results-ഉം](../../bench/README.md)
-- [🌐 Website source](../../website) — recursive self-improvement, പ്രവർത്തിക്കുന്ന വിധം, adaptations എഴുതൽ, evaluation; `website/index.html` ഒരു browser-ൽ തുറക്കുക
 - [🧱 DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) — ഈ plugin ഘടിപ്പിക്കുന്ന harness
 
 <a id="contributing"></a>
@@ -471,23 +351,6 @@ npm install && npm test    # 130 unit tests, പിന്നെ 29 end-to-end te
 ```
 
 End-to-end tests model endpoint-നു പകരം ഒരു simulated endpoint വെക്കുന്നു. ബാക്കിയെല്ലാം യഥാർഥമാണ്: `dsh` process, tool execution, session log, plugin installation.
-
-```
-packages/dsh-rsi/        plugin bundle (plain ESM, build step ഇല്ല)
-  index.js               host പകുതി: DSH-ന്റെ extension points-ലേക്കുള്ള bindings
-  client.js              browser പകുതി: RSI badge-ഉം status pill-ഉം
-  src/engine.js          നിരീക്ഷിക്കുക → തീരുമാനിക്കുക → generate → validate → mount → സൂക്ഷിക്കുക → പങ്കിടുക
-  src/signals.js         16 detectors
-  src/validate.js        validation gate
-  src/sandbox.js         adaptation കോഡ് ഓടുന്ന ഇടം
-  src/project.js         project harness: <repository>/.dsh-rsi
-  bin/rsi.js             dsh-rsi കമാൻഡ്
-market/index.json        DSH-ൽ ചേർക്കാവുന്ന ഒരു plugin index
-test/unit/  test/e2e/    unit tests, പിന്നെ ഒരു യഥാർഥ dsh process-ലെ end-to-end tests
-test/live/               ഒരു യഥാർഥ model-ൽ നടത്തുന്ന runs (MIMO_API_KEY വേണം)
-bench/                   benchmarks: stock DSH-ഉം DSH + dsh-rsi-യും തമ്മിൽ
-website/                 website (static pages, build step ഇല്ല)
-```
 
 ## 📄 ലൈസൻസ്
 
