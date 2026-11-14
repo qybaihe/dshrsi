@@ -320,6 +320,12 @@ Es kommt als gewöhnliches Drittanbieter-Plugin mit den Metadaten, die die Plugi
 </details>
 
 <details>
+<summary><strong>Was ist, wenn sich eine Verbesserung als falsch herausstellt?</strong></summary>
+
+Sie lässt sich jederzeit zurücknehmen: Der Code des Harness selbst wird nie angefasst, und keine Version einer Adaption wird je gelöscht. Das Harness nimmt eine Adaption von selbst zurück, wenn sie immer wieder fehlschlägt oder wenn sich zeigt, dass ein Aufruf, den sie abgelehnt hat, doch funktioniert. Du kannst das auch selbst tun: `/rsi undo` nimmt die letzte Änderung zurück, `dsh-rsi restore` setzt das ganze Harness auf einen früheren Stand zurück, und `/rsi off` lässt das Harness im Originalzustand laufen. All das greift in der bereits laufenden Session. [So funktioniert das Zurücknehmen](../../packages/dsh-rsi/README.md#going-back).
+</details>
+
+<details>
 <summary><strong>Wie sehe ich, was es gelernt hat, und wie mache ich es rückgängig oder schalte es ab?</strong></summary>
 
 `/rsi` in einer Session oder `dsh-rsi status` im Terminal. `dsh-rsi show <id>` gibt den Quellcode und den Validierungsbericht einer Adaption aus; `disable`, `retire` und `rollback` nehmen sie heraus oder setzen sie zurück. Setze `mode: observe`, um zu protokollieren, ohne etwas zu verändern.
