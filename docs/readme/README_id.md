@@ -94,13 +94,13 @@ Yang sengaja **tidak** rekursif: bobot model tidak pernah berubah, dan detektor,
 Di aplikasi desktop atau Web UI DeepSeek Harness, buka **Plugins → Add plugin → Install a third-party plugin**, tempelkan alamat paket rilis, pilih **Install**, lalu **Enable now**:
 
 ```text
-https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
+https://github.com/qybaihe/dshrsi/releases/download/v0.1.3/dsh-rsi-0.1.3.tgz
 ```
 
 Atau lewat command line. Setiap profile menyimpan plugin-nya sendiri, dan `dsh plugin add` memanggil `pnpm`, yang harus tersedia di `PATH`:
 
 ```bash
-dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
+dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.3/dsh-rsi-0.1.3.tgz
 dsh web
 ```
 

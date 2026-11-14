@@ -94,13 +94,13 @@ Phần được cố ý để **không** đệ quy: trọng số của mô hình
 Trong ứng dụng desktop hoặc giao diện Web của DeepSeek Harness, mở **Plugins → Add plugin → Install a third-party plugin**, dán đường dẫn gói phát hành vào, chọn **Install**, rồi **Enable now**:
 
 ```text
-https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
+https://github.com/qybaihe/dshrsi/releases/download/v0.1.3/dsh-rsi-0.1.3.tgz
 ```
 
 Hoặc cài từ dòng lệnh. Mỗi profile giữ bộ plugin riêng của nó, và `dsh plugin add` gọi `pnpm`, công cụ này phải có trên `PATH`:
 
 ```bash
-dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
+dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.3/dsh-rsi-0.1.3.tgz
 dsh web
 ```
 

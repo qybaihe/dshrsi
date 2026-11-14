@@ -94,13 +94,13 @@ Ce **nu** e recursiv, în mod deliberat: ponderile modelului nu se schimbă nici
 În aplicația desktop DeepSeek Harness sau în interfața web, deschide **Plugins → Add plugin → Install a third-party plugin**, lipește pachetul de release, alege **Install**, apoi **Enable now**:
 
 ```text
-https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
+https://github.com/qybaihe/dshrsi/releases/download/v0.1.3/dsh-rsi-0.1.3.tgz
 ```
 
 Sau din linia de comandă. Fiecare profil își ține propriile plugin-uri, iar `dsh plugin add` apelează `pnpm`, care trebuie să fie în `PATH`:
 
 ```bash
-dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
+dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.3/dsh-rsi-0.1.3.tgz
 dsh web
 ```
 

@@ -47,7 +47,7 @@
 
 | 来源 | 填什么 |
 |---|---|
-| 发布包 | `https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz` |
+| 发布包 | `https://github.com/qybaihe/dshrsi/releases/download/v0.1.3/dsh-rsi-0.1.3.tgz` |
 | 本地 tarball | 在 `packages/dsh-rsi` 里运行 `npm pack`，填生成的 `.tgz` 的绝对路径 |
 | 本地目录 | `packages/dsh-rsi` 的绝对路径 |
 

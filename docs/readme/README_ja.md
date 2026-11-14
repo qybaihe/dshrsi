@@ -94,13 +94,13 @@
 DeepSeek Harness のデスクトップアプリまたは Web UI で **Plugins → Add plugin → Install a third-party plugin** を開き、リリースパッケージの URL を貼り付けて **Install** を選び、続けて **Enable now** を選びます。
 
 ```text
-https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
+https://github.com/qybaihe/dshrsi/releases/download/v0.1.3/dsh-rsi-0.1.3.tgz
 ```
 
 コマンドラインからもインストールできます。プラグインはプロファイルごとに別々に管理されます。また `dsh plugin add` は `pnpm` を呼び出すため、これが `PATH` 上にある必要があります。
 
 ```bash
-dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
+dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.3/dsh-rsi-0.1.3.tgz
 dsh web
 ```
 

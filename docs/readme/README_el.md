@@ -94,13 +94,13 @@
 Στην εφαρμογή desktop ή στο Web UI του DeepSeek Harness, άνοιξε **Plugins → Add plugin → Install a third-party plugin**, επικόλλησε τη διεύθυνση του πακέτου της έκδοσης, πάτησε **Install** και μετά **Enable now**:
 
 ```text
-https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
+https://github.com/qybaihe/dshrsi/releases/download/v0.1.3/dsh-rsi-0.1.3.tgz
 ```
 
 Ή από τη γραμμή εντολών. Κάθε προφίλ κρατά τα δικά του plugins, και το `dsh plugin add` καλεί το `pnpm`, που πρέπει να βρίσκεται στο `PATH`:
 
 ```bash
-dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
+dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.3/dsh-rsi-0.1.3.tgz
 dsh web
 ```
 

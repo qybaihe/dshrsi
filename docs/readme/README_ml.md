@@ -94,13 +94,13 @@
 DeepSeek Harness desktop app-ലോ Web UI-യിലോ **Plugins → Add plugin → Install a third-party plugin** തുറക്കുക, താഴെയുള്ള release package paste ചെയ്യുക, **Install** തിരഞ്ഞെടുക്കുക, പിന്നെ **Enable now**:
 
 ```text
-https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
+https://github.com/qybaihe/dshrsi/releases/download/v0.1.3/dsh-rsi-0.1.3.tgz
 ```
 
 അല്ലെങ്കിൽ command line-ൽ നിന്ന്. ഓരോ profile-നും സ്വന്തം plugins ഉണ്ട്; `dsh plugin add` വിളിക്കുന്നത് `pnpm` ആണ്, അത് `PATH`-ൽ ഉണ്ടായിരിക്കണം:
 
 ```bash
-dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
+dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.3/dsh-rsi-0.1.3.tgz
 dsh web
 ```
 

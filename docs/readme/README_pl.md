@@ -94,13 +94,13 @@ Co celowo **nie** jest rekurencyjne: wagi modelu nigdy się nie zmieniają, a de
 W aplikacji desktopowej DeepSeek Harness albo w interfejsie webowym otwórz **Plugins → Add plugin → Install a third-party plugin**, wklej adres paczki z wydania, wybierz **Install**, a potem **Enable now**:
 
 ```text
-https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
+https://github.com/qybaihe/dshrsi/releases/download/v0.1.3/dsh-rsi-0.1.3.tgz
 ```
 
 Albo z wiersza poleceń. Każdy profil trzyma własne wtyczki, a `dsh plugin add` wywołuje `pnpm`, który musi być w `PATH`:
 
 ```bash
-dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
+dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.3/dsh-rsi-0.1.3.tgz
 dsh web
 ```
 

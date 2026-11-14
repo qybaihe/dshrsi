@@ -94,13 +94,13 @@
 在 DeepSeek Harness 桌面應用程式或 Web UI 中，開啟 **Plugins → Add plugin → Install a third-party plugin**，貼上發行套件的網址，點選 **Install**，再點選 **Enable now**：
 
 ```text
-https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
+https://github.com/qybaihe/dshrsi/releases/download/v0.1.3/dsh-rsi-0.1.3.tgz
 ```
 
 也可以從命令列安裝。每個 profile 各有自己的一套外掛；`dsh plugin add` 會呼叫 `pnpm`，後者必須在 `PATH` 中：
 
 ```bash
-dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
+dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.3/dsh-rsi-0.1.3.tgz
 dsh web
 ```
 

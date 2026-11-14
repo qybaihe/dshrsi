@@ -94,13 +94,13 @@ Was bewusst **nicht** rekursiv ist: Die Gewichte des Modells ändern sich nie, u
 Öffne in der Desktop-App oder der Web-UI von DeepSeek Harness **Plugins → Add plugin → Install a third-party plugin**, füge das Release-Paket ein, wähle **Install** und dann **Enable now**:
 
 ```text
-https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
+https://github.com/qybaihe/dshrsi/releases/download/v0.1.3/dsh-rsi-0.1.3.tgz
 ```
 
 Oder über die Kommandozeile. Jedes Profil hat seine eigenen Plugins, und `dsh plugin add` ruft `pnpm` auf, das im `PATH` liegen muss:
 
 ```bash
-dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
+dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.3/dsh-rsi-0.1.3.tgz
 dsh web
 ```
 

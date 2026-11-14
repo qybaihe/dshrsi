@@ -94,13 +94,13 @@ adaptation สามารถเพิ่มข้อมูล ปฏิเส�
 ในแอปเดสก์ท็อปหรือ Web UI ของ DeepSeek Harness ให้เปิด **Plugins → Add plugin → Install a third-party plugin** วางลิงก์ของแพ็กเกจ release เลือก **Install** แล้วเลือก **Enable now**:
 
 ```text
-https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
+https://github.com/qybaihe/dshrsi/releases/download/v0.1.3/dsh-rsi-0.1.3.tgz
 ```
 
 หรือจะใช้ command line ก็ได้ แต่ละ profile เก็บ plugin ของตัวเองแยกกัน และ `dsh plugin add` จะเรียก `pnpm` ซึ่งต้องอยู่ใน `PATH`:
 
 ```bash
-dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
+dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.3/dsh-rsi-0.1.3.tgz
 dsh web
 ```
 

@@ -94,13 +94,13 @@ What is deliberately **not** recursive: the model's weights never change, and th
 In the DeepSeek Harness desktop app or Web UI, open **Plugins → Add plugin → Install a third-party plugin**, paste the release package, select **Install**, then **Enable now**:
 
 ```text
-https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
+https://github.com/qybaihe/dshrsi/releases/download/v0.1.3/dsh-rsi-0.1.3.tgz
 ```
 
 Or from the command line. Each profile keeps its own plugins, and `dsh plugin add` calls `pnpm`, which has to be on `PATH`:
 
 ```bash
-dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
+dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.3/dsh-rsi-0.1.3.tgz
 dsh web
 ```
 
