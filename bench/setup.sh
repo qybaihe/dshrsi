@@ -37,5 +37,13 @@ mkdir -p "$BENCH/src/livecodebench"
 [ -d "$BENCH/src/livecodebench/LiveCodeBench" ] || git clone https://github.com/LiveCodeBench/LiveCodeBench.git "$BENCH/src/livecodebench/LiveCodeBench"
 git -C "$BENCH/src/livecodebench/LiveCodeBench" checkout 28fef95ea8c9f7a547c8329f2cd3d32b92c1fa24
 
+# SWE-bench Verified: the 500 instances and the id list of the 50-instance subset (7 MB). Each repository's object
+# store is cloned on first use, without file contents; `node bench/lib/swebench.mjs repos` fetches all 12 ahead of a run.
+node "$HERE/lib/swebench.mjs" fetch
+# What SWE-bench sessions see is not under the home directory but under a root whose path does not name the account
+# (/Users/Shared/dshrsi-bench, or DSHRSI_BENCH_SEALED_ROOT): Python 3.9 to 3.12 and a copy of uv, about 300 MB.
+node "$HERE/lib/swebench.mjs" toolchains
+
 echo "benchmark home ready at $BENCH"
 echo "check it with: node bench/run.mjs polyglot --validate"
+echo "and the seal of SWE-bench sessions with: node bench/lib/swebench.mjs seal"
