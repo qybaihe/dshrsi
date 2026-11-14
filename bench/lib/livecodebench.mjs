@@ -69,6 +69,8 @@ export function collect(workspace) {
  * @returns {Map<string, { base: boolean, plus: boolean }>} one verdict per problem; both fields carry it, for the report's sake.
  */
 export function scoreAll(samples, dir) {
+  // Nothing to score (a run started with --limit 0): the evaluator would exit without writing verdicts.
+  if (samples.length === 0) return new Map()
   if (!fs.existsSync(CHECKOUT)) throw new Error(`no LiveCodeBench checkout at ${CHECKOUT} (git clone https://github.com/LiveCodeBench/LiveCodeBench there)`)
   fs.mkdirSync(dir, { recursive: true })
   const file = path.join(dir, 'samples.jsonl')
