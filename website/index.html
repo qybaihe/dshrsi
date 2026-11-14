@@ -17,8 +17,8 @@
 <div class="hero">
   <div class="wrap">
     <a class="news" href="bench.html"><b>v0.1</b>
-      <span lang="zh">四个基准、原版 DSH 逐题对照的实测结果已公开 →</span>
-      <span lang="en">Results on four benchmarks, task by task against stock DSH, are out →</span>
+      <span lang="zh">四个基准的实测结果已公开 →</span>
+      <span lang="en">Results on four benchmarks are out →</span>
     </a>
     <h1>
       <span lang="zh">让 Harness <em>自己变强</em></span>
@@ -35,9 +35,9 @@
     </div>
 
     <figure class="reel">
-      <picture lang="zh"><source media="(prefers-color-scheme: dark)" srcset="assets/img/rsi-trace.zh.dark.gif"><img src="assets/img/rsi-trace.zh.gif" width="1280" height="720" alt="动画：原版 Harness 在 30 个会话里有 12 个去读不存在的 lib.rs；装上 DSHRSI 后，第三次撞上时模型给 Harness 写了一段代码，36.9 秒后挂载，之后的 22 个会话只再出现 1 次"></picture>
-      <picture lang="en"><source media="(prefers-color-scheme: dark)" srcset="assets/img/rsi-trace.dark.gif"><img src="assets/img/rsi-trace.gif" width="1280" height="720" alt="Animation: on the stock harness 12 of 30 sessions read a lib.rs that is not there; with DSHRSI the model writes harness code the third time it happens, it is mounted 36.9 seconds later, and the next 22 sessions hit it once"></picture>
-      <figcaption><span lang="zh">按日志回放的一次真实会话，不是屏幕录像：评测无界面运行，画面照 DeepSeek Harness 的界面重画，名字、时间、报错和代码都取自日志。<a href="trace.html">逐步看完整实录 →</a></span><span lang="en">A real session replayed from its logs, not a screen recording: the benchmark ran headless, and the picture is redrawn after the DeepSeek Harness interface. Names, times, errors and code are the log's. <a href="trace.html">The full trace, step by step →</a></span></figcaption>
+      <picture lang="zh"><source media="(prefers-color-scheme: dark)" srcset="assets/img/rsi-trace.zh.dark.gif"><img src="assets/img/rsi-trace.zh.gif" width="1280" height="720" alt="动画：原版 Harness 在 30 个会话里有 12 个撞上同一个失败调用；装上 DSHRSI 后，第三次撞上时模型给 Harness 写了一段代码，36.9 秒后挂载，之后的 22 个会话只再出现 1 次"></picture>
+      <picture lang="en"><source media="(prefers-color-scheme: dark)" srcset="assets/img/rsi-trace.dark.gif"><img src="assets/img/rsi-trace.gif" width="1280" height="720" alt="Animation: on the stock harness 12 of 30 sessions make the same failed call; with DSHRSI the model writes harness code the third time it happens, it is mounted 36.9 seconds later, and the next 22 sessions hit it once"></picture>
+      <figcaption><span lang="zh">按一次真实运行的日志回放。<a href="trace.html">逐步看完整实录 →</a></span><span lang="en">Replayed from the logs of a real run. <a href="trace.html">The full trace, step by step →</a></span></figcaption>
     </figure>
   </div>
 </div>
