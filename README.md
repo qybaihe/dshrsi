@@ -320,6 +320,12 @@ It ships as an ordinary third-party plugin with the metadata the plugin pages re
 </details>
 
 <details>
+<summary><strong>What if an improvement turns out to be wrong?</strong></summary>
+
+It can always be taken back: the harness's own code is never touched, and no version of an adaptation is ever deleted. The harness backs out by itself when an adaptation keeps failing, or when a call it refused turns out to work. You can do it too: `/rsi undo` takes back the last change, `dsh-rsi restore` puts the whole harness back to an earlier point, and `/rsi off` runs the stock harness. All of this takes effect in the session that is already running. [How going back works](packages/dsh-rsi/README.md#going-back).
+</details>
+
+<details>
 <summary><strong>How do I see, undo or turn off what it learned?</strong></summary>
 
 `/rsi` in a session, or `dsh-rsi status` in a terminal. `dsh-rsi show <id>` prints an adaptation's source and validation report; `disable`, `retire` and `rollback` take it out or back. Set `mode: observe` to record without changing anything.
