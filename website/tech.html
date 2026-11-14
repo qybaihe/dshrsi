@@ -34,6 +34,7 @@
     <a href="#rewrite"><span lang="zh">三、改写</span><span lang="en">3. Rewrite</span></a>
     <a href="#validate"><span lang="zh">四、校验与挂载</span><span lang="en">4. Validate and mount</span></a>
     <a href="#keep"><span lang="zh">五、沉淀与共享</span><span lang="en">5. Keep and share</span></a>
+    <a href="#back"><span lang="zh">六、回退</span><span lang="en">6. Going back</span></a>
     <a href="#safety"><span lang="zh">安全模型</span><span lang="en">Safety model</span></a>
     <a href="#hooks"><span lang="zh">接入 DSH 的位置</span><span lang="en">Where it plugs in</span></a>
     <a href="#roadmap"><span lang="zh">路线图</span><span lang="en">Roadmap</span></a>
@@ -133,10 +134,34 @@
     <p><span lang="zh">每台机器有一个适配库（默认在 <code>$DSH_HOME/rsi</code>）：每个适配一个目录，带版本历史；<code>ledger.jsonl</code> 记每次摩擦、挂载、生效和出错，<code>audit.jsonl</code> 记系统做过的每个决定。</span><span lang="en">Every machine has one library (in <code>$DSH_HOME/rsi</code> by default): one directory per adaptation with its version history; <code>ledger.jsonl</code> records every friction, mount, effect and fault, and <code>audit.jsonl</code> every decision the system took.</span></p>
     <ul>
       <li><span lang="zh">新适配是 <code>candidate</code>，在后来的会话里起过作用且没出过错，转为 <code>active</code>。</span><span lang="en">A new adaptation is a <code>candidate</code>. Once it has acted in later sessions without faults it becomes <code>active</code>.</span></li>
-      <li><span lang="zh">处理函数抛错不影响它所挂的那次工具调用，累计三次就 <code>quarantined</code>。</span><span lang="en">A handler that throws never affects the tool call it is attached to. Three faults and it is <code>quarantined</code>.</span></li>
+      <li><span lang="zh">处理函数抛错不影响它所挂的那次工具调用。累计三次，上一版重新上岗；没有上一版就 <code>quarantined</code>。</span><span lang="en">A handler that throws never affects the tool call it is attached to. After three faults the version before it goes back to work; with no earlier version it is <code>quarantined</code>.</span></li>
       <li><span lang="zh">核心指标是<strong>二次命中率</strong>：装上之前和之后，有多大比例的会话还会遇到这个麻烦。</span><span lang="en">The central metric is the <strong>second-hit rate</strong>: the share of sessions that still meet the trouble, before and after the adaptation.</span></li>
       <li><span lang="zh">项目层的适配转正后写进 <code>.dsh-rsi/adaptations/</code>。别的机器认的是文件内容的哈希：<code>dsh-rsi trust</code> 之前不运行，文件变了要重新接受。</span><span lang="en">A promoted project-layer adaptation is written to <code>.dsh-rsi/adaptations/</code>. Other machines go by the hash of a file's content: nothing runs before <code>dsh-rsi trust</code>, and a changed file has to be accepted again.</span></li>
     </ul>
+
+    <h2 id="back"><span lang="zh">六、回退：坏了怎么办</span><span lang="en">6. Going back: when a change is wrong</span></h2>
+    <p><span lang="zh">一个会改自己的 Harness，必须改得回去。能做到这一点，靠的是三条设计上的性质：Harness 自己的代码从不被改动，适配只是运行时挂上去的脚本；每个版本都留在磁盘上，编号不会用第二次；Harness 运行的东西每变一次，<code>timeline.jsonl</code> 里就多一行，记下改了什么、谁改的、以及改完之后的完整状态。</span><span lang="en">A harness that changes itself has to be able to change back. Three properties of the design make that possible: the harness's own code is never touched, an adaptation being a script mounted at run time; every version stays on disk, and a version number is never used twice; and whenever what the harness runs changes, one line goes into <code>timeline.jsonl</code> with what changed, who changed it and the whole state it left behind.</span></p>
+    <h3><span lang="zh">Harness 自己撤回</span><span lang="en">What the harness takes back by itself</span></h3>
+    <div class="table"><table>
+      <thead><tr><th><span lang="zh">出了什么问题</span><span lang="en">What goes wrong</span></th><th><span lang="zh">会发生什么</span><span lang="en">What happens</span></th></tr></thead>
+      <tbody>
+        <tr><td><span lang="zh">适配的代码抛错或超时，累计三次</span><span lang="en">Its code throws or runs out of time, three times</span></td><td><span lang="zh">如果它是一次重写，上一版重新上岗；没有更早的版本才隔离。</span><span lang="en">If it is a rewrite, the version before it goes back to work. Only with no earlier version is it quarantined.</span></td></tr>
+        <tr><td><span lang="zh">适配拦下调用，模型却一再坚持</span><span lang="en">It refuses calls and the model keeps making them</span></td><td><span lang="zh">同一轮里拦了两次之后，下一个它要拦的调用放行一次。调用成功，说明适配错了，或者它知道的事实已经过时，于是撤回；调用失败，说明拦得对。</span><span lang="en">After two refusals in one turn, the next call it would refuse is let through once. If the call works, the adaptation was wrong or what it knew is out of date, and it is taken back. If the call fails, the refusals were right.</span></td></tr>
+        <tr><td><span lang="zh">适配没拦住麻烦，或者从不起作用</span><span lang="en">It does not stop the trouble, or never acts</span></td><td><span lang="zh">前者重写，后者在 20 个会话之后退役。</span><span lang="en">The first is rewritten; the second is retired after 20 sessions.</span></td></tr>
+      </tbody>
+    </table></div>
+    <p><span lang="zh">放行试探只用于在本机、从失败的调用里学出来的适配：它们主张的是“这个调用在这里会失败”，这是一个可以用真实调用检验的事实。代表用户要求的拦截、来自项目 Harness 或导入包的拦截，绝不会被放行。被撤回的版本连同原因一起记下，下次模型为同一个原因写适配时会看到它错在哪，同一段代码不会被接受第二次。</span><span lang="en">The check applies only to adaptations learned on this machine from a call that failed. What they claim, "this call fails here", is a fact that a real call can test. A refusal that stands for something the user asked for, or that came from a project harness or an imported pack, is never set aside. A version that was taken back is remembered with the reason: the next time the model writes for the same cause it is shown what went wrong, and the same script is not accepted twice.</span></p>
+    <h3><span lang="zh">用户撤回</span><span lang="en">What the user can take back</span></h3>
+    <div class="table"><table>
+      <thead><tr><th><span lang="zh">撤回什么</span><span lang="en">What</span></th><th><span lang="zh">在会话里</span><span lang="en">In a session</span></th><th><span lang="zh">在终端里</span><span lang="en">In a terminal</span></th></tr></thead>
+      <tbody>
+        <tr><td><span lang="zh">最近装上的那一样</span><span lang="en">The last thing put to work</span></td><td><code>/rsi undo</code></td><td><code>dsh-rsi undo</code></td></tr>
+        <tr><td><span lang="zh">一个适配，回到更早的版本</span><span lang="en">One adaptation, to an earlier version</span></td><td></td><td><code>dsh-rsi rollback &lt;id&gt; [--to n]</code></td></tr>
+        <tr><td><span lang="zh">整个 Harness，回到某一代</span><span lang="en">The whole harness, as at a generation</span></td><td></td><td><code>dsh-rsi timeline</code>, <code>dsh-rsi restore &lt;n&gt;</code></td></tr>
+        <tr><td><span lang="zh">全部：原版 Harness</span><span lang="en">Everything: the stock harness</span></td><td><code>/rsi off</code></td><td><code>dsh-rsi off</code></td></tr>
+      </tbody>
+    </table></div>
+    <p><span lang="zh">这些操作都在正在运行的会话的下一次工具调用之前生效，什么都不删。恢复本身也是一代，所以回退也能被撤回。项目 Harness 的文件属于仓库：在自己的机器上回退只是让它们不在这里运行，替所有人撤回要靠删掉文件并提交。</span><span lang="en">All of these take effect in running sessions before their next tool call, and none of them deletes anything. A restore is itself a generation, so going back can be taken back too. The files of a project harness belong to the repository: going back on one machine stops them from running there, and taking one back for everyone means removing the file and committing.</span></p>
 
     <h2 id="safety"><span lang="zh">安全模型</span><span lang="en">Safety model</span></h2>
     <div class="table"><table>
