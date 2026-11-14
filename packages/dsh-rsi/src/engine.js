@@ -5,6 +5,7 @@
 //   adapt     generate source, pass the validation gate, store it
 //   mount     bind it to the live session, mid-turn
 //   settle    promote what worked, quarantine what faulted, revise what did not help
+//   back out  take back what did harm: an earlier version returns, or the adaptation goes out of use
 //   share     what proved itself about a repository is written into its project harness
 //
 // The host (see ../index.js) supplies the model call, the shell bridge and
@@ -15,6 +16,7 @@ import { generateAdaptation } from './generate.js'
 import { LAYERS, layerOf, layerOfRecord } from './layers.js'
 import { MOUNTED, isInside, scopeCovers } from './library.js'
 import { judge, priorSessions, workspacesHit } from './metrics.js'
+import { mark, WITHDREW } from './marks.js'
 import { createMount } from './mount.js'
 import { createNormalizer } from './normalize.js'
 import { PROJECT_DIR, findProject, publishEntry, readProject } from './project.js'
@@ -50,6 +52,17 @@ export const DEFAULT_OPTIONS = Object.freeze({
 
 /** Friction that comes from the user, not from a tool; never crowded out by tool trouble. */
 const FROM_USER = new Set(['user-correction', 'negative-feedback'])
+
+/**
+ * Friction that is a tool call failing. An adaptation learned from it rests on a claim about the world, "this call
+ * fails here", and a claim like that can be checked by making the call. What a person asked for cannot.
+ */
+const CHECKABLE = new Set([
+  'missing-command', 'missing-dependency', 'missing-path', 'invalid-arguments', 'edit-mismatch', 'repeated-failure',
+  'network-failure', 'permission-failure', 'port-conflict', 'resource-exhaustion',
+])
+/** Whether an adaptation's refusals may be checked against a real call: it was learned on this machine, from a call that failed. */
+const checkable = record => record !== undefined && CHECKABLE.has(record.friction?.kind) && !record.project && record.origin?.imported === undefined
 
 /** From least to most adapting. A project may ask for less than the user configured, never for more. */
 const MODES = ['observe', 'propose', 'adapt']
@@ -100,15 +113,18 @@ export function createEngine({ library, options = {}, host = {} }) {
   // Live copies: the ledger is appended through `record`, records are re-read after each change.
   let entries = library.ledger()
   let records = library.list()
+  /** Set while the user has the harness back at stock: nothing is mounted, nothing is written. */
+  let stock = library.stock() !== undefined
+  let pulse = library.pulse()
   const record = entry => { const stored = library.record(entry); entries.push(stored); return stored }
   const audit = entry => library.audit(entry)
   const refresh = () => { records = library.list() }
   /** Other processes write to the same library; this takes in what they stored since this one last looked. */
-  const reload = () => { records = library.list(); entries = library.ledger() }
+  const reload = () => { records = library.list(); entries = library.ledger(); stock = library.stock() !== undefined }
 
-  function setStatus(id, status, reason, type) {
+  function setStatus(id, status, reason, type, sessionId) {
     const before = library.get(id)
-    library.setStatus(id, status, reason)
+    library.setStatus(id, status, reason, { change: type, sessionId })
     audit({ type, adaptationId: id, from: before?.status, to: status, reason })
     if (type === 'promote') publish(id)
     refresh()
@@ -143,7 +159,7 @@ export function createEngine({ library, options = {}, host = {} }) {
   /** Takes an adaptation out of use because the project harness no longer holds its file. */
   function unplug(adaptation, reason = 'no longer in the project harness') {
     if (adaptation.project?.detached || !MOUNTED.includes(adaptation.status)) return
-    library.update(adaptation.id, { status: 'disabled', statusReason: reason, project: { ...adaptation.project, detached: true } })
+    library.update(adaptation.id, { status: 'disabled', statusReason: reason, project: { ...adaptation.project, detached: true } }, { change: 'project-remove', by: 'project' })
     audit({ type: 'project-remove', adaptationId: adaptation.id, root: adaptation.project.root, entry: adaptation.project.entry, reason })
   }
 
@@ -176,7 +192,7 @@ export function createEngine({ library, options = {}, host = {} }) {
       }
       if (existing && existing.project.hash === entry.hash) {
         if (existing.project.detached) {
-          library.update(existing.id, { status: 'active', statusReason: 'back in the project harness', project: { ...existing.project, detached: false } })
+          library.update(existing.id, { status: 'active', statusReason: 'back in the project harness', project: { ...existing.project, detached: false } }, { change: 'project-import', by: 'project' })
           audit({ type: 'project-import', adaptationId: existing.id, root, entry: entry.id, restored: true })
         }
         continue
@@ -199,7 +215,7 @@ export function createEngine({ library, options = {}, host = {} }) {
         const next = library.revise(existing.id, {
           ...fields, status: keep ? existing.status : 'active',
           revision: { at: Date.now(), reason: 'changed in the project harness', generator: entry.header?.writtenBy ?? 'project' },
-        }, entry.source)
+        }, entry.source, { change: 'project-update', by: 'project' })
         library.update(existing.id, { project: { root, entry: entry.id, hash: entry.hash, version: next.version } })
         audit({ type: 'project-update', adaptationId: existing.id, version: next.version, root, entry: entry.id })
       } else {
@@ -212,7 +228,7 @@ export function createEngine({ library, options = {}, host = {} }) {
           },
           origin: { generator: entry.header?.writtenBy ?? 'hand', imported: 'project' },
           project: { root, entry: entry.id, hash: entry.hash, version: 1 },
-        }, entry.source)
+        }, entry.source, { change: 'project-import', by: 'project' })
         audit({ type: 'project-import', adaptationId: stored.id, root, entry: entry.id, capabilities: meta.capabilities })
       }
     }
@@ -250,7 +266,7 @@ export function createEngine({ library, options = {}, host = {} }) {
     for (const adaptation of records.filter(entry => MOUNTED.includes(entry.status))) {
       const stats = library.statsOf(adaptation.id, entries, adaptation.version)
       const judgement = judge(entries, adaptation, stats, policy)
-      if (judgement.verdict === 'faulty') setStatus(adaptation.id, 'quarantined', judgement.reason, 'quarantine')
+      if (judgement.verdict === 'faulty') withdraw(adaptation.id, judgement.reason)
       else if (judgement.verdict === 'stale') setStatus(adaptation.id, 'retired', judgement.reason, 'retire')
       else if (judgement.verdict === 'effective' && adaptation.status === 'candidate') setStatus(adaptation.id, 'active', judgement.reason, 'promote')
       // An adaptation the friction still gets past is left in place: it may shorten the trouble, and the
@@ -272,16 +288,110 @@ export function createEngine({ library, options = {}, host = {} }) {
     }
   }
 
-  function quarantine(id, reason) {
-    setStatus(id, 'quarantined', reason, 'quarantine')
+  function quarantine(id, reason, sessionId) {
+    setStatus(id, 'quarantined', reason, 'quarantine', sessionId)
     for (const session of sessions) detach(session, id)
     log('warn', `adaptation ${id} quarantined: ${reason}`)
+  }
+
+  /**
+   * Takes back an adaptation that did harm. The harm was done by the version in use; if an earlier version is on
+   * disk that did none, that one goes back to work, and only when there is none does the adaptation go out of use.
+   * Either way the version is remembered as withdrawn, with the reason, for whoever writes the next one.
+   */
+  function withdraw(id, reason, sessionId) {
+    const current = library.get(id)
+    if (!current) return
+    const withdrawn = [...(current.withdrawn ?? []).filter(entry => entry.version !== current.version), { version: current.version, reason, at: Date.now(), sessionId }]
+    library.update(id, { withdrawn })
+    const fallback = library.versions(id)
+      .filter(version => version < current.version && !withdrawn.some(entry => entry.version === version) && library.statsOf(id, entries, version).faults < policy.maxFaults)
+      .at(-1)
+    let back
+    if (fallback !== undefined) {
+      try {
+        back = library.rollback(id, fallback, { change: 'auto-rollback', sessionId, reason })
+      } catch (error) {
+        log('warn', `could not put version ${fallback} of adaptation ${id} back: ${error?.message ?? error}`)
+      }
+    }
+    if (!back) return quarantine(id, reason, sessionId)
+    audit({ type: 'auto-rollback', adaptationId: id, from: current.version, to: fallback, reason, sessionId })
+    refresh()
+    log('warn', `adaptation ${id} went back from version ${current.version} to version ${fallback}: ${reason}`)
+    for (const session of sessions) {
+      if (!session.mounts.has(id)) continue
+      detach(session, id)
+      attach(session, back)
+    }
   }
 
   function onFault(session, mount, seam, error) {
     record({ type: 'fault', adaptationId: mount.id, version: mount.version, sessionId: session.sessionId, seam, message: String(error?.message ?? error).slice(0, 300) })
     const total = library.statsOf(mount.id, entries, mount.version).faults
-    if (total >= policy.maxFaults) quarantine(mount.id, `${total} handler faults; last: ${String(error?.message ?? error).slice(0, 120)}`)
+    if (total >= policy.maxFaults) withdraw(mount.id, `${total} handler faults; last: ${String(error?.message ?? error).slice(0, 120)}`, session.sessionId)
+  }
+
+  /** Whether an adaptation is to run in a session. */
+  const runs = (session, adaptation) => !stock && adaptation !== undefined && MOUNTED.includes(adaptation.status) && scopeCovers(adaptation.scope, session.cwd) && layerOn(adaptation)
+
+  /**
+   * Brings a live session in line with the library: what no longer runs is withdrawn from it, what runs as another
+   * version is swapped, and what ran here before and runs again comes back. An adaptation this session never had is
+   * not mounted by this; that happens when the session meets its cause.
+   */
+  function reconcile(session) {
+    for (const [id, entry] of [...session.mounts]) {
+      const current = records.find(candidate => candidate.id === id)
+      if (runs(session, current) && current.version === entry.mount.version) continue
+      detach(session, id)
+      session.notices = session.notices.filter(notice => notice.mountId !== id)
+      session.held.add(id)
+    }
+    for (const id of [...session.held]) {
+      const current = records.find(candidate => candidate.id === id)
+      if (!runs(session, current)) continue
+      session.held.delete(id)
+      attach(session, current)
+    }
+  }
+
+  /**
+   * Takes in what changed about what should run, whoever changed it: this process, another session's, or the user
+   * at a command line. Asked before every model request and every tool call, so going back takes effect mid-turn,
+   * the way adapting does.
+   */
+  function sync() {
+    const now = library.pulse()
+    if (now === pulse) return
+    pulse = now
+    reload()
+    for (const session of sessions) reconcile(session)
+  }
+
+  /**
+   * An adaptation that keeps refusing within one turn is either right or in the way, and from the refusals alone
+   * the two look the same. So the next call it would refuse is let through once, as the stock harness would run it.
+   * @returns {boolean} whether this refusal is set aside so that the call runs.
+   */
+  function standoff(session, mount, call) {
+    const count = (session.refusals.get(mount.id) ?? 0) + 1
+    session.refusals.set(mount.id, count)
+    if (count <= policy.probeAfter || session.settled.has(mount.id)) return false
+    if (!checkable(records.find(entry => entry.id === mount.id))) return false
+    session.probes.set(`${call.tool}\n${call.argsKey}`, { mountId: mount.id, version: mount.version, title: mount.title })
+    audit({ type: 'probe', adaptationId: mount.id, version: mount.version, sessionId: session.sessionId, refusals: count - 1, call: String(call.command ?? call.path ?? call.tool).slice(0, 200) })
+    return true
+  }
+
+  /** What the call that was let through showed. If it works, the adaptation that refused it was wrong and is taken back. */
+  function settleProbe(session, probe, call, result, outcome) {
+    session.settled.add(probe.mountId)
+    record({ type: 'probe', adaptationId: probe.mountId, version: probe.version, sessionId: session.sessionId, confirmed: !result.ok })
+    // The call does fail: the refusals were right, and this adaptation is not checked again in this session.
+    if (!result.ok) return
+    withdraw(probe.mountId, `refused a call that works: ${String(call.command ?? call.path ?? call.tool).slice(0, 120)}`, session.sessionId)
+    if (config.announce) outcome.notes.push(mark(probe.title, `${WITHDREW}: it refused this call, and the call works. What it said about calls like this no longer holds.`))
   }
 
   /** Compiles a stored adaptation and binds it to a session. Returns the mount, or undefined when it may not run. */
@@ -300,8 +410,10 @@ export function createEngine({ library, options = {}, host = {} }) {
       })
     } catch (error) {
       record({ type: 'fault', adaptationId: adaptation.id, version: adaptation.version, sessionId: session.sessionId, seam: 'load', message: String(error?.message ?? error).slice(0, 300) })
-      quarantine(adaptation.id, `failed to load: ${String(error?.message ?? error).slice(0, 160)}`)
-      return undefined
+      withdraw(adaptation.id, `failed to load: ${String(error?.message ?? error).slice(0, 160)}`, session.sessionId)
+      // An earlier version may have been put back in its place.
+      const back = records.find(entry => entry.id === adaptation.id)
+      return back && back.version !== adaptation.version && runs(session, back) ? attach(session, back, { fromStart }) : undefined
     }
     // The stored source is what runs. If it claims more than its record was accepted with, it does not run.
     const undeclared = mount.meta.capabilities.filter(name => !(adaptation.capabilities ?? []).includes(name))
@@ -370,6 +482,8 @@ export function createEngine({ library, options = {}, host = {} }) {
         stepsSinceAdaptation: session.adaptedAtStep === undefined ? undefined : session.steps - session.adaptedAtStep,
       }
       if (mounted) {
+        // Rewrites of this adaptation did harm and were taken back: what is in place now is left as it is.
+        if ((mounted.withdrawn ?? []).length >= policy.maxWithdrawn) continue
         const since = mounted.installedAt ?? mounted.createdAt
         // Only a session that had the adaptation mounted can show that it did not hold. Sessions that were already
         // running when it was written keep meeting the cause without it.
@@ -396,6 +510,10 @@ export function createEngine({ library, options = {}, host = {} }) {
   }
 
   async function adaptPending(session, boundary, signal) {
+    if (stock) {
+      session.pending.clear()
+      return
+    }
     const due = [...session.pending.values()]
       .filter(item => boundary === 'stop' || item.decision.when === 'step')
       .sort((a, b) => b.decision.severity - a.decision.severity)
@@ -441,7 +559,7 @@ export function createEngine({ library, options = {}, host = {} }) {
       const workspaces = new Set([...workspacesHit(entries, signature), session.cwd])
       if (elsewhere && workspaces.size >= policy.generalizeAfter) {
         // Met in a second workspace: this is about the machine or the user, not one project.
-        const widened = library.setScope(elsewhere.id, { kind: 'global' })
+        const widened = library.setScope(elsewhere.id, { kind: 'global' }, { change: 'generalize', sessionId: session.sessionId })
         audit({ type: 'generalize', adaptationId: elsewhere.id, sessionId: session.sessionId, workspaces: [...workspaces] })
         refresh()
         const mount = attach(session, widened)
@@ -454,10 +572,21 @@ export function createEngine({ library, options = {}, host = {} }) {
     const previous = decision.mode === 'revise' && covering
       ? { source: library.readSource(covering.id), recurrences: covering.sinceMount }
       : undefined
+    // The latest version written for this cause that was taken back for doing harm, so that it is not written again.
+    const harm = records.filter(entry => entry.friction?.signature === signature && scopeCovers(entry.scope, session.cwd))
+      .flatMap(entry => (entry.withdrawn ?? []).map(item => ({ ...item, id: entry.id })))
+      .sort((a, b) => a.at - b.at).at(-1)
+    let withdrawn
+    try {
+      if (harm) withdrawn = { source: library.readSource(harm.id, harm.version), reason: harm.reason }
+    } catch {
+      // The version is no longer on disk; the next one is written without it.
+    }
     const result = await generateAdaptation({
       finding,
       history: session.history,
       previous,
+      withdrawn,
       complete: host.complete && config.generator !== 'synth' ? request => host.complete(session, request, signal) : undefined,
       strategy: config.generator,
       maxRepairs: config.maxRepairs,
@@ -480,7 +609,7 @@ export function createEngine({ library, options = {}, host = {} }) {
       stored = library.revise(covering.id, {
         ...fields,
         revision: { at: Date.now(), sessionId: session.sessionId, reason: decision.reason, generator: result.generator },
-      }, result.source)
+      }, result.source, { sessionId: session.sessionId, reason: decision.reason })
     } else {
       stored = library.create({
         ...fields,
@@ -492,7 +621,7 @@ export function createEngine({ library, options = {}, host = {} }) {
           sessionId: session.sessionId, cwd: session.cwd, turn: finding.turn, step: finding.step, generator: result.generator,
           severity: decision.severity, priorSessions: finding.priorSessions ?? 0, evidence: finding.evidence,
         },
-      }, result.source)
+      }, result.source, { sessionId: session.sessionId, reason: finding.summary })
       session.created += 1
     }
     refresh()
@@ -523,7 +652,7 @@ export function createEngine({ library, options = {}, host = {} }) {
       // A prompt section acts by being there, which only counts for a turn it was there from the start of.
       const acted = mount.fires > 0 || (fromStart && mount.sections.length > 0)
       if (current?.status === 'candidate' && acted && mount.faults === 0) {
-        setStatus(id, 'active', 'acted in a live session without faults', 'promote')
+        setStatus(id, 'active', 'acted in a live session without faults', 'promote', session.sessionId)
       }
     }
     // The stop boundary of this turn has passed.
@@ -535,6 +664,8 @@ export function createEngine({ library, options = {}, host = {} }) {
     if (observation.kind === 'turn-start') {
       session.turnObservations = []
       session.continuations = 0
+      session.refusals = new Map()
+      session.probes.clear()
       session.turn = observation.turn
     } else if (observation.kind === 'tool') {
       session.history.push(observation)
@@ -550,6 +681,7 @@ export function createEngine({ library, options = {}, host = {} }) {
    */
   function open(input) {
     refresh()
+    stock = library.stock() !== undefined
     const project = syncProject(input.cwd)
     const settings = sessionSettings(project)
     maintain()
@@ -561,6 +693,10 @@ export function createEngine({ library, options = {}, host = {} }) {
       observer: createObserver(settings.signals, settings.disabledDetectors),
       history: [], turnObservations: [],
       pending: new Map(), notices: [], mounts: new Map(),
+      // Adaptations this session had and lost to a change made elsewhere; they return if they run again.
+      held: new Set(),
+      // Refusals per adaptation in the current turn, calls let through to check one, adaptations already checked.
+      refusals: new Map(), probes: new Map(), settled: new Set(),
       seen: new Set(), attempts: new Map(),
       created: 0, adaptedAtStep: undefined, steps: 0,
       continuations: 0, turn: 0, step: 0, seq: 0, signal: undefined, closed: false,
@@ -577,7 +713,11 @@ export function createEngine({ library, options = {}, host = {} }) {
       }
     }
     record({ type: 'session', sessionId: session.sessionId, cwd: session.cwd })
-    for (const adaptation of records.filter(entry => MOUNTED.includes(entry.status) && scopeCovers(entry.scope, session.cwd) && layerOn(entry))) attach(session, adaptation, { fromStart: true })
+    for (const adaptation of records.filter(entry => MOUNTED.includes(entry.status) && scopeCovers(entry.scope, session.cwd) && layerOn(entry))) {
+      // At stock nothing is mounted; what would have been waits for the switch to be turned back.
+      if (stock) session.held.add(adaptation.id)
+      else attach(session, adaptation, { fromStart: true })
+    }
     sessions.add(session)
 
     return {
@@ -612,11 +752,13 @@ export function createEngine({ library, options = {}, host = {} }) {
        */
       async beforeTool(call, signal) {
         if (signal) session.signal = signal
+        sync()
         const verdict = {}
         for (const { mount } of [...session.mounts.values()]) {
           for (const effect of await mount.pre(call)) {
-            if (effect.type === 'deny') verdict.deny ??= mount.mark(effect.text)
-            else if (effect.type === 'ask') verdict.ask ??= mount.mark(effect.text)
+            if (effect.type === 'deny') {
+              if (verdict.deny === undefined && !standoff(session, mount, call)) verdict.deny = mount.mark(effect.text)
+            } else if (effect.type === 'ask') verdict.ask ??= mount.mark(effect.text)
           }
         }
         return verdict
@@ -629,13 +771,19 @@ export function createEngine({ library, options = {}, host = {} }) {
       async afterTool(call, result, signal) {
         if (signal) session.signal = signal
         const outcome = { notes: [] }
+        const key = `${call.tool}\n${call.argsKey}`
+        const probe = session.probes.get(key)
+        session.probes.delete(key)
         for (const { mount } of [...session.mounts.values()]) {
+          // The adaptation whose refusal is being checked has no say on the call that checks it.
+          if (probe?.mountId === mount.id) continue
           for (const effect of await mount.post(call, result)) {
             if (effect.type === 'annotate') outcome.notes.push(mount.mark(effect.text))
             else if (effect.type === 'block') outcome.block ??= mount.mark(effect.text)
             else if (effect.type === 'replace') outcome.replace ??= effect.text
           }
         }
+        if (probe) settleProbe(session, probe, call, result, outcome)
         return outcome
       },
 
@@ -648,6 +796,7 @@ export function createEngine({ library, options = {}, host = {} }) {
         session.step = at.step
         session.steps += 1
         if (at.signal) session.signal = at.signal
+        sync()
         await adaptPending(session, 'step', at.signal)
         const notes = session.notices.filter(entry => entry.due <= session.steps).map(entry => entry.text)
         session.notices = session.notices.filter(entry => entry.due > session.steps)
@@ -700,6 +849,23 @@ export function createEngine({ library, options = {}, host = {} }) {
     config,
     policy,
     open,
+    sync,
+    /** Whether the harness is back at stock. */
+    stock: () => stock,
+    /** Takes back the last thing the harness put to work. Live sessions follow at once. */
+    undo(meta = {}) {
+      const result = library.undo({ by: 'user', ...meta })
+      if (result) audit({ type: 'user', action: 'undo', adaptationId: result.record?.id, undoes: result.undoes, sessionId: meta.sessionId })
+      sync()
+      return result
+    },
+    /** Sets the harness back to stock, or ends that. Live sessions follow at once. */
+    setStock(off, meta = {}) {
+      const changed = library.setStock(off, { by: 'user', ...meta })
+      if (changed) audit({ type: 'user', action: off ? 'off' : 'on', sessionId: meta.sessionId })
+      sync()
+      return changed
+    },
     /** Withdraws every mount; used when the plugin itself is unloaded. */
     dispose() {
       for (const session of [...sessions]) {
