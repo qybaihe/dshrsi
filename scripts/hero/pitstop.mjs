@@ -37,38 +37,34 @@ const THEMES = {
 
 const TEXT = {
   en: {
-    kicker: 'how it works, as a pit stop',
     title: 'A pit stop in the middle of the race',
     sub: 'A driver who feels the car is wrong does not wait for the next race. Neither does the harness.',
     steps: [
-      ['On track', ['a session, mid-turn']],
-      ['The car feels wrong', [`detector: same failed call, ${ORDINAL.en[nth] ?? nth} session`]],
-      ['Into the box: a new part', ['the session’s own model', 'writes harness code']],
-      ['Five lights', ['the gate:', 'draft 1 failed,', `draft 2 passed all ${stages.length}`]],
-      ['Back out. Same race.', ['mounted before the turn is over']],
-      ['The next laps tell', ['a ledger keeps score: keep, rewrite or drop', `this fault in later sessions: ${after.stock.hit} → ${after.plugin.hit} of ${after.plugin.total}`]],
-      ['The next race starts with this car', ['kept per machine · user · project,', 'and the improved car improves again']],
+      ['On track', ['mid-session']],
+      ['The car feels wrong', [`the same failed call, for the ${ORDINAL.en[nth] ?? `${nth}th`} time`]],
+      ['Into the box: a new part', ['the model writes harness code']],
+      ['Five lights', ['five checks,', 'all must pass']],
+      ['Back out. Same race.', ['fitted before the task is over']],
+      ['The next laps tell', [`the same ${after.plugin.total} sessions: ${after.stock.hit} without it, ${after.plugin.hit} with it`]],
+      ['The next race starts with this car', ['and the improved car improves again']],
     ],
     legend: [['the car', 'the harness'], ['the driver', 'the model'], ['the part', 'harness code']],
-    stop: 'in the real run', unit: 's',
-    foot: `Numbers from one real run: Aider Polyglot · Rust · ${T.model}`,
+    stop: 'measured', unit: 's',
   },
   zh: {
-    kicker: '用一次进站讲清原理',
     title: '跑到一半，进站换件',
     sub: '赛车手觉得车不对劲，不会等到下一场比赛。Harness 也不会。',
     steps: [
-      ['在赛道上', ['一次会话，进行到一半']],
-      ['车感觉不对', [`检测到：同一个失败调用，第 ${nth} 个会话`]],
-      ['进站：换上新零件', ['会话里的模型', '给 Harness 写代码']],
-      ['五盏灯', ['五道校验：', '第 1 稿没过，', `第 2 稿 ${stages.length} 道全过`]],
-      ['出站，还是这场比赛', ['这一轮结束之前就挂载']],
-      ['后面几圈见分晓', ['账本记分：留下、重写，或者淘汰', `这个失败在之后的会话里：${after.stock.hit} → ${after.plugin.hit}（共 ${after.plugin.total} 题）`]],
-      ['下一场比赛，从这辆车开始', ['按机器 · 用户 · 项目保存，', '改进过的车还会再改进']],
+      ['在赛道上', ['会话进行到一半']],
+      ['车感觉不对', [`同一个失败，第 ${nth} 次了`]],
+      ['进站：换上新零件', ['模型给 Harness 写代码']],
+      ['五盏灯', ['五道校验，', '全过才装上']],
+      ['出站，还是这场比赛', ['这一轮还没结束就装上了']],
+      ['后面几圈见分晓', [`同样的 ${after.plugin.total} 个会话：不装 ${after.stock.hit} 次，装上 ${after.plugin.hit} 次`]],
+      ['下一场比赛，从这辆车开始', ['改进过的车，还会再改进']],
     ],
     legend: [['赛车', 'Harness'], ['车手', '模型'], ['零件', '一段 Harness 代码']],
-    stop: '真实运行里', unit: '秒',
-    foot: `数字来自一次真实运行：Aider Polyglot · Rust · ${T.model}`,
+    stop: '实测', unit: '秒',
   },
 }
 
@@ -131,14 +127,18 @@ function car(c, opacity = 1, part = 'old') {
   </g>`
 }
 
-function draw(language, theme) {
+/**
+ * The picture as SVG text. `still` leaves the animation out and shows the moment the part is fitted: the car in the
+ * box, five lights on, the stopwatch stopped. That is the version for print.
+ */
+export function draw(language, theme, { still = false } = {}) {
   const c = THEMES[theme], s = TEXT[language]
   const font = language === 'zh' ? "-apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', 'Segoe UI', sans-serif" : "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
   const text = (x, y, value, { size = 16, weight = 400, fill = c.ink, anchor = 'start', spacing } = {}) =>
     `<text x="${x}" y="${y}" font-size="${size}" font-weight="${weight}" fill="${fill}"${anchor === 'start' ? '' : ` text-anchor="${anchor}"`}${spacing ? ` letter-spacing="${spacing}"` : ''}>${esc(value)}</text>`
   const step = (number, x, y) => {
     const [title, lines] = s.steps[number - 1]
-    return `<g><circle cx="${x}" cy="${y - 6}" r="13" fill="${c.accent}"/><text x="${x}" y="${y - 0.8}" font-size="15" font-weight="700" fill="#ffffff" text-anchor="middle">${number}</text>${text(x + 22, y, title, { size: 20, weight: 700 })}${lines.map((line, index) => text(x + 22, y + 23 + index * 20, line, { size: 15.5, fill: c.dim })).join('')}</g>`
+    return `<g><circle cx="${x}" cy="${y - 6}" r="13" fill="${c.accent}"/><text x="${x}" y="${y - 0.8}" font-size="15" font-weight="700" fill="#ffffff" text-anchor="middle">${number}</text>${text(x + 22, y, title, { size: 20, weight: 700 })}${lines.map((line, index) => text(x + 22, y + 25 + index * 22, line, { size: 17, fill: c.dim })).join('')}</g>`
   }
   const mark = shell({ perTurn: 7, turns: 1.25, gap: 0.17, wall: 0.16, shade: 0, bolt: 0.24, soft: 0.03, margin: 1.2, id: 'mk' }).replace(/^<svg[^>]*>|<\/svg>$/g, '')
   const emblem = shell({ id: 'em' }).replace(/^<svg[^>]*>|<\/svg>$/g, '')
@@ -155,17 +155,17 @@ function draw(language, theme) {
     return `<rect x="${x + 4}" y="372" width="52" height="46" rx="7" fill="${live ? c.soft : 'none'}" stroke="${live ? c.accent : c.line}" stroke-width="${live ? 1.6 : 1}"/>${live ? '' : `<rect x="${x + 16}" y="388" width="28" height="5" rx="2.5" fill="${c.line}"/><rect x="${x + 16}" y="398" width="18" height="5" rx="2.5" fill="${c.line}"/>`}`
   }).join('')
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 752" width="1280" height="752" font-family="${font}" role="img">
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720" font-family="${font}" role="img">
 <title>${esc(`${s.title}. ${s.steps.map(([title, lines], index) => `${index + 1}. ${title}: ${lines.join(' ')}`).join(' ')}`)}</title>
 <defs>
   <linearGradient id="body" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${c.violet}"/><stop offset=".55" stop-color="${c.accent}"/><stop offset="1" stop-color="${c.cyan}"/></linearGradient>
 </defs>
-<rect width="1280" height="752" rx="24" fill="${c.canvas}"/>
+<rect width="1280" height="720" rx="24" fill="${c.canvas}"/>
 
 <g transform="translate(44 30) scale(${f(32 / 36)})">${mark}</g>
-${text(86, 53, 'DSHRSI', { size: 19, weight: 700, spacing: '.03em' })}${text(language === 'zh' ? 170 : 172, 53, s.kicker, { size: 16, fill: c.faint })}
+${text(86, 53, 'DSHRSI', { size: 19, weight: 700, spacing: '.03em' })}
 ${text(44, 106, s.title, { size: 36, weight: 700, spacing: '-.01em' })}
-${text(44, 138, s.sub, { size: 17.5, fill: c.dim })}
+${text(44, 138, s.sub, { size: 18, fill: c.dim })}
 
 <path d="${infield}" fill="${c.infield}"/>
 <path d="${pitLane}" fill="none" stroke="${c.edge}" stroke-width="37" stroke-linecap="round"/>
@@ -197,9 +197,9 @@ ${bays}
 ${lights}
 
 <!-- the stop, timed -->
-<g transform="translate(1104 ${MID - 34})"><circle r="30" fill="${c.card}" stroke="${c.ink}" stroke-width="3.2"/><path d="M-6 -39h12M0 -39v9M22 -26l5 -5" stroke="${c.ink}" stroke-width="3.2" stroke-linecap="round"/><path d="M0 0V-19" stroke="${c.accent}" stroke-width="3.2" stroke-linecap="round"><animateTransform attributeName="transform" type="rotate" dur="${LAP}s" repeatCount="indefinite" keyTimes="0;${share(ARRIVE)};${share(LEAVE)};1" values="0;0;220;220"/></path><circle r="3.2" fill="${c.accent}"/></g>
+<g transform="translate(1104 ${MID - 34})"><circle r="30" fill="${c.card}" stroke="${c.ink}" stroke-width="3.2"/><path d="M-6 -39h12M0 -39v9M22 -26l5 -5" stroke="${c.ink}" stroke-width="3.2" stroke-linecap="round"/><path d="M0 0V-19" stroke="${c.accent}" stroke-width="3.2" stroke-linecap="round"${still ? ' transform="rotate(220)"' : ''}><animateTransform attributeName="transform" type="rotate" dur="${LAP}s" repeatCount="indefinite" keyTimes="0;${share(ARRIVE)};${share(LEAVE)};1" values="0;0;220;220"/></path><circle r="3.2" fill="${c.accent}"/></g>
 <text x="1104" y="${MID + 38}" text-anchor="middle" font-size="34" font-weight="800" fill="${c.ink}" letter-spacing="-.02em">${seconds}<tspan font-size="18" font-weight="600" fill="${c.faint}" dx="5">${s.unit}</tspan></text>
-${text(1104, MID + 60, s.stop, { size: 14.5, fill: c.faint, anchor: 'middle' })}
+${text(1104, MID + 62, s.stop, { size: 16, fill: c.faint, anchor: 'middle' })}
 
 <!-- every lap builds on the last -->
 <g transform="translate(${LEFT - 148} ${MID - 62}) scale(${f(124 / 36)})">${emblem}</g>
@@ -208,7 +208,7 @@ ${text(1104, MID + 60, s.stop, { size: 14.5, fill: c.faint, anchor: 'middle' })}
 <rect x="296" y="312" width="286" height="118" rx="14" fill="${c.card}" stroke="${c.line}" stroke-width="1.2"/>
 <g transform="translate(332 342) scale(.62)">${car(c)}</g><circle cx="332" cy="372" r="5.5" fill="${c.cyan}" stroke="${c.tyre}" stroke-width="2.4"/>
 <g transform="translate(332 402) scale(.62)"><path d="M-9 -9q-6 0 -6 5v2q0 3 -4 3q4 0 4 3v2q0 5 6 5M9 -9q6 0 6 5v2q0 3 4 3q-4 0 -4 3v2q0 5 -6 5" fill="none" stroke="${c.accent}" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></g>
-${s.legend.map(([what, means], index) => `<text x="360" y="${347 + index * 30}" font-size="15.5" fill="${c.dim}"><tspan font-weight="700" fill="${c.ink}">${esc(what)}</tspan><tspan dx="7" fill="${c.faint}">=</tspan><tspan dx="7">${esc(means)}</tspan></text>`).join('')}
+${s.legend.map(([what, means], index) => `<text x="360" y="${347 + index * 30}" font-size="17" fill="${c.dim}"><tspan font-weight="700" fill="${c.ink}">${esc(what)}</tspan><tspan dx="7" fill="${c.faint}">=</tspan><tspan dx="7">${esc(means)}</tspan></text>`).join('')}
 
 <!-- the car that was here before, and the one that is moving -->
 <g transform="translate(332 ${TOP})">${car(c, 0.3)}</g>
@@ -222,17 +222,19 @@ ${step(3, 596, 464)}
 ${step(4, 880, 464)}
 ${step(7, 296, 560)}
 ${step(6, 694, 560)}
-${text(44, 726, s.foot, { size: 14.5, fill: c.faint })}
 </svg>
 `
+  return still ? svg.replace(/<animate(?:Transform|Motion)?\b[^>]*\/>/g, '') : svg
 }
 
-const named = (language, theme) => `pit-stop${language === 'en' ? '' : `.${language}`}${theme === 'light' ? '' : `.${theme}`}.svg`
-for (const language of ['en', 'zh']) {
-  for (const theme of ['light', 'dark']) {
-    const svg = draw(language, theme)
-    fs.writeFileSync(path.join(ROOT, 'assets', named(language, theme)), svg)
-    fs.writeFileSync(path.join(ROOT, 'website/assets/img', named(language, theme)), svg)
-    console.log(`assets/${named(language, theme)}  ${(Buffer.byteLength(svg) / 1024).toFixed(1)} KB`)
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  const named = (language, theme) => `pit-stop${language === 'en' ? '' : `.${language}`}${theme === 'light' ? '' : `.${theme}`}.svg`
+  for (const language of ['en', 'zh']) {
+    for (const theme of ['light', 'dark']) {
+      const svg = draw(language, theme)
+      fs.writeFileSync(path.join(ROOT, 'assets', named(language, theme)), svg)
+      fs.writeFileSync(path.join(ROOT, 'website/assets/img', named(language, theme)), svg)
+      console.log(`assets/${named(language, theme)}  ${(Buffer.byteLength(svg) / 1024).toFixed(1)} KB`)
+    }
   }
 }
