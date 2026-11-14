@@ -21,14 +21,11 @@
 
 [![RSI](https://img.shields.io/badge/RSI-Recursive_Self--Improvement-4d6bfe?style=for-the-badge)](#rsi)
 [![DeepSeek Harness](https://img.shields.io/badge/DeepSeek_Harness-0.2.2--rc.3_plugin-7c5cff?style=for-the-badge)](https://github.com/deepseek-ai/deepseek-harness)
-[![Detectors](https://img.shields.io/badge/Detectors-16-12b5e5?style=for-the-badge)](#coverage)
 [![Validation](https://img.shields.io/badge/Validation-5--Stage_Gate-0ea5e9?style=for-the-badge)](#how-it-works)
-[![Layers](https://img.shields.io/badge/Layers-Machine_%C2%B7_User_%C2%B7_Project-0284c7?style=for-the-badge)](#project-harness)
 [![Benchmarks](https://img.shields.io/badge/Benchmarks-4_Suites_%C2%B7_2_Models-2563eb?style=for-the-badge)](#benchmarks)
-[![Tests](https://img.shields.io/badge/Tests-130_unit_%C2%B7_29_e2e-1d4ed8?style=for-the-badge)](#contributing)
 [![MIT License](https://img.shields.io/badge/License-MIT-38bdf8?style=for-the-badge)](../../LICENSE)
 
-**[🌐 Website](https://qybaihe.github.io/dshrsi/) · [📖 Plugin Reference](../../packages/dsh-rsi/README.md) · [🧩 Project Harness](../../packages/dsh-rsi/README.md#layers-and-the-project-harness) · [🔬 Validation Gate](../../packages/dsh-rsi/README.md#the-validation-gate) · [⚠️ Maloom Limits](../../packages/dsh-rsi/README.md#known-limits) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
+**[🌐 Website](https://qybaihe.github.io/dshrsi/) · [📖 Plugin Reference](../../packages/dsh-rsi/README.md) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
 
 [RSI ka Matlab](#rsi) · [Quick Start](#quick-start) · [Yeh Kaise Kaam Karta Hai](#how-it-works) · [Naape Hue Results](#measured) · [Benchmarks](#benchmarks) · [Detectors aur Capabilities](#coverage) · [Project Harness](#project-harness) · [Safety ke Defaults](#security) · [FAQ](#faq)
 
@@ -116,26 +113,6 @@ Configure karne ke liye kuch nahin hai. Jab tak wahi masla dobara na aaye, DSHRS
 
 Kisi bhi session mein `/rsi` type karein aur dekhein ke kya kya mount hai, kis layer ka hai, aur kya aap ki approval ka intezar kar raha hai.
 
-### 3. Repository ko Us ka Apna Harness Dein
-Kisi repository mein seekhe gaye rules usi repository mein reh sakte hain, har adaptation ki ek file:
-
-```bash
-# Yeh command plugin ke saath aati hai, usi profile ke andar jis mein plugin install hua tha
-alias dsh-rsi="$HOME/.dsh/profiles/web/node_modules/.bin/dsh-rsi"
-
-dsh-rsi project init      # repository ke andar: .dsh-rsi/ banata hai, phir use commit karein
-dsh-rsi trust             # har doosri machine par: files parhne ke baad unhein accept karein
-```
-
-### 4. Source se Chalayein
-
-```bash
-git clone https://github.com/qybaihe/dshrsi.git && cd dshrsi
-npm install               # ek pinned dsh aur woh pnpm lata hai jise dsh call karta hai
-npx dsh plugin --profile web add "$PWD/packages/dsh-rsi"
-npx dsh web
-```
-
 `desktop` aur `headless` profiles, plugin indexes, local tarballs aur sirf ek run ke liye load karna, yeh sab [plugin reference](../../packages/dsh-rsi/README.md#install) mein bayan kiya gaya hai.
 
 ---
@@ -155,36 +132,13 @@ Skills, memory files aur lambe system prompts sab context ke level par kaam kart
 
 **DSHRSI harness ke level par kaam karta hai. Jo kuch yeh seekhta hai woh harness ke apne extension points par code ban jata hai:**
 
-```mermaid
-flowchart LR
-  subgraph S1["1 · Dekhna"]
-    A["session events"] --> B["16 detectors"]
-  end
-  subgraph S2["2 · Faisla Karna"]
-    B --> C["friction signature<br/>+ library + pichle sessions"]
-  end
-  subgraph S3["3 · Dobara Likhna"]
-    C --> D["session ka model<br/>adaptation likhta hai"]
-    D --> E["5-stage validation gate"]
-    E -. "wajah bata kar reject" .-> D
-  end
-  subgraph S4["4 · Mount Karna"]
-    E --> F["alag node:vm context<br/>agli model request se pehle live"]
-  end
-  subgraph S5["5 · Rakhna aur Share Karna"]
-    F --> G["library: promote · quarantine · revise"]
-    G --> H["repository mein .dsh-rsi/"]
-  end
-  G -. "agla session yahin se shuru hota hai" .-> A
-```
-
 | Stage | Mechanism | Asar |
 | :--- | :--- | :--- |
-| **1. Dekhna** | 16 detectors normalized session events parhte hain: dobara fail hone wali calls, fail hone ki baar baar laut aane wali wajah, andha dhund koshishein, user ki corrections, aur woh turns jo kuch bhi verify hue baghair khatam ho jati hain. | Masle ko ek aisa signature milta hai jo har session mein ek jaisa rehta hai, jaise `bash:command-not-found:python`. |
+| **1. Dekhna** | 16 detectors normalized session events parhte hain: dobara fail hone wali calls, fail hone ki baar baar laut aane wali wajah, andha dhund koshishein, user ki corrections, aur woh turns jo kuch bhi verify hue baghair khatam ho jati hain. | Masle ko ek aisa signature milta hai jo ek session se agle session tak ek jaisa rehta hai. |
 | **2. Dobara Likhna** | Session ka apna model 10 capabilities wali API ke mutabiq JavaScript mein ek adaptation likhta hai. Reject hua code wajah ke saath wapas jata hai, zyada se zyada do baar, phir ek built-in template kaam sambhal leta hai. | Fix harness ka code hota hai, prompt ka ek aur paragraph nahin. |
 | **3. Validate Karna** | Static → load → replay → regression → permission. Adaptation ko un calls par asar dikhana hota hai jinhon ne use trigger kiya, aur is session mein kamyab hone wali har call ko waise hi chhor dena hota hai. | Jo code kuch nahin karta, ya jo pehle se chalti hui cheez tor deta hai, woh kabhi mount nahin hota. |
-| **4. Mount Karna** | Adaptation ek JSON bridge ke peeche apne alag `node:vm` context mein chalti hai, har call par timeout hota hai, aur agli model request se pehle hi asar dikhane lagti hai. | Jis turn ko masla pesh aaya, sab se pehle faida bhi usi ko hota hai. |
-| **5. Rakhna aur Share Karna** | Har machine ki apni library, ledger aur audit log ke saath. Jo kaam karti hai woh promote hoti hai, jo throw karti hai woh quarantine hoti hai, jo masla rok na saki use aur sakht kar ke dobara likha jata hai, aur project ke rules `.dsh-rsi/` mein likhe jate hain. | Agla session pehle se adapt ho kar shuru hota hai, aur teammates ko `dsh-rsi trust` ke baad project ke rules mil jate hain. |
+| **4. Mount Karna** | Adaptation apne alag isolated context mein chalti hai, har call par timeout hota hai, aur agli model request se pehle hi asar dikhane lagti hai. | Jis turn ko masla pesh aaya, sab se pehle faida bhi usi ko hota hai. |
+| **5. Rakhna aur Share Karna** | Har machine adaptations ki apni library rakhti hai. Jo kaam karti hai woh promote hoti hai, jo throw karti hai woh quarantine hoti hai, jo masla rok na saki use aur sakht kar ke dobara likha jata hai, aur project ke rules repository ke andar likhe jate hain. | Agla session pehle se adapt ho kar shuru hota hai, aur teammates ko project ke rules tab mil jate hain jab woh unhein accept kar lein. |
 | **↻ Phir Se** | Agla session us harness par chalta hai jo stage 5 chhor gaya tha, aur stage 1 use tamam adaptations samet dekhta hai. | Behtari par behtari banti hai. Yahi recursion hai. |
 
 ---
@@ -199,46 +153,9 @@ Yeh numbers ek asli model, `mimo-v2.6-pro`, ko asli `dsh` sessions mein chala ka
 
 | Scenario | DSHRSI ke Baghair | DSHRSI ke Saath | Harness ne Kya Likha |
 | :--- | :--- | :--- | :--- |
-| **Command na milna**: README mein `python stats.py` likha hai, machine par sirf `python3` hai | ❌ **5 / 5** sessions ne fail hone wali call ki | ✅ adaptation ke baad **0 / 7** sessions ne (us se pehle 9 / 9 ne) | `deny` + `prompt`, model ne likha, pehli hi koshish mein gate pass kiya |
-| **Woh rule jo user ne ek hi baar bataya**: "`notes.txt` ko kabhi modify na karna, `notes.draft.txt` mein likhna" | ❌ Agle session ne `notes.txt` edit kar di | ✅ Agle session ne kahe baghair `notes.draft.txt` mein likha | `deny` + `prompt`, model ne correction ke foran baad likha |
+| **Command na milna**: instructions mein `python` likha hai, machine par sirf `python3` hai | ❌ **5 / 5** sessions ne fail hone wali call ki | ✅ adaptation ke baad **0 / 7** sessions ne (us se pehle 9 / 9 ne) | `deny` + `prompt`, model ne likha, pehli hi koshish mein gate pass kiya |
+| **Woh rule jo user ne ek hi baar bataya**: ek khaas file ko kabhi modify na karna, us ki jagah us ke draft mein likhna | ❌ Agle session ne woh file edit kar di | ✅ Agle session ne kahe baghair draft mein likha | `deny` + `prompt`, model ne correction ke foran baad likha |
 | **Woh fix jise verify karne ko kisi ne nahin kaha** | nahin chalaya gaya | ⚪ Kuch nahin likha gaya: model ne 3 / 3 sessions mein apna fix verify kiya, is liye seekhne ko kuch tha hi nahin | kuch nahin |
-
-Pehla scenario plugin ke saath teen baar chalaya gaya, har baar khali library se, aur is ke ilawa ek control run hua. Doosra scenario ek baar plugin ke saath aur ek baar us ke baghair chalaya gaya.
-
-**Command na milna, ek ek session kar ke** (har session mein fail hone wali tool calls):
-
-| Run | S1 | S2 | S3 | S4 | S5 | S6 |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **DSHRSI ke baghair** | ❌ 1 | ❌ 1 | ❌ 1 | ❌ 1 | ❌ 1 | |
-| **DSHRSI ke saath · run 1** | ❌ 1 | ❌ 1 | ❌ 1 → 🧬 | ✅ 0 | ✅ 0 | ✅ 0 |
-| **DSHRSI ke saath · run 2** | ❌ 1 | ❌ 1 | ❌ 1 → 🧬 | ✅ 0 | ✅ 0 | |
-| **DSHRSI ke saath · run 3** | ❌ 1 | ❌ 1 | ❌ 1 → 🧬 | ✅ 0 | ✅ 0 | |
-
-🧬 us turn ka nishan hai jis mein model ne adaptation likhi aur harness ne use mount kiya. Us ke baad ke 7 mein se 3 sessions mein model ne phir bhi `python` chalane ki koshish ki, aur harness ne call ke chalne se pehle hi us se inkaar kar diya. Is scenario ka har session sahi jawab par khatam hua, plugin ho ya na ho.
-
-Locally reproduce karein:
-
-```bash
-MIMO_API_KEY=... npm run test:live -- python --sessions 6          # plugin ke saath
-MIMO_API_KEY=... npm run test:live -- python --sessions 5 --off    # control run, plugin ke baghair
-```
-
-<details>
-<summary><strong>Jo is machine par verify nahin hua (kholne ke liye click karein)</strong></summary>
-
-<br />
-
-Yeh paths code mein maujood hain aur simulated model wale unit ya end-to-end tests inhein cover karte hain, lekin inhein kisi asli session ya asli app mein chalte hue nahin dekha gaya:
-
-| Hissa | Yahan Verify Kyun Nahin Hua |
-| :--- | :--- |
-| DeepSeek Harness ki desktop app | Development machine par install nahin hai. Verification `web` profile aur us installation mechanism par hui jinhein app wrap karti hai |
-| `negative-feedback`, `approval-denied`, `context-pressure`, `model-instability` | Sirf khud banaye gaye events se test hue, asli session mein kabhi trigger nahin hue |
-| Automated browser tests | Koi nahin. UI ko asli `dsh web` page mein haath se chala kar dekha gaya, light aur dark dono mode mein |
-| ACP aur SDK profiles | Wahan koi UI nahin, aur verify bhi nahin hue |
-| MiMo v2.6 family se bahar ke models | Abhi tak koi run nahin. Benchmarks mein `mimo-v2.6-pro` aur `mimo-v2.6-flash` istemal hue; upar ke teen scenarios mein `mimo-v2.6-pro` |
-
-</details>
 
 ---
 
@@ -270,26 +187,17 @@ Stock DeepSeek Harness banam DeepSeek Harness + DSHRSI, 3,390 asli `dsh` session
 
 **DSHRSI ne jo kaam waqai kiya, woh yeh tha ke ek bhi hint ke baghair khud ko badla.** Aath runs mein models ne **56 adaptations** likhin; in mein se 15 harkat mein aayin, aur un mein se 10 poori machine tak phailai ja chuki thin. In 10 mein se har ek ke liye hum ne woh tasks liye jo us ke baad shuru hue aur un ka muqabla stock DSH ke tehat bilkul unhi tasks se kiya:
 
-| Model ki Likhi Hui Adaptation | Yeh Kis Failure ka Jawab Hai | Stock DSH | DSH + DSHRSI | p |
-| :--- | :--- | ---: | ---: | ---: |
-| *Stop inline python checks that abort on first mismatch* (MBPP, `mimo-v2.6-pro`) | Aisa test run jo pehli hi fail hone wali assertion par khatam ho jata hai | 310 mein se 16 tasks | **310 mein se 3** | 0.002 |
-| *Redirect missing lib.rs reads to a glob lookup* (Polyglot, `mimo-v2.6-flash`) | `lib.rs` ko aise path se parhna jo maujood hi nahin | 151 mein se 7 tasks | **151 mein se 1** | 0.07 |
-| Baqi 8 | | koi naapne laiq tabdeeli nahin | | |
+| Woh Failure Jis se Bachna Harness ne Khud Seekha | Stock DSH | DSH + DSHRSI | p |
+| :--- | ---: | ---: | ---: |
+| Aisa test run jo pehli hi fail hone wali assertion par khatam ho jata hai (MBPP, `mimo-v2.6-pro`) | 310 mein se 16 tasks | **310 mein se 3** | 0.002 |
+| Kisi file ko aise path se parhna jo maujood hi nahin (Polyglot, `mimo-v2.6-flash`) | 151 mein se 7 tasks | **151 mein se 1** | 0.07 |
+| Baqi 8 adaptations | koi naapne laiq tabdeeli nahin | | |
 
-In dono mein se kisi ne bhi zyada tasks pass nahin karwaye, aur plugin ki wajah se agent time aur input tokens taqreeban 8–9% zyada lage. Yeh dason [`bench/README.md`](../../bench/README.md#did-those-adaptations-work) mein darj hain.
+In dono mein se kisi ne bhi zyada tasks pass nahin karwaye, aur plugin ki wajah se agent time aur input tokens taqreeban 8–9% zyada lage. Yeh dason [benchmark notes](../../bench/README.md#did-those-adaptations-work) mein darj hain.
 
 **LiveCodeBench v6 beech mein hi ruk gaya:** model account ka balance raaste mein khatam ho gaya. Jo tasks us waqt tak dono taraf mukammal ho chuke the, un mein `mimo-v2.6-pro` ke saath 105 mein se stock DSH ne 94 aur DSHRSI ne 96 solve kiye, aur `mimo-v2.6-flash` ke saath 51 mein se 42 banam 42. Isi wajah se doosra pass, yani wahi tasks dobara us library par jo pehla pass chhor gaya tha, abhi tak nahin chalaya gaya.
 
-Locally reproduce karein:
-
-```bash
-bench/setup.sh                                                        # toolchains, datasets, scoring ka code
-MIMO_API_KEY=... node bench/run.mjs polyglot --arm dsh --run dsh-p1   # stock DeepSeek Harness
-MIMO_API_KEY=... node bench/run.mjs polyglot --arm rsi --run rsi-p1   # plugin ke saath
-node bench/report.mjs --write                                         # tables aur bench/results/*.json
-```
-
-Protocol, cost aur failure ke tables aur limits [`bench/README.md`](../../bench/README.md) mein hain; har task ke results [`bench/results/`](../../bench/results) mein hain.
+Protocol, cost aur failure ke tables, limits aur yeh sab reproduce karne ki commands [benchmark notes](../../bench/README.md) mein hain.
 
 ---
 
@@ -297,26 +205,7 @@ Protocol, cost aur failure ke tables aur limits [`bench/README.md`](../../bench/
 
 ## 🛡️ Detectors aur Capabilities
 
-**16 detectors** tay karte hain ke harness ko kab badalna chahiye. Yahi detectors live session par bhi chalte hain aur disk par mehfooz session par bhi (`dsh-rsi mine`):
-
-| Detector | Yeh Kya Pakarta Hai | Response |
-| :--- | :--- | :---: |
-| `repeat-failing-call` | Wahi call unhi arguments ke saath dobara fail hoti hai | adapt hota hai |
-| `failure-signature` | Fail hone ki wahi wajah baar baar laut aati hai: command na milna, dependency na milna, network, permission, port ka pehle se istemal mein hona, path na milna, edit mismatch, ghalat arguments, memory khatam ho jana | adapt hota hai |
-| `command-flailing` | Ek hi qisam ki command badalte arguments ke saath lagataar fail hoti hai | adapt hota hai |
-| `read-thrash` | Wahi file, jo badli hi nahin, baar baar parhi jati hai | adapt hota hai |
-| `edit-churn` | Ek hi turn mein wahi file kai baar edit hoti hai | adapt hota hai |
-| `error-storm` | Haal ki zyada tar tool calls fail huin | adapt hota hai |
-| `stall` | Lagataar failures, beech mein ek bhi kamyabi nahin | adapt hota hai |
-| `timeout-recurrence` | Ek hi qisam ki command baar baar timeout hoti hai | adapt hota hai |
-| `output-flood` | Ek hi qisam ki command baar baar had se zyada bara output deti hai | adapt hota hai |
-| `approval-denied` / `denied-repeat` | User ek hi qisam ke action ko baar baar deny karta hai, ya deny ki hui call kisi tabdeeli ke baghair dobara try ki jati hai | adapt hota hai |
-| `user-correction` | User ne model ko correct kiya, ya beech mein rok kar rukh badal diya | adapt hota hai |
-| `premature-completion` | Code badla gaya aur turn koi check chalaye baghair khatam hone wali hai | adapt hota hai |
-| `negative-feedback` | User ne kisi reply ko bura mark kiya aur wajah likhi | adapt hota hai |
-| `user-interrupt` | User ne turn ke beech mein interrupt kiya | record hota hai |
-| `model-instability` | Model requests baar baar fail hoti hain, retry hoti hain, ya output limit se takrati hain | record hota hai |
-| `context-pressure` | Task ke beech mein context compact kiya gaya | record hota hai |
+**16 detectors** tay karte hain ke harness ko kab badalna chahiye. [Poori list](../../packages/dsh-rsi/README.md#detectors) plugin reference mein hai.
 
 **10 capabilities** hi woh sab kuch hain jo ek adaptation kar sakti hai. Harness tak us ki pohanch sirf inhi ke zariye hai:
 
@@ -360,17 +249,9 @@ Har adaptation teen layers mein se kisi ek ki hoti hai. Har layer ko alag se ban
 | :--- | :--- | :--- | :--- |
 | **`machine`** | Is computer ke bare mein facts | `python` nahin hai; koi port pehle se istemal mein hai; koi internal host resolve nahin hota | Woh workspace jahan yeh seekhi gayi, phir jaise hi doosri workspace mein bhi yahi masla aaye, poori machine |
 | **`user`** | Aap apne saath kaisa bartao chahte hain | Ek reply jise "bohat lamba" ki wajah ke saath bura mark kiya gaya | Poori machine |
-| **`project`** | Ek repository ke rules aur aadatein | "Is repository mein pnpm chalta hai, hamesha" | Workspace, aur `.dsh-rsi/` ke zariye khud repository |
+| **`project`** | Ek repository ke rules aur aadatein | "Is repository mein pnpm chalta hai, hamesha" | Workspace, aur khud repository: rules code ke saath commit hote hain |
 
 **Project layer code ke saath saath chalti hai:**
-
-```
-.dsh-rsi/
-  harness.json           format marker aur project-level settings
-  adaptations/
-    remember-the-user-s-instruction-3f2a1c.js     seekhi gayi, phir yahan likhi gayi
-    no-force-push.js                              haath se likhi hui bhi isi tarah kaam karti hai
-```
 
 - **Share karne ke liye commit karein, hatane ke liye delete karein.** Ek file ek adaptation hai.
 - **Sirf clone hone se kuch nahin chalta.** Har machine `dsh-rsi trust` ke zariye files ka bilkul wahi content accept karti hai, aur jab files badlein to unhein dobara accept karti hai.
@@ -387,7 +268,7 @@ Har adaptation teen layers mein se kisi ek ki hoti hai. Har layer ko alag se ban
 - **Taqat ke liye Approval (`autonomy: tighten`)** — Jo adaptations results dobara likhti hain, tools shamil karti hain ya commands chalati hain, woh `proposed` ke taur par mehfooz hoti hain aur `dsh-rsi approve <id>` ka intezar karti hain.
 - **Zaroorat se Pehle Nazar Nahin Aata** — Jab koi friction na ho aur kuch mount na ho, to system prompt, tool list aur messages byte ba byte waise ke waise rehte hain. Ek end-to-end test is ki nigrani karta hai.
 - **Failures Wahin Ruk Jate Hain** — Jo handler throw kare woh us tool call par kabhi asar nahin dalta jis se woh jura hota hai. Teen errors ke baad adaptation quarantine ho jati hai.
-- **Har Cheez Record Par** — Har faisla `audit.jsonl` mein hai, aur har friction, mount aur action `ledger.jsonl` mein. `dsh-rsi disable`, `retire` aur `rollback` kisi adaptation ko hata dete hain ya peeche le jate hain.
+- **Har Cheez Record Par** — Har faisla, friction, mount aur action log hota hai. `dsh-rsi disable`, `retire` aur `rollback` kisi adaptation ko hata dete hain ya peeche le jate hain.
 - **Teen Modes** — `adapt` seedha mount karta hai (yahi default hai), `propose` generate kar ke aap ka intezar karta hai, `observe` sirf record karta hai.
 
 ---
@@ -457,7 +338,6 @@ Session mein `/rsi`, ya terminal mein `dsh-rsi status`. `dsh-rsi show <id>` adap
 - [🛠️ `dsh-rsi` ki Command Line](../../packages/dsh-rsi/README.md#command-line) · [⚙️ Configuration](../../packages/dsh-rsi/README.md#configuration)
 - [⚠️ Maloom Limits](../../packages/dsh-rsi/README.md#known-limits)
 - [📊 Benchmark ka Protocol aur Results](../../bench/README.md)
-- [🌐 Website ka source](../../website) — recursive self-improvement, yeh kaise kaam karta hai, adaptations likhna, evaluation; `website/index.html` ko browser mein kholein
 - [🧱 DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) — woh harness jis mein yeh plug hota hai
 
 <a id="contributing"></a>
@@ -471,23 +351,6 @@ npm install && npm test    # 130 unit tests, phir 29 end-to-end tests; koi key n
 ```
 
 End-to-end tests model endpoint ki jagah ek simulated endpoint laga dete hain. Baqi sab kuch asli hai: `dsh` process, tool execution, session log aur plugin installation.
-
-```
-packages/dsh-rsi/        plugin bundle (plain ESM, koi build step nahin)
-  index.js               host wala hissa: DSH ke extension points se bindings
-  client.js              browser wala hissa: RSI badge aur status pill
-  src/engine.js          dekhna → faisla → generate → validate → mount → rakhna → share
-  src/signals.js         16 detectors
-  src/validate.js        validation gate
-  src/sandbox.js         jahan adaptation ka code chalta hai
-  src/project.js         project harness: <repository>/.dsh-rsi
-  bin/rsi.js             dsh-rsi command
-market/index.json        plugin index jo DSH mein add kiya ja sakta hai
-test/unit/  test/e2e/    unit tests, aur asli dsh process par end-to-end tests
-test/live/               asli model ke saath runs (MIMO_API_KEY chahiye)
-bench/                   benchmarks: stock DSH banam DSH + dsh-rsi
-website/                 website (static pages, koi build step nahin)
-```
 
 ## 📄 License
 
