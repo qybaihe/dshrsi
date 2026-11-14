@@ -96,19 +96,13 @@
     <div class="head">
       <div class="kicker"><span lang="zh">数字</span><span lang="en">Numbers</span></div>
       <h2><span lang="zh">都是量出来的，量不出来的不写</span><span lang="en">Measured, or not claimed</span></h2>
-      <p><span lang="zh">真实模型（<code>mimo-v2.6-flash</code>）、真实的 <code>dsh</code> 进程，原版 Harness 在同样的题上作对照。样本大小、检验和没验证过的部分，评测页里都列着。</span><span lang="en">A real model (<code>mimo-v2.6-flash</code>) on real <code>dsh</code> processes, with the stock harness on the same tasks as the control. Sample sizes, tests and what has not been verified are on the evaluation page.</span></p>
+      <p><span lang="zh">真实模型、真实会话，和原版 Harness 在同样的题上对照。代价是用时多 8%。</span><span lang="en">A real model in real sessions, against the stock harness on the same tasks. The price is 8% more agent time.</span></p>
     </div>
-    <div class="grid c4" id="home-measured" style="margin-bottom:var(--space-5)">
-      <div class="stat"><div class="value">12 → 5</div><div class="label"><span lang="zh">撞上同一个失败调用的会话</span><span lang="en">Sessions that hit the same failed call</span></div><div class="note"><span lang="zh">30 道 Rust 题，原版 → 装上 DSHRSI；适配是第三次撞上时写出的</span><span lang="en">30 Rust tasks, stock → with DSHRSI; the adaptation was written the third time it happened</span></div></div>
-      <div class="stat"><div class="value">7 → 1</div><div class="label"><span lang="zh">适配全机生效之后</span><span lang="en">Once the adaptation was machine-wide</span></div><div class="note"><span lang="zh">两边是同样的 22 道题</span><span lang="en">the same 22 tasks on both sides</span></div></div>
-      <div class="stat"><div class="value">36.9 s</div><div class="label"><span lang="zh">从失败的调用到修好挂载</span><span lang="en">From the failed call to the mounted fix</span></div><div class="note"><span lang="zh">会话里的模型自己写的，第一稿被校验打回，第二稿通过</span><span lang="en">written by the session's own model; the gate rejected the first draft and passed the second</span></div></div>
-      <div class="stat"><div class="value">+10</div><div class="label"><span lang="zh">最严的三项成绩上多解出的题</span><span lang="en">More tasks solved on the three strictest scores</span></div><div class="note"><span lang="zh">681 → 691，共 767 题；六项成绩没有一项低于原版，差别还在随机波动之内（p = 0.09）</span><span lang="en">681 → 691 of 767; none of six scores is below stock, and the difference is still within chance (p = 0.09)</span></div></div>
-    </div>
-    <div class="grid c4" id="home-stats">
-      <div class="stat"><div class="value">+8%</div><div class="label"><span lang="zh">用时，这是代价</span><span lang="en">agent time, the price of it</span></div><div class="note"><span lang="zh">输入 token 多 9%，三个跑完的基准合计</span><span lang="en">and 9% more input tokens, over the three suites that ran to the end</span></div></div>
-      <div class="stat"><div class="value">16</div><div class="label"><span lang="zh">个判断点</span><span lang="en">detectors</span></div><div class="note"><span lang="zh">实时会话和历史会话用的是同一套</span><span lang="en">the same ones on live and stored sessions</span></div></div>
-      <div class="stat"><div class="value">5</div><div class="label"><span lang="zh">道校验关</span><span lang="en">validation stages</span></div><div class="note"><span lang="zh">不动本来成功的调用，才允许挂载</span><span lang="en">nothing mounts unless working calls stay untouched</span></div></div>
-      <div class="stat"><div class="value">0</div><div class="label"><span lang="zh">种放行能力</span><span lang="en">capabilities that grant permission</span></div><div class="note"><span lang="zh">适配只能收紧，放行不了 Harness 会拒绝的事</span><span lang="en">an adaptation can only tighten what the harness allows</span></div></div>
+    <div class="grid c4" id="home-measured">
+      <div class="stat"><div class="value">12 → 5</div><div class="label"><span lang="zh">撞上同一个失败的会话，共 30 个</span><span lang="en">sessions that hit the same failure, of 30</span></div></div>
+      <div class="stat"><div class="value">7 → 1</div><div class="label"><span lang="zh">带着这次改进的 22 个会话里</span><span lang="en">in the 22 sessions that carried the fix</span></div></div>
+      <div class="stat"><div class="value">36.9 s</div><div class="label"><span lang="zh">从失败到修好装上</span><span lang="en">from the failure to the mounted fix</span></div></div>
+      <div class="stat"><div class="value">+10</div><div class="label"><span lang="zh">多解出的题，差别还在随机波动之内</span><span lang="en">more tasks solved, still within chance</span></div></div>
     </div>
     <p style="margin-top:32px;display:flex;flex-wrap:wrap;gap:12px"><a class="btn primary" href="trace.html"><span lang="zh">逐步看这次改进的实录 →</span><span lang="en">The trace of that improvement, step by step →</span></a><a class="btn" href="bench.html"><span lang="zh">四个基准的完整结果 →</span><span lang="en">Full results on four benchmarks →</span></a></p>
   </div>
