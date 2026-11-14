@@ -320,6 +320,12 @@ Se distribuye como un plugin de terceros como cualquier otro, con los metadatos 
 </details>
 
 <details>
+<summary><strong>¿Y si una mejora resulta ser errónea?</strong></summary>
+
+Siempre se puede deshacer: el propio código del harness no se toca nunca, y jamás se borra ninguna versión de una adaptación. El harness da marcha atrás por sí solo cuando una adaptación sigue fallando, o cuando resulta que una llamada que esta rechazó sí funciona. Tú también puedes hacerlo: `/rsi undo` deshace el último cambio, `dsh-rsi restore` devuelve todo el harness a un punto anterior y `/rsi off` ejecuta el harness original. Todo esto surte efecto en la sesión que ya está en curso. [Cómo funciona la vuelta atrás](../../packages/dsh-rsi/README.md#going-back).
+</details>
+
+<details>
 <summary><strong>¿Cómo veo, deshago o desactivo lo que ha aprendido?</strong></summary>
 
 `/rsi` en una sesión, o `dsh-rsi status` en una terminal. `dsh-rsi show <id>` imprime el código fuente de una adaptación y su informe de validación; `disable`, `retire` y `rollback` la retiran o la revierten. Configura `mode: observe` para registrar sin cambiar nada.
