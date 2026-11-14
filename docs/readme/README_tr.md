@@ -21,14 +21,11 @@
 
 [![RSI](https://img.shields.io/badge/RSI-Recursive_Self--Improvement-4d6bfe?style=for-the-badge)](#rsi)
 [![DeepSeek Harness](https://img.shields.io/badge/DeepSeek_Harness-0.2.2--rc.3_plugin-7c5cff?style=for-the-badge)](https://github.com/deepseek-ai/deepseek-harness)
-[![Detectors](https://img.shields.io/badge/Detectors-16-12b5e5?style=for-the-badge)](#coverage)
 [![Validation](https://img.shields.io/badge/Validation-5--Stage_Gate-0ea5e9?style=for-the-badge)](#how-it-works)
-[![Layers](https://img.shields.io/badge/Layers-Machine_%C2%B7_User_%C2%B7_Project-0284c7?style=for-the-badge)](#project-harness)
 [![Benchmarks](https://img.shields.io/badge/Benchmarks-4_Suites_%C2%B7_2_Models-2563eb?style=for-the-badge)](#benchmarks)
-[![Tests](https://img.shields.io/badge/Tests-130_unit_%C2%B7_29_e2e-1d4ed8?style=for-the-badge)](#contributing)
 [![MIT License](https://img.shields.io/badge/License-MIT-38bdf8?style=for-the-badge)](../../LICENSE)
 
-**[🌐 Web Sitesi](https://qybaihe.github.io/dshrsi/) · [📖 Plugin Referansı](../../packages/dsh-rsi/README.md) · [🧩 Proje Harness'i](../../packages/dsh-rsi/README.md#layers-and-the-project-harness) · [🔬 Doğrulama Kapısı](../../packages/dsh-rsi/README.md#the-validation-gate) · [⚠️ Bilinen Sınırlar](../../packages/dsh-rsi/README.md#known-limits) · [🐛 Issue'lar](https://github.com/qybaihe/dshrsi/issues)**
+**[🌐 Web Sitesi](https://qybaihe.github.io/dshrsi/) · [📖 Plugin Referansı](../../packages/dsh-rsi/README.md) · [🐛 Issue'lar](https://github.com/qybaihe/dshrsi/issues)**
 
 [RSI Ne Demek](#rsi) · [Hızlı Başlangıç](#quick-start) · [Nasıl Çalışır](#how-it-works) · [Ölçülen Sonuçlar](#measured) · [Benchmark'lar](#benchmarks) · [Dedektörler ve Yetenekler](#coverage) · [Proje Harness'i](#project-harness) · [Güvenlik Varsayılanları](#security) · [SSS](#faq)
 
@@ -116,26 +113,6 @@ Yapılandırılacak hiçbir şey yok. Aynı sorun yeniden ortaya çıkana kadar 
 
 Neyin mount edildiğini, hangi katmana ait olduğunu ve neyin onayınızı beklediğini görmek için herhangi bir oturumda `/rsi` yazın.
 
-### 3. Bir Repoya Kendi Harness'ini Verin
-Bir repoda öğrenilen kurallar o repoda yaşayabilir; her adaptasyon tek bir dosyadır:
-
-```bash
-# Komut plugin ile birlikte gelir; plugin'in kurulduğu profilin içindedir
-alias dsh-rsi="$HOME/.dsh/profiles/web/node_modules/.bin/dsh-rsi"
-
-dsh-rsi project init      # repoda: .dsh-rsi/ dizinini oluşturur; sonra onu commit'leyin
-dsh-rsi trust             # diğer her makinede: dosyaları okuduktan sonra kabul edin
-```
-
-### 4. Kaynak Koddan Çalıştırın
-
-```bash
-git clone https://github.com/qybaihe/dshrsi.git && cd dshrsi
-npm install               # sabitlenmiş bir dsh sürümünü ve onun çağırdığı pnpm'i getirir
-npx dsh plugin --profile web add "$PWD/packages/dsh-rsi"
-npx dsh web
-```
-
 `desktop` ve `headless` profilleri, plugin index'leri, yerel tarball'lar ve yalnızca tek bir çalıştırma için yükleme [plugin referansında](../../packages/dsh-rsi/README.md#install) anlatılıyor.
 
 ---
@@ -155,36 +132,13 @@ Skill'ler, bellek dosyaları ve daha uzun sistem prompt'ları bağlam düzeyinde
 
 **DSHRSI ise harness düzeyinde çalışır. Öğrendiği şey, harness'in kendi genişletme noktalarına oturan koda dönüşür:**
 
-```mermaid
-flowchart LR
-  subgraph S1["1 · Gözlemle"]
-    A["oturum olayları"] --> B["16 dedektör"]
-  end
-  subgraph S2["2 · Karar Ver"]
-    B --> C["sürtünme imzası<br/>+ kütüphane + geçmiş oturumlar"]
-  end
-  subgraph S3["3 · Yeniden Yaz"]
-    C --> D["oturumun modeli<br/>bir adaptasyon yazar"]
-    D --> E["5 aşamalı doğrulama kapısı"]
-    E -. "gerekçeleriyle reddedildi" .-> D
-  end
-  subgraph S4["4 · Mount Et"]
-    E --> F["izole node:vm bağlamı<br/>bir sonraki model isteğinden önce devrede"]
-  end
-  subgraph S5["5 · Sakla ve Paylaş"]
-    F --> G["kütüphane: terfi · karantina · revizyon"]
-    G --> H["repodaki .dsh-rsi/"]
-  end
-  G -. "bir sonraki oturum buradan başlar" .-> A
-```
-
 | Aşama | Mekanizma | Etki |
 | :--- | :--- | :--- |
-| **1. Gözlemle** | 16 dedektör normalize edilmiş oturum olaylarını okur: yeniden başarısız olan çağrılar, tekrar tekrar ortaya çıkan başarısızlık nedenleri, bocalama, kullanıcı düzeltmeleri, hiçbir şey doğrulanmadan biten turlar. | Sorun, oturumlar arasında sabit kalan bir imza kazanır; örneğin `bash:command-not-found:python`. |
+| **1. Gözlemle** | 16 dedektör normalize edilmiş oturum olaylarını okur: yeniden başarısız olan çağrılar, tekrar tekrar ortaya çıkan başarısızlık nedenleri, bocalama, kullanıcı düzeltmeleri, hiçbir şey doğrulanmadan biten turlar. | Sorun, bir oturumdan diğerine aynı kalan bir imza kazanır. |
 | **2. Yeniden Yaz** | Oturumun kendi modeli, 10 yetenek sunan bir API'yi kullanarak JavaScript ile bir adaptasyon yazar. Reddedilen kod gerekçeleriyle birlikte geri gönderilir; bu en fazla iki kez olur, sonra yerleşik bir şablon devreye girer. | Çözüm, prompt'a eklenen bir paragraf daha değil, harness kodudur. |
 | **3. Doğrula** | Statik → yükleme → tekrar oynatma → regresyon → izin. Adaptasyon, kendisini tetikleyen çağrılarda eyleme geçmek ve bu oturumda başarılı olmuş hiçbir çağrıya dokunmamak zorundadır. | Hiçbir şey yapmayan ya da zaten çalışan bir şeyi bozan kod asla mount edilmez. |
-| **4. Mount Et** | Adaptasyon, bir JSON köprüsünün ardındaki kendi `node:vm` bağlamında, her çağrısı zaman aşımına tabi olarak çalışır ve bir sonraki model isteğinden önce etkinleşir. | Bundan ilk yararlanan, sorunla karşılaşan turun kendisidir. |
-| **5. Sakla ve Paylaş** | Her makinede, bir defteri ve bir denetim günlüğü olan bir kütüphane bulunur. İşe yarayan terfi eder, hata fırlatan karantinaya alınır, yetersiz kalan daha katı biçimde yeniden yazılır, proje kuralları da `.dsh-rsi/` içine yazılır. | Bir sonraki oturum adapte olmuş hâlde başlar; ekip arkadaşları da `dsh-rsi trust` sonrasında projenin kurallarını alır. |
+| **4. Mount Et** | Adaptasyon, kendi izole bağlamında, her çağrısı zaman aşımına tabi olarak çalışır ve bir sonraki model isteğinden önce etkinleşir. | Bundan ilk yararlanan, sorunla karşılaşan turun kendisidir. |
+| **5. Sakla ve Paylaş** | Her makine bir adaptasyon kütüphanesi tutar. İşe yarayan terfi eder, hata fırlatan karantinaya alınır, yetersiz kalan daha katı biçimde yeniden yazılır, proje kuralları da reponun içine yazılır. | Bir sonraki oturum adapte olmuş hâlde başlar; ekip arkadaşları da kabul ettiklerinde projenin kurallarını alır. |
 | **↻ Yeniden** | Bir sonraki oturum, 5. aşamanın geride bıraktığı harness üzerinde çalışır; 1. aşama da onu tüm adaptasyonlar yerindeyken gözlemler. | Gelişme, gelişmenin üzerine kurulur. Özyineleme işte budur. |
 
 ---
@@ -199,46 +153,9 @@ Bu sayılar, gerçek bir modelin (`mimo-v2.6-pro`) gerçek `dsh` oturumlarında 
 
 | Senaryo | DSHRSI Olmadan | DSHRSI ile | Harness Ne Yazdı |
 | :--- | :--- | :--- | :--- |
-| **Eksik komut**: README `python stats.py` diyor, makinede yalnızca `python3` var | ❌ **5 / 5** oturum başarısız çağrıyı yaptı | ✅ Adaptasyondan sonra **0 / 7** oturum (öncesinde 9 / 9) | `deny` + `prompt`; model yazdı, kapıdan ilk denemede geçti |
-| **Kullanıcının bir kez söylediği kural**: "`notes.txt` dosyasını asla değiştirme, `notes.draft.txt` dosyasına yaz" | ❌ Bir sonraki oturum `notes.txt` dosyasını düzenledi | ✅ Bir sonraki oturum, hatırlatılmadan `notes.draft.txt` dosyasına yazdı | `deny` + `prompt`; model, düzeltmenin hemen ardından yazdı |
+| **Eksik komut**: talimatlar `python` diyor, makinede yalnızca `python3` var | ❌ **5 / 5** oturum başarısız çağrıyı yaptı | ✅ Adaptasyondan sonra **0 / 7** oturum (öncesinde 9 / 9) | `deny` + `prompt`; model yazdı, kapıdan ilk denemede geçti |
+| **Kullanıcının bir kez söylediği kural**: belirli bir dosyayı asla değiştirme, bunun yerine o dosyanın taslağına yaz | ❌ Bir sonraki oturum dosyayı düzenledi | ✅ Bir sonraki oturum, hatırlatılmadan taslağa yazdı | `deny` + `prompt`; model, düzeltmenin hemen ardından yazdı |
 | **Kimsenin doğrulanmasını istemediği bir düzeltme** | çalıştırılmadı | ⚪ Hiçbir şey yazılmadı: model düzeltmesini 3 / 3 oturumda kendisi doğruladı, yani öğrenilecek bir şey yoktu | yok |
-
-İlk senaryo plugin ile üç kez, her seferinde boş bir kütüphaneden başlanarak çalıştırıldı; buna bir de kontrol çalıştırması eklendi. İkincisi bir kez plugin ile, bir kez de plugin olmadan çalıştırıldı.
-
-**Eksik komut, oturum oturum** (oturum başına başarısız araç çağrısı sayısı):
-
-| Çalıştırma | S1 | S2 | S3 | S4 | S5 | S6 |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **DSHRSI Olmadan** | ❌ 1 | ❌ 1 | ❌ 1 | ❌ 1 | ❌ 1 | |
-| **DSHRSI ile · 1. çalıştırma** | ❌ 1 | ❌ 1 | ❌ 1 → 🧬 | ✅ 0 | ✅ 0 | ✅ 0 |
-| **DSHRSI ile · 2. çalıştırma** | ❌ 1 | ❌ 1 | ❌ 1 → 🧬 | ✅ 0 | ✅ 0 | |
-| **DSHRSI ile · 3. çalıştırma** | ❌ 1 | ❌ 1 | ❌ 1 → 🧬 | ✅ 0 | ✅ 0 | |
-
-🧬, modelin adaptasyonu yazdığı ve harness'in onu mount ettiği turu gösterir. Sonraki 7 oturumun 3'ünde model yine `python`'ı denedi; harness çağrıyı daha çalışmadan reddetti. Bu senaryodaki her oturum, plugin olsun olmasın, doğru cevapla bitti.
-
-Yerelde yeniden üretmek için:
-
-```bash
-MIMO_API_KEY=... npm run test:live -- python --sessions 6          # plugin ile
-MIMO_API_KEY=... npm run test:live -- python --sessions 5 --off    # plugin olmadan kontrol çalıştırması
-```
-
-<details>
-<summary><strong>Bu makinede doğrulanmayanlar (genişletmek için tıklayın)</strong></summary>
-
-<br />
-
-Bu yollar kod tabanında mevcut ve simüle edilmiş bir modelle çalışan birim ya da uçtan uca testlerle kapsanıyor; ancak gerçek bir oturumda ya da gerçek bir uygulamada gözlemlenmedi:
-
-| Alan | Burada Neden Doğrulanmadı |
-| :--- | :--- |
-| DeepSeek Harness masaüstü uygulaması | Geliştirme makinesinde kurulu değil. Doğrulama, uygulamanın sarmaladığı `web` profili ve kurulum mekanizması üzerinde yapıldı |
-| `negative-feedback`, `approval-denied`, `context-pressure`, `model-instability` | Yalnızca kurgulanmış olaylarla test edildi, gerçek bir oturumda hiç tetiklenmedi |
-| Otomatik tarayıcı testleri | Yok. Arayüz, gerçek `dsh web` sayfasında açık ve koyu modda elle gezilerek kontrol edildi |
-| ACP ve SDK profilleri | Orada arayüz yok; doğrulanmadı da |
-| MiMo v2.6 ailesi dışındaki modeller | Henüz hiç çalıştırılmadı. Benchmark'larda `mimo-v2.6-pro` ve `mimo-v2.6-flash`, yukarıdaki üç senaryoda ise `mimo-v2.6-pro` kullanıldı |
-
-</details>
 
 ---
 
@@ -270,26 +187,17 @@ Bu yollar kod tabanında mevcut ve simüle edilmiş bir modelle çalışan birim
 
 **DSHRSI ise şunu gerçekten yaptı: tek bir ipucu bile verilmeden kendini değiştirdi.** Sekiz çalıştırma boyunca modeller **56 adaptasyon** yazdı; bunların 15'i eyleme geçti, onların da 10'u tüm makineye genişletilmişti. Bu 10 adaptasyonun her biri için, ondan sonra başlayan görevleri alıp stok DSH altındaki birebir aynı görevlerle karşılaştırdık:
 
-| Modelin Yazdığı Adaptasyon | Karşılık Verdiği Hata | Stok DSH | DSH + DSHRSI | p |
-| :--- | :--- | ---: | ---: | ---: |
-| *Stop inline python checks that abort on first mismatch* (MBPP, `mimo-v2.6-pro`) | İlk başarısız assertion'da ölen bir test çalıştırması | 310 görevin 16'sı | **310 görevin 3'ü** | 0.002 |
-| *Redirect missing lib.rs reads to a glob lookup* (Polyglot, `mimo-v2.6-flash`) | `lib.rs` dosyasını var olmayan bir yoldan okumak | 151 görevin 7'si | **151 görevin 1'i** | 0.07 |
-| Diğer 8 adaptasyon | | ölçülebilir bir değişiklik yok | | |
+| Harness'in Kendi Kendine Kaçınmayı Öğrendiği Hata | Stok DSH | DSH + DSHRSI | p |
+| :--- | ---: | ---: | ---: |
+| İlk başarısız assertion'da ölen bir test çalıştırması (MBPP, `mimo-v2.6-pro`) | 310 görevin 16'sı | **310 görevin 3'ü** | 0.002 |
+| Bir dosyayı var olmayan bir yoldan okumak (Polyglot, `mimo-v2.6-flash`) | 151 görevin 7'si | **151 görevin 1'i** | 0.07 |
+| Diğer 8 adaptasyon | ölçülebilir bir değişiklik yok | | |
 
-Bu ikisinin hiçbiri daha fazla görevin geçmesini sağlamadı; plugin'in maliyeti ise yaklaşık 8–9% daha fazla ajan süresi ve girdi token'ı oldu. On adaptasyonun tamamı [`bench/README.md`](../../bench/README.md#did-those-adaptations-work) içinde listeleniyor.
+Bu ikisinin hiçbiri daha fazla görevin geçmesini sağlamadı; plugin'in maliyeti ise yaklaşık 8–9% daha fazla ajan süresi ve girdi token'ı oldu. On adaptasyonun tamamı [benchmark notlarında](../../bench/README.md#did-those-adaptations-work) listeleniyor.
 
 **LiveCodeBench v6 yarıda kesildi:** model hesabının bakiyesi yolun ortasında tükendi. O ana kadar iki tarafın da bitirmiş olduğu görevlerde, `mimo-v2.6-pro` ile 105 görevin 94'ünü stok DSH, 96'sını DSHRSI çözdü; `mimo-v2.6-flash` ile 51 görevde durum 42'ye 42. Aynı nedenle ikinci geçiş, yani aynı görevlerin ilk geçişin bıraktığı kütüphaneyle bir kez daha çalıştırılması, henüz yapılmadı.
 
-Yerelde yeniden üretmek için:
-
-```bash
-bench/setup.sh                                                        # araç zincirleri, veri setleri, puanlama kodu
-MIMO_API_KEY=... node bench/run.mjs polyglot --arm dsh --run dsh-p1   # stok DeepSeek Harness
-MIMO_API_KEY=... node bench/run.mjs polyglot --arm rsi --run rsi-p1   # plugin ile
-node bench/report.mjs --write                                         # tablolar ve bench/results/*.json
-```
-
-Protokol, maliyet ve hata tabloları ile sınırlar [`bench/README.md`](../../bench/README.md) içinde; görev bazındaki sonuçlar ise [`bench/results/`](../../bench/results) altında.
+Protokol, maliyet ve hata tabloları, sınırlar ve bunların hepsini yeniden üretmeye yarayan komutlar [benchmark notlarında](../../bench/README.md) yer alıyor.
 
 ---
 
@@ -297,26 +205,7 @@ Protokol, maliyet ve hata tabloları ile sınırlar [`bench/README.md`](../../be
 
 ## 🛡️ Dedektörler ve Yetenekler
 
-Harness'in ne zaman değişmesi gerektiğine **16 dedektör** karar verir. Aynı dedektörler hem canlı bir oturumda hem de diskte saklanan bir oturumda (`dsh-rsi mine`) çalışır:
-
-| Dedektör | Ne Bulur | Tepki |
-| :--- | :--- | :---: |
-| `repeat-failing-call` | Aynı çağrı aynı argümanlarla yeniden başarısız olur | adapte olur |
-| `failure-signature` | Aynı başarısızlık nedeni tekrar tekrar ortaya çıkar: eksik komut, eksik bağımlılık, ağ, izin, kullanımda olan port, bulunamayan yol, düzenleme uyuşmazlığı, geçersiz argümanlar, bellek yetersizliği | adapte olur |
-| `command-flailing` | Aynı türden komut, değişen argümanlarla art arda başarısız olur | adapte olur |
-| `read-thrash` | Değişmemiş aynı dosya tekrar tekrar okunur | adapte olur |
-| `edit-churn` | Aynı dosya tek bir turda defalarca düzenlenir | adapte olur |
-| `error-storm` | Son araç çağrılarının çoğu başarısız olmuştur | adapte olur |
-| `stall` | Arada tek bir başarı olmadan art arda gelen başarısızlıklar | adapte olur |
-| `timeout-recurrence` | Aynı türden komut sürekli zaman aşımına uğrar | adapte olur |
-| `output-flood` | Aynı türden komut sürekli aşırı büyük çıktı üretir | adapte olur |
-| `approval-denied` / `denied-repeat` | Kullanıcı aynı türden eylemi tekrar tekrar reddeder ya da reddedilen bir çağrı hiç değiştirilmeden yeniden denenir | adapte olur |
-| `user-correction` | Kullanıcı modeli düzeltti ya da araya girip yön değiştirdi | adapte olur |
-| `premature-completion` | Kod değiştirildi ve tur hiçbir kontrol çalıştırılmadan bitmek üzere | adapte olur |
-| `negative-feedback` | Kullanıcı bir yanıtı kötü olarak işaretledi ve bir gerekçe yazdı | adapte olur |
-| `user-interrupt` | Kullanıcı turun ortasında araya girdi | kaydedilir |
-| `model-instability` | Model istekleri sürekli başarısız oluyor, yeniden deneniyor ya da çıktı sınırına takılıyor | kaydedilir |
-| `context-pressure` | Bağlam, görevin ortasında sıkıştırıldı | kaydedilir |
+Harness'in ne zaman değişmesi gerektiğine **16 dedektör** karar verir. [Tam liste](../../packages/dsh-rsi/README.md#detectors) plugin referansında yer alıyor.
 
 **10 yetenek**, bir adaptasyonun yapabileceği her şeydir. Harness'e yalnızca bunlar üzerinden ulaşır:
 
@@ -360,17 +249,9 @@ Her adaptasyon üç katmandan birine aittir. Her katman tek başına kapatılabi
 | :--- | :--- | :--- | :--- |
 | **`machine`** | Bu bilgisayara dair gerçekler | `python` yok; bir port dolu; dahili bir host çözümlenmiyor | Öğrenildiği çalışma alanı; ikinci bir çalışma alanı da aynı şeye takılınca tüm makine |
 | **`user`** | Size nasıl davranılmasını istediğiniz | "Çok uzun" gerekçesiyle kötü olarak işaretlenen bir yanıt | Tüm makine |
-| **`project`** | Tek bir reponun kuralları ve alışkanlıkları | "Bu repo her zaman pnpm kullanır" | Çalışma alanı ve `.dsh-rsi/` aracılığıyla reponun kendisi |
+| **`project`** | Tek bir reponun kuralları ve alışkanlıkları | "Bu repo her zaman pnpm kullanır" | Çalışma alanı ve reponun kendisi: kurallar kodla birlikte commit edilir |
 
 **Proje katmanı kodla birlikte taşınır:**
-
-```
-.dsh-rsi/
-  harness.json           biçim işaretçisi ve proje düzeyindeki ayarlar
-  adaptations/
-    remember-the-user-s-instruction-3f2a1c.js     öğrenildi, sonra buraya yazıldı
-    no-force-push.js                              elle yazılmış olan da aynı şekilde çalışır
-```
 
 - **Paylaşmak için commit'leyin, fişini çekmek için silin.** Bir dosya, bir adaptasyondur.
 - **Hiçbir şey sırf klonlandı diye çalışmaz.** Her makine dosyaların birebir içeriğini `dsh-rsi trust` ile kabul eder; dosyalar değiştiğinde de yeniden kabul eder.
@@ -387,7 +268,7 @@ Her adaptasyon üç katmandan birine aittir. Her katman tek başına kapatılabi
 - **Güç İçin Onay (`autonomy: tighten`)** — Sonuçları yeniden yazan, araç ekleyen ya da komut çalıştıran adaptasyonlar `proposed` olarak saklanır ve `dsh-rsi approve <id>` komutunu bekler.
 - **Gerekene Kadar Görünmez** — Sürtünme yokken ve hiçbir şey mount edilmemişken sistem prompt'u, araç listesi ve mesajlar baytı baytına aynı kalır. Bunu bir uçtan uca test güvence altına alır.
 - **Hatalar Yayılmaz** — Hata fırlatan bir handler, bağlı olduğu araç çağrısını asla etkilemez. Üç hatadan sonra adaptasyon karantinaya alınır.
-- **Her Şey Kayıt Altında** — Her karar `audit.jsonl` içinde, her sürtünme, mount ve eylem de `ledger.jsonl` içindedir. `dsh-rsi disable`, `retire` ve `rollback` bir adaptasyonu devreden çıkarır ya da geri alır.
+- **Her Şey Kayıt Altında** — Her karar, sürtünme, mount ve eylem günlüğe kaydedilir. `dsh-rsi disable`, `retire` ve `rollback` bir adaptasyonu devreden çıkarır ya da geri alır.
 - **Üç Mod** — `adapt` doğrudan mount eder (varsayılan), `propose` üretir ve sizi bekler, `observe` yalnızca kaydeder.
 
 ---
@@ -457,7 +338,6 @@ Bir oturumda `/rsi`, ya da terminalde `dsh-rsi status`. `dsh-rsi show <id>` bir 
 - [🛠️ `dsh-rsi` Komut Satırı](../../packages/dsh-rsi/README.md#command-line) · [⚙️ Yapılandırma](../../packages/dsh-rsi/README.md#configuration)
 - [⚠️ Bilinen Sınırlar](../../packages/dsh-rsi/README.md#known-limits)
 - [📊 Benchmark Protokolü ve Sonuçları](../../bench/README.md)
-- [🌐 Web sitesinin kaynağı](../../website) — özyinelemeli kendini geliştirme, nasıl çalıştığı, adaptasyon yazımı, değerlendirme; `website/index.html` dosyasını bir tarayıcıda açın
 - [🧱 DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) — bu plugin'in takıldığı harness
 
 <a id="contributing"></a>
@@ -471,23 +351,6 @@ npm install && npm test    # 130 birim testi, ardından 29 uçtan uca test; anah
 ```
 
 Uçtan uca testler model endpoint'ini simüle edilmiş bir endpoint ile değiştirir. Geri kalan her şey gerçektir: `dsh` süreci, araç yürütme, oturum günlüğü ve plugin kurulumu.
-
-```
-packages/dsh-rsi/        plugin paketi (düz ESM, build adımı yok)
-  index.js               host tarafı: DSH genişletme noktalarına bağlantılar
-  client.js              tarayıcı tarafı: RSI rozeti ve durum etiketi
-  src/engine.js          gözlemle → karar ver → üret → doğrula → mount et → sakla → paylaş
-  src/signals.js         16 dedektör
-  src/validate.js        doğrulama kapısı
-  src/sandbox.js         adaptasyon kodunun çalıştığı yer
-  src/project.js         proje harness'i: <repo>/.dsh-rsi
-  bin/rsi.js             dsh-rsi komutu
-market/index.json        DSH içine eklenebilen bir plugin index'i
-test/unit/  test/e2e/    birim testleri ve gerçek bir dsh süreci üzerinde uçtan uca testler
-test/live/               gerçek bir modelle çalıştırmalar (MIMO_API_KEY gerekir)
-bench/                   benchmark'lar: stok DSH ile DSH + dsh-rsi karşı karşıya
-website/                 web sitesi (statik sayfalar, build adımı yok)
-```
 
 ## 📄 Lisans
 
