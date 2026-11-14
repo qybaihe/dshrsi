@@ -19,6 +19,10 @@ export const DEFAULT_POLICY = Object.freeze({
   ineffectiveRate: 0.5,
   staleSessions: 20,
   generalizeAfter: 2,
+  /** Refusals by one adaptation within one turn after which the next call it would refuse is let through, to see what it does. */
+  probeAfter: 2,
+  /** Versions of one adaptation that were taken back for doing harm before it is no longer rewritten. */
+  maxWithdrawn: 2,
 })
 
 /** Friction kinds that are recorded for the ledger but never answered with an adaptation. */
