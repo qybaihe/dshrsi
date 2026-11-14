@@ -320,6 +320,12 @@ Plugin sayfalarının okuduğu metadata'yı taşıyan sıradan bir üçüncü ta
 </details>
 
 <details>
+<summary><strong>Ya bir geliştirme yanlış çıkarsa?</strong></summary>
+
+Her zaman geri alınabilir: harness'in kendi koduna hiçbir zaman dokunulmaz ve bir adaptasyonun hiçbir sürümü asla silinmez. Bir adaptasyon başarısız olmayı sürdürdüğünde ya da reddettiği bir çağrının çalıştığı ortaya çıktığında harness kendiliğinden geri adım atar. Bunu siz de yapabilirsiniz: `/rsi undo` son değişikliği geri alır, `dsh-rsi restore` harness'in tamamını daha önceki bir noktaya geri döndürür, `/rsi off` ise stok harness'i çalıştırır. Bunların hepsi zaten çalışmakta olan oturumda geçerli olur. [Geri alma nasıl çalışır](../../packages/dsh-rsi/README.md#going-back).
+</details>
+
+<details>
 <summary><strong>Öğrendiklerini nasıl görür, geri alır ya da kapatırım?</strong></summary>
 
 Bir oturumda `/rsi`, ya da terminalde `dsh-rsi status`. `dsh-rsi show <id>` bir adaptasyonun kaynak kodunu ve doğrulama raporunu yazdırır; `disable`, `retire` ve `rollback` onu devreden çıkarır ya da geri alır. Hiçbir şeyi değiştirmeden yalnızca kayıt tutmak için `mode: observe` ayarını yapın.
