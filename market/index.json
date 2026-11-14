@@ -21,19 +21,19 @@
       },
       "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzNiAzNiIgd2lkdGg9IjM2IiBoZWlnaHQ9IjM2Ij4KICA8ZGVmcz4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iZHNocnNpLWluayIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiM3YzVjZmYiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMTJiNWU1Ii8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogIDwvZGVmcz4KICA8cGF0aCBkPSJNMjguNjMgMTUuMTVBMTEgMTEgMCAxIDEgMjQuNDcgOS4xIiBmaWxsPSJub25lIiBzdHJva2U9InVybCgjZHNocnNpLWluaykiIHN0cm9rZS13aWR0aD0iMi4zIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICA8cGF0aCBkPSJNMjMuMiA0LjQgMjQuNiA5LjIgMTkuNiA5LjUiIGZpbGw9Im5vbmUiIHN0cm9rZT0idXJsKCNkc2hyc2ktaW5rKSIgc3Ryb2tlLXdpZHRoPSIyLjMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgogIDxwYXRoIGQ9Ik0xOS4yIDExLjQgMTMuNiAxOWgzLjhsLS45IDUuNkwyMi40IDE3aC00bC44LTUuNloiIGZpbGw9InVybCgjZHNocnNpLWluaykiLz4KPC9zdmc+Cg==",
       "author": "qybaihe",
-      "homepage": "https://github.com/qybaihe/dshrsi#readme",
+      "homepage": "https://qybaihe.github.io/dshrsi/",
       "repository": {
         "url": "https://github.com/qybaihe/dshrsi",
         "directory": "packages/dsh-rsi"
       },
       "versions": [
         {
-          "version": "0.1.0",
-          "publishTimestamp": 1794587689,
+          "version": "0.1.1",
+          "publishTimestamp": 1794628090,
           "source": {
             "type": "git",
             "url": "https://github.com/qybaihe/dshrsi",
-            "commit": "e7d074a89015202bda89677b01cf8e53b6bc1c44",
+            "commit": "ef7476f875e0110b143aaff0e6df97e10e44b4a7",
             "path": "packages/dsh-rsi"
           },
           "engines": {
