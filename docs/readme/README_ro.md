@@ -21,14 +21,11 @@
 
 [![RSI](https://img.shields.io/badge/RSI-Recursive_Self--Improvement-4d6bfe?style=for-the-badge)](#rsi)
 [![DeepSeek Harness](https://img.shields.io/badge/DeepSeek_Harness-0.2.2--rc.3_plugin-7c5cff?style=for-the-badge)](https://github.com/deepseek-ai/deepseek-harness)
-[![Detectors](https://img.shields.io/badge/Detectors-16-12b5e5?style=for-the-badge)](#coverage)
 [![Validation](https://img.shields.io/badge/Validation-5--Stage_Gate-0ea5e9?style=for-the-badge)](#how-it-works)
-[![Layers](https://img.shields.io/badge/Layers-Machine_%C2%B7_User_%C2%B7_Project-0284c7?style=for-the-badge)](#project-harness)
 [![Benchmarks](https://img.shields.io/badge/Benchmarks-4_Suites_%C2%B7_2_Models-2563eb?style=for-the-badge)](#benchmarks)
-[![Tests](https://img.shields.io/badge/Tests-130_unit_%C2%B7_29_e2e-1d4ed8?style=for-the-badge)](#contributing)
 [![MIT License](https://img.shields.io/badge/License-MIT-38bdf8?style=for-the-badge)](../../LICENSE)
 
-**[🌐 Site web](https://qybaihe.github.io/dshrsi/) · [📖 Referința plugin-ului](../../packages/dsh-rsi/README.md) · [🧩 Harness de proiect](../../packages/dsh-rsi/README.md#layers-and-the-project-harness) · [🔬 Poarta de validare](../../packages/dsh-rsi/README.md#the-validation-gate) · [⚠️ Limite cunoscute](../../packages/dsh-rsi/README.md#known-limits) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
+**[🌐 Site web](https://qybaihe.github.io/dshrsi/) · [📖 Referința plugin-ului](../../packages/dsh-rsi/README.md) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
 
 [Ce înseamnă RSI](#rsi) · [Pornire rapidă](#quick-start) · [Cum funcționează](#how-it-works) · [Rezultate măsurate](#measured) · [Benchmark-uri](#benchmarks) · [Detectoare și capabilități](#coverage) · [Harness de proiect](#project-harness) · [Setări implicite de siguranță](#security) · [Întrebări frecvente](#faq)
 
@@ -116,26 +113,6 @@ Nu e nimic de configurat. DSHRSI nu se arată până când nu revine aceeași pr
 
 Scrie `/rsi` în orice sesiune ca să vezi ce e montat, cărui strat îi aparține și ce așteaptă aprobarea ta.
 
-### 3. Dă-i unui repository propriul harness
-Regulile învățate într-un repository pot locui chiar în el, câte un fișier pentru fiecare adaptare:
-
-```bash
-# Comanda vine odată cu plugin-ul, în profilul în care a fost instalat
-alias dsh-rsi="$HOME/.dsh/profiles/web/node_modules/.bin/dsh-rsi"
-
-dsh-rsi project init      # în repository: creează .dsh-rsi/, apoi dă-i commit
-dsh-rsi trust             # pe oricare altă mașină: acceptă fișierele după ce le-ai citit
-```
-
-### 4. Rulează din sursă
-
-```bash
-git clone https://github.com/qybaihe/dshrsi.git && cd dshrsi
-npm install               # aduce un dsh cu versiune fixată și pnpm-ul pe care îl apelează
-npx dsh plugin --profile web add "$PWD/packages/dsh-rsi"
-npx dsh web
-```
-
 Profilurile `desktop` și `headless`, indexurile de plugin-uri, tarball-urile locale și încărcarea pentru o singură rulare sunt descrise în [referința plugin-ului](../../packages/dsh-rsi/README.md#install).
 
 ---
@@ -155,36 +132,13 @@ Skill-urile, fișierele de memorie și prompt-urile de sistem tot mai lungi lucr
 
 **DSHRSI lucrează la nivelul harness-ului. Ce învață devine cod pe punctele de extensie ale harness-ului:**
 
-```mermaid
-flowchart LR
-  subgraph S1["1 · Observă"]
-    A["evenimente de sesiune"] --> B["16 detectoare"]
-  end
-  subgraph S2["2 · Decide"]
-    B --> C["semnătura fricțiunii<br/>+ bibliotecă + sesiuni trecute"]
-  end
-  subgraph S3["3 · Rescrie"]
-    C --> D["modelul sesiunii<br/>scrie o adaptare"]
-    D --> E["poartă de validare în 5 etape"]
-    E -. "respinsă, cu motive" .-> D
-  end
-  subgraph S4["4 · Montează"]
-    E --> F["context node:vm izolat<br/>activ înainte de următoarea cerere către model"]
-  end
-  subgraph S5["5 · Păstrează și partajează"]
-    F --> G["bibliotecă: promovare · carantină · revizuire"]
-    G --> H[".dsh-rsi/ în repository"]
-  end
-  G -. "sesiunea următoare pornește de aici" .-> A
-```
-
 | Etapă | Mecanism | Efect |
 | :--- | :--- | :--- |
-| **1. Observă** | 16 detectoare citesc evenimente de sesiune normalizate: apeluri care eșuează din nou, cauze de eșec care tot revin, bâjbâială, corecții ale utilizatorului, ture care se încheie fără nimic verificat. | Problema primește o semnătură stabilă de la o sesiune la alta, de exemplu `bash:command-not-found:python`. |
+| **1. Observă** | 16 detectoare citesc evenimente de sesiune normalizate: apeluri care eșuează din nou, cauze de eșec care tot revin, bâjbâială, corecții ale utilizatorului, ture care se încheie fără nimic verificat. | Problema primește o semnătură care rămâne aceeași de la o sesiune la alta. |
 | **2. Rescrie** | Chiar modelul sesiunii scrie o adaptare în JavaScript, pe un API cu 10 capabilități. Codul respins se întoarce împreună cu motivele, de cel mult două ori, apoi preia un șablon încorporat. | Remediul e cod de harness, nu încă un paragraf de prompt. |
 | **3. Validează** | Static → încărcare → reluare → regresie → permisiuni. Adaptarea trebuie să acționeze asupra apelurilor care au declanșat-o și să lase neatins orice apel care a reușit în această sesiune. | Codul care nu face nimic sau care strică ce mergea deja nu ajunge niciodată montat. |
-| **4. Montează** | Adaptarea rulează în propriul context `node:vm`, în spatele unei punți JSON, cu timeout pe fiecare apel, și intră în vigoare înainte de următoarea cerere către model. | Tura care a dat de problemă e prima care are de câștigat. |
-| **5. Păstrează și partajează** | O bibliotecă pe fiecare mașină, cu registru și jurnal de audit. Ce funcționează e promovat, ce aruncă excepții intră în carantină, ce n-a ținut e rescris mai strict, iar regulile de proiect sunt scrise în `.dsh-rsi/`. | Sesiunea următoare pornește gata adaptată, iar colegii de echipă primesc regulile proiectului după `dsh-rsi trust`. |
+| **4. Montează** | Adaptarea rulează în propriul context izolat, cu timeout pe fiecare apel, și intră în vigoare înainte de următoarea cerere către model. | Tura care a dat de problemă e prima care are de câștigat. |
+| **5. Păstrează și partajează** | Fiecare mașină păstrează o bibliotecă de adaptări. Ce funcționează e promovat, ce aruncă excepții intră în carantină, ce n-a ținut e rescris mai strict, iar regulile de proiect sunt scrise în repository. | Sesiunea următoare pornește gata adaptată, iar colegii de echipă primesc regulile proiectului odată ce le acceptă. |
 | **↻ Din nou** | Sesiunea următoare rulează pe harness-ul lăsat în urmă de etapa 5, iar etapa 1 o observă cu toate adaptările la locul lor. | Îmbunătățire clădită pe îmbunătățire. Asta e recursivitatea. |
 
 ---
@@ -199,46 +153,9 @@ Cifrele acestea vin din rularea unui model real, `mimo-v2.6-pro`, prin sesiuni `
 
 | Scenariu | Fără DSHRSI | Cu DSHRSI | Ce a scris harness-ul |
 | :--- | :--- | :--- | :--- |
-| **Comandă lipsă**: README-ul spune `python stats.py`, mașina are doar `python3` | ❌ **5 / 5** sesiuni au făcut apelul eșuat | ✅ **0 / 7** sesiuni după adaptare (9 / 9 înaintea ei) | `deny` + `prompt`, scrise de model, au trecut de poartă din prima încercare |
-| **O regulă spusă de utilizator o singură dată**: „nu modifica niciodată `notes.txt`, scrie în `notes.draft.txt`” | ❌ Sesiunea următoare a editat `notes.txt` | ✅ Sesiunea următoare a scris în `notes.draft.txt` fără să i se ceară | `deny` + `prompt`, scrise de model imediat după corecție |
+| **Comandă lipsă**: instrucțiunile spun `python`, mașina are doar `python3` | ❌ **5 / 5** sesiuni au făcut apelul eșuat | ✅ **0 / 7** sesiuni după adaptare (9 / 9 înaintea ei) | `deny` + `prompt`, scrise de model, au trecut de poartă din prima încercare |
+| **O regulă spusă de utilizator o singură dată**: nu modifica niciodată un anumit fișier, scrie în schimb într-o ciornă a lui | ❌ Sesiunea următoare a editat fișierul | ✅ Sesiunea următoare a scris în ciornă fără să i se ceară | `deny` + `prompt`, scrise de model imediat după corecție |
 | **Un fix pe care nimeni n-a cerut să fie verificat** | nerulat | ⚪ Nimic scris: modelul și-a verificat fix-ul în 3 / 3 sesiuni, deci nu era nimic de învățat | niciuna |
-
-Primul scenariu a fost rulat de trei ori cu plugin-ul, de fiecare dată pornind de la o bibliotecă goală, plus o rulare de control. Al doilea a fost rulat o dată cu el și o dată fără.
-
-**Comandă lipsă, sesiune cu sesiune** (apeluri de tool eșuate pe sesiune):
-
-| Rulare | S1 | S2 | S3 | S4 | S5 | S6 |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Fără DSHRSI** | ❌ 1 | ❌ 1 | ❌ 1 | ❌ 1 | ❌ 1 | |
-| **Cu DSHRSI · rularea 1** | ❌ 1 | ❌ 1 | ❌ 1 → 🧬 | ✅ 0 | ✅ 0 | ✅ 0 |
-| **Cu DSHRSI · rularea 2** | ❌ 1 | ❌ 1 | ❌ 1 → 🧬 | ✅ 0 | ✅ 0 | |
-| **Cu DSHRSI · rularea 3** | ❌ 1 | ❌ 1 | ❌ 1 → 🧬 | ✅ 0 | ✅ 0 | |
-
-🧬 marchează tura în care modelul a scris adaptarea și harness-ul a montat-o. În 3 din cele 7 sesiuni de după ea, modelul a încercat tot `python`, iar harness-ul a refuzat apelul înainte să ruleze. Fiecare sesiune din acest scenariu s-a încheiat cu răspunsul corect, cu sau fără plugin.
-
-Reproducere locală:
-
-```bash
-MIMO_API_KEY=... npm run test:live -- python --sessions 6          # cu plugin-ul
-MIMO_API_KEY=... npm run test:live -- python --sessions 5 --off    # rulare de control, fără el
-```
-
-<details>
-<summary><strong>Neverificat pe această mașină (click pentru a extinde)</strong></summary>
-
-<br />
-
-Aceste căi există în sursă și sunt acoperite de teste unitare sau end-to-end cu un model simulat, dar nu au fost observate într-o sesiune reală sau într-o aplicație reală:
-
-| Zonă | De ce e neverificată aici |
-| :--- | :--- |
-| Aplicația desktop DeepSeek Harness | Nu e instalată pe mașina de dezvoltare. Verificat pe profilul `web` și pe mecanismul de instalare pe care le încapsulează aplicația |
-| `negative-feedback`, `approval-denied`, `context-pressure`, `model-instability` | Testate doar cu evenimente construite, niciodată declanșate într-o sesiune reală |
-| Teste automate în browser | Nu există. Interfața a fost parcursă de mână în pagina reală `dsh web`, pe tema deschisă și pe cea întunecată |
-| Profilurile ACP și SDK | Acolo nu există interfață și nu au fost verificate |
-| Modele din afara familiei MiMo v2.6 | Nicio rulare încă. Benchmark-urile au folosit `mimo-v2.6-pro` și `mimo-v2.6-flash`; cele trei scenarii de mai sus au folosit `mimo-v2.6-pro` |
-
-</details>
 
 ---
 
@@ -270,26 +187,17 @@ DeepSeek Harness standard contra DeepSeek Harness + DSHRSI, în 3,390 de sesiuni
 
 **Ce a făcut totuși DSHRSI, fără niciun indiciu, a fost să se schimbe singur.** De-a lungul celor opt rulări, modelele au scris **56 de adaptări**; 15 dintre ele au acționat, iar 10 dintre acestea fuseseră extinse la toată mașina. Pentru fiecare dintre cele 10 am luat task-urile care au început după ea și le-am comparat cu exact aceleași task-uri sub DSH standard:
 
-| Adaptarea scrisă de model | Eșecul căruia îi răspunde | DSH standard | DSH + DSHRSI | p |
-| :--- | :--- | ---: | ---: | ---: |
-| *Stop inline python checks that abort on first mismatch* (MBPP, `mimo-v2.6-pro`) | O rulare de teste care moare la prima aserțiune eșuată | 16 din 310 task-uri | **3 din 310** | 0.002 |
-| *Redirect missing lib.rs reads to a glob lookup* (Polyglot, `mimo-v2.6-flash`) | Citirea lui `lib.rs` de la o cale care nu există | 7 din 151 de task-uri | **1 din 151** | 0.07 |
-| Celelalte 8 | | nicio schimbare măsurabilă | | |
+| Eșecul pe care harness-ul a învățat singur să-l evite | DSH standard | DSH + DSHRSI | p |
+| :--- | ---: | ---: | ---: |
+| O rulare de teste care moare la prima aserțiune eșuată (MBPP, `mimo-v2.6-pro`) | 16 din 310 task-uri | **3 din 310** | 0.002 |
+| Citirea unui fișier de la o cale care nu există (Polyglot, `mimo-v2.6-flash`) | 7 din 151 de task-uri | **1 din 151** | 0.07 |
+| Celelalte 8 adaptări | nicio schimbare măsurabilă | | |
 
-Niciuna dintre cele două n-a făcut să treacă mai multe task-uri, iar plugin-ul a costat cu aproximativ 8–9% mai mult timp de agent și mai mulți tokeni de intrare. Toate cele zece sunt enumerate în [`bench/README.md`](../../bench/README.md#did-those-adaptations-work).
+Niciuna dintre cele două n-a făcut să treacă mai multe task-uri, iar plugin-ul a costat cu aproximativ 8–9% mai mult timp de agent și mai mulți tokeni de intrare. Toate cele zece sunt enumerate în [notele despre benchmark-uri](../../bench/README.md#did-those-adaptations-work).
 
 **LiveCodeBench v6 a fost întrerupt înainte de final:** contul de model a rămas fără sold pe parcurs. Pe task-urile pe care ambele părți le terminaseră până atunci, DSH standard a rezolvat 94, iar DSHRSI 96 din 105 cu `mimo-v2.6-pro`, respectiv 42 față de 42 din 51 cu `mimo-v2.6-flash`. Din același motiv, a doua trecere, adică aceleași task-uri încă o dată pe biblioteca lăsată de prima trecere, n-a fost rulată încă.
 
-Reproducere locală:
-
-```bash
-bench/setup.sh                                                        # toolchain-uri, seturi de date, cod de punctare
-MIMO_API_KEY=... node bench/run.mjs polyglot --arm dsh --run dsh-p1   # DeepSeek Harness standard
-MIMO_API_KEY=... node bench/run.mjs polyglot --arm rsi --run rsi-p1   # cu plugin-ul
-node bench/report.mjs --write                                         # tabele și bench/results/*.json
-```
-
-Protocolul, tabelele de cost și de eșecuri și limitele sunt în [`bench/README.md`](../../bench/README.md); rezultatele pe fiecare task sunt în [`bench/results/`](../../bench/results).
+Protocolul, tabelele de cost și de eșecuri, limitele și comenzile cu care se poate reproduce totul sunt în [notele despre benchmark-uri](../../bench/README.md).
 
 ---
 
@@ -297,26 +205,7 @@ Protocolul, tabelele de cost și de eșecuri și limitele sunt în [`bench/READM
 
 ## 🛡️ Detectoare și capabilități
 
-**16 detectoare** decid când trebuie să se schimbe harness-ul. Aceleași detectoare rulează pe o sesiune live și pe o sesiune stocată pe disc (`dsh-rsi mine`):
-
-| Detector | Ce găsește | Răspuns |
-| :--- | :--- | :---: |
-| `repeat-failing-call` | Același apel eșuează din nou cu aceleași argumente | adaptează |
-| `failure-signature` | Aceeași cauză de eșec tot revine: comandă lipsă, dependență lipsă, rețea, permisiuni, port ocupat, cale negăsită, nepotrivire la editare, argumente invalide, memorie insuficientă | adaptează |
-| `command-flailing` | Același tip de comandă eșuează de mai multe ori la rând, cu argumente diferite | adaptează |
-| `read-thrash` | Același fișier, neschimbat, e citit iar și iar | adaptează |
-| `edit-churn` | Același fișier e editat de multe ori într-o singură tură | adaptează |
-| `error-storm` | Majoritatea apelurilor de tool recente au eșuat | adaptează |
-| `stall` | Eșecuri la rând, fără niciun succes între ele | adaptează |
-| `timeout-recurrence` | Același tip de comandă dă timeout iar și iar | adaptează |
-| `output-flood` | Același tip de comandă produce iar și iar un output supradimensionat | adaptează |
-| `approval-denied` / `denied-repeat` | Utilizatorul tot refuză același tip de acțiune sau un apel refuzat e reîncercat neschimbat | adaptează |
-| `user-correction` | Utilizatorul a corectat modelul sau l-a întrerupt și a schimbat direcția | adaptează |
-| `premature-completion` | Codul a fost modificat și tura e pe cale să se încheie fără nicio verificare rulată | adaptează |
-| `negative-feedback` | Utilizatorul a marcat un răspuns ca prost și a scris un motiv | adaptează |
-| `user-interrupt` | Utilizatorul a întrerupt în mijlocul turei | înregistrează |
-| `model-instability` | Cererile către model tot eșuează, sunt reîncercate sau se lovesc de limita de output | înregistrează |
-| `context-pressure` | Contextul a fost compactat în mijlocul task-ului | înregistrează |
+**16 detectoare** decid când trebuie să se schimbe harness-ul. [Lista completă](../../packages/dsh-rsi/README.md#detectors) se află în referința plugin-ului.
 
 **10 capabilități** sunt tot ce poate face o adaptare. Ea ajunge la harness doar prin ele:
 
@@ -360,17 +249,9 @@ Fiecare adaptare aparține unuia dintre cele trei straturi. Fiecare strat poate 
 | :--- | :--- | :--- | :--- |
 | **`machine`** | Fapte despre acest calculator | Nu există `python`; un port e ocupat; un host intern nu se rezolvă | Workspace-ul în care a fost învățată, apoi toată mașina, odată ce un al doilea workspace se lovește de același lucru |
 | **`user`** | Cum vrei să fii tratat | Un răspuns marcat ca prost, cu motivul „prea lung” | Toată mașina |
-| **`project`** | Regulile și obiceiurile unui repository | „Repository-ul ăsta folosește pnpm, întotdeauna” | Workspace-ul și repository-ul însuși, prin `.dsh-rsi/` |
+| **`project`** | Regulile și obiceiurile unui repository | „Repository-ul ăsta folosește pnpm, întotdeauna” | Workspace-ul și repository-ul însuși: regulile intră în commit odată cu codul |
 
 **Stratul de proiect călătorește odată cu codul:**
-
-```
-.dsh-rsi/
-  harness.json           marcaj de format și setări la nivel de proiect
-  adaptations/
-    remember-the-user-s-instruction-3f2a1c.js     învățată, apoi scrisă aici
-    no-force-push.js                              una scrisă de mână funcționează la fel
-```
 
 - **Dai commit ca să partajezi, ștergi ca să scoți din priză.** Un fișier înseamnă o adaptare.
 - **Nimic nu rulează doar pentru că a fost clonat.** Fiecare mașină acceptă conținutul exact al fișierelor cu `dsh-rsi trust` și îl acceptă din nou când fișierele se schimbă.
@@ -387,7 +268,7 @@ Fiecare adaptare aparține unuia dintre cele trei straturi. Fiecare strat poate 
 - **Puterea cere aprobare (`autonomy: tighten`)** — Adaptările care rescriu rezultate, adaugă tool-uri sau rulează comenzi sunt stocate ca `proposed` și așteaptă `dsh-rsi approve <id>`.
 - **Invizibil până e nevoie de el** — Când nu există fricțiune și nu e nimic montat, prompt-ul de sistem, lista de tool-uri și mesajele rămân neschimbate, octet cu octet. Un test end-to-end păzește asta.
 - **Eșecuri care nu se propagă** — Un handler care aruncă o excepție nu afectează niciodată apelul de tool de care e atașat. După trei erori, adaptarea intră în carantină.
-- **Totul e consemnat** — Fiecare decizie e în `audit.jsonl`, fiecare fricțiune, montare și acțiune în `ledger.jsonl`. `dsh-rsi disable`, `retire` și `rollback` scot o adaptare sau o dau înapoi.
+- **Totul e consemnat** — Fiecare decizie, fricțiune, montare și acțiune ajunge în jurnal. `dsh-rsi disable`, `retire` și `rollback` scot o adaptare sau o dau înapoi.
 - **Trei moduri** — `adapt` montează direct (implicit), `propose` generează și te așteaptă, `observe` doar înregistrează.
 
 ---
@@ -457,7 +338,6 @@ Se livrează ca un plugin terț obișnuit, cu metadatele pe care le citesc pagin
 - [🛠️ Linia de comandă `dsh-rsi`](../../packages/dsh-rsi/README.md#command-line) · [⚙️ Configurare](../../packages/dsh-rsi/README.md#configuration)
 - [⚠️ Limite cunoscute](../../packages/dsh-rsi/README.md#known-limits)
 - [📊 Protocolul și rezultatele benchmark-urilor](../../bench/README.md)
-- [🌐 Sursa site-ului](../../website) — auto-îmbunătățire recursivă, cum funcționează, scrierea adaptărilor, evaluare; deschide `website/index.html` într-un browser
 - [🧱 DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) — harness-ul în care se conectează acest plugin
 
 <a id="contributing"></a>
@@ -471,23 +351,6 @@ npm install && npm test    # 130 de teste unitare, apoi 29 de teste end-to-end; 
 ```
 
 Testele end-to-end înlocuiesc endpoint-ul modelului cu unul simulat. Restul e real: procesul `dsh`, execuția tool-urilor, jurnalul sesiunii și instalarea plugin-urilor.
-
-```
-packages/dsh-rsi/        pachetul plugin-ului (ESM simplu, fără pas de build)
-  index.js               partea de host: legăturile cu punctele de extensie ale DSH
-  client.js              partea de browser: badge-ul RSI și pastila de stare
-  src/engine.js          observă → decide → generează → validează → montează → păstrează → partajează
-  src/signals.js         cele 16 detectoare
-  src/validate.js        poarta de validare
-  src/sandbox.js         unde rulează codul adaptărilor
-  src/project.js         harness-ul de proiect: <repository>/.dsh-rsi
-  bin/rsi.js             comanda dsh-rsi
-market/index.json        un index de plugin-uri care poate fi adăugat în DSH
-test/unit/  test/e2e/    teste unitare și teste end-to-end pe un proces dsh real
-test/live/               rulări cu un model real (au nevoie de MIMO_API_KEY)
-bench/                   benchmark-uri: DSH standard contra DSH + dsh-rsi
-website/                 site-ul (pagini statice, fără pas de build)
-```
 
 ## 📄 Licență
 
