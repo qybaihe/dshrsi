@@ -21,14 +21,11 @@
 
 [![RSI](https://img.shields.io/badge/RSI-Recursive_Self--Improvement-4d6bfe?style=for-the-badge)](#rsi)
 [![DeepSeek Harness](https://img.shields.io/badge/DeepSeek_Harness-0.2.2--rc.3_plugin-7c5cff?style=for-the-badge)](https://github.com/deepseek-ai/deepseek-harness)
-[![Detectors](https://img.shields.io/badge/Detectors-16-12b5e5?style=for-the-badge)](#coverage)
 [![Validation](https://img.shields.io/badge/Validation-5--Stage_Gate-0ea5e9?style=for-the-badge)](#how-it-works)
-[![Layers](https://img.shields.io/badge/Layers-Machine_%C2%B7_User_%C2%B7_Project-0284c7?style=for-the-badge)](#project-harness)
 [![Benchmarks](https://img.shields.io/badge/Benchmarks-4_Suites_%C2%B7_2_Models-2563eb?style=for-the-badge)](#benchmarks)
-[![Tests](https://img.shields.io/badge/Tests-130_unit_%C2%B7_29_e2e-1d4ed8?style=for-the-badge)](#contributing)
 [![MIT License](https://img.shields.io/badge/License-MIT-38bdf8?style=for-the-badge)](../../LICENSE)
 
-**[🌐 Situs web](https://qybaihe.github.io/dshrsi/) · [📖 Referensi Plugin](../../packages/dsh-rsi/README.md) · [🧩 Harness Proyek](../../packages/dsh-rsi/README.md#layers-and-the-project-harness) · [🔬 Gerbang Validasi](../../packages/dsh-rsi/README.md#the-validation-gate) · [⚠️ Batasan yang Diketahui](../../packages/dsh-rsi/README.md#known-limits) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
+**[🌐 Situs web](https://qybaihe.github.io/dshrsi/) · [📖 Referensi Plugin](../../packages/dsh-rsi/README.md) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
 
 [Apa Itu RSI](#rsi) · [Mulai Cepat](#quick-start) · [Cara Kerja](#how-it-works) · [Hasil Terukur](#measured) · [Benchmark](#benchmarks) · [Detektor & Kapabilitas](#coverage) · [Harness Proyek](#project-harness) · [Default Keamanan](#security) · [FAQ](#faq)
 
@@ -116,26 +113,6 @@ Tidak ada yang perlu dikonfigurasi. DSHRSI tidak terlihat sampai masalah yang sa
 
 Ketik `/rsi` di sesi mana pun untuk melihat apa saja yang terpasang, masing-masing masuk lapisan mana, dan apa yang sedang menunggu persetujuan Anda.
 
-### 3. Beri Repositori Harness Miliknya Sendiri
-Aturan yang dipelajari di sebuah repositori bisa disimpan di repositori itu juga, satu file per adaptasi:
-
-```bash
-# Perintah ini ikut bersama plugin, di dalam profile tempat plugin itu diinstal
-alias dsh-rsi="$HOME/.dsh/profiles/web/node_modules/.bin/dsh-rsi"
-
-dsh-rsi project init      # di repositori: membuat .dsh-rsi/, lalu commit folder itu
-dsh-rsi trust             # di setiap mesin lain: terima file-filenya setelah Anda membacanya
-```
-
-### 4. Jalankan dari Kode Sumber
-
-```bash
-git clone https://github.com/qybaihe/dshrsi.git && cd dshrsi
-npm install               # membawa dsh versi terkunci beserta pnpm yang dipanggilnya
-npx dsh plugin --profile web add "$PWD/packages/dsh-rsi"
-npx dsh web
-```
-
 Profile `desktop` dan `headless`, indeks plugin, tarball lokal, dan pemuatan untuk satu kali run saja dibahas di [referensi plugin](../../packages/dsh-rsi/README.md#install).
 
 ---
@@ -155,36 +132,13 @@ Skill, file memori, dan system prompt yang lebih panjang semuanya bekerja di lev
 
 **DSHRSI bekerja di level harness. Apa yang dipelajarinya menjadi kode pada titik ekstensi milik harness itu sendiri:**
 
-```mermaid
-flowchart LR
-  subgraph S1["1 · Amati"]
-    A["event sesi"] --> B["16 detektor"]
-  end
-  subgraph S2["2 · Putuskan"]
-    B --> C["signature friksi<br/>+ pustaka + sesi sebelumnya"]
-  end
-  subgraph S3["3 · Tulis Ulang"]
-    C --> D["model sesi<br/>menulis adaptasi"]
-    D --> E["gerbang validasi 5 tahap"]
-    E -. "ditolak, beserta alasannya" .-> D
-  end
-  subgraph S4["4 · Pasang"]
-    E --> F["konteks node:vm terisolasi<br/>aktif sebelum request model berikutnya"]
-  end
-  subgraph S5["5 · Simpan dan Bagikan"]
-    F --> G["pustaka: promosi · karantina · revisi"]
-    G --> H[".dsh-rsi/ di repositori"]
-  end
-  G -. "sesi berikutnya mulai dari sini" .-> A
-```
-
 | Tahap | Mekanisme | Efek |
 | :--- | :--- | :--- |
-| **1. Amati** | 16 detektor membaca event sesi yang sudah dinormalisasi: pemanggilan yang gagal lagi, penyebab kegagalan yang terus muncul kembali, perintah coba-coba tanpa arah, koreksi dari pengguna, giliran yang berakhir tanpa verifikasi apa pun. | Masalah mendapat signature yang stabil lintas sesi, misalnya `bash:command-not-found:python`. |
+| **1. Amati** | 16 detektor membaca event sesi yang sudah dinormalisasi: pemanggilan yang gagal lagi, penyebab kegagalan yang terus muncul kembali, perintah coba-coba tanpa arah, koreksi dari pengguna, giliran yang berakhir tanpa verifikasi apa pun. | Masalah mendapat signature yang tetap sama dari satu sesi ke sesi berikutnya. |
 | **2. Tulis Ulang** | Model dari sesi itu sendiri menulis adaptasi JavaScript memakai API berisi 10 kapabilitas. Kode yang ditolak dikembalikan beserta alasannya, paling banyak dua kali, setelah itu template bawaan mengambil alih. | Perbaikannya berupa kode harness, bukan satu paragraf prompt lagi. |
 | **3. Validasi** | Statis → muat → putar ulang → regresi → izin. Adaptasi harus bertindak atas pemanggilan yang memicunya dan tidak boleh mengusik satu pun pemanggilan yang berhasil di sesi ini. | Kode yang tidak melakukan apa-apa, atau yang merusak hal yang tadinya berjalan, tidak akan pernah dipasang. |
-| **4. Pasang** | Adaptasi berjalan di konteks `node:vm` miliknya sendiri di balik sebuah bridge JSON, dengan timeout pada setiap pemanggilan, dan mulai berlaku sebelum request model berikutnya. | Giliran yang terkena masalah itulah yang pertama merasakan manfaatnya. |
-| **5. Simpan dan Bagikan** | Satu pustaka per mesin, lengkap dengan ledger dan log audit. Yang berhasil dipromosikan, yang melempar error dikarantina, yang tidak mempan ditulis ulang lebih ketat, dan aturan proyek ditulis ke `.dsh-rsi/`. | Sesi berikutnya dimulai dalam keadaan sudah beradaptasi, dan rekan tim mendapat aturan proyek setelah `dsh-rsi trust`. |
+| **4. Pasang** | Adaptasi berjalan di konteks terisolasi miliknya sendiri, dengan timeout pada setiap pemanggilan, dan mulai berlaku sebelum request model berikutnya. | Giliran yang terkena masalah itulah yang pertama merasakan manfaatnya. |
+| **5. Simpan dan Bagikan** | Setiap mesin menyimpan sebuah pustaka adaptasi. Yang berhasil dipromosikan, yang melempar error dikarantina, yang tidak mempan ditulis ulang lebih ketat, dan aturan proyek ditulis ke dalam repositori. | Sesi berikutnya dimulai dalam keadaan sudah beradaptasi, dan rekan tim mendapat aturan proyek begitu mereka menyetujuinya. |
 | **↻ Ulangi Lagi** | Sesi berikutnya berjalan di atas harness yang ditinggalkan tahap 5, dan tahap 1 mengamatinya dengan semua adaptasi sudah terpasang. | Perbaikan dibangun di atas perbaikan. Itulah rekursinya. |
 
 ---
@@ -199,46 +153,9 @@ Angka-angka ini berasal dari menjalankan model sungguhan, `mimo-v2.6-pro`, melal
 
 | Skenario | Tanpa DSHRSI | Dengan DSHRSI | Yang Ditulis Harness |
 | :--- | :--- | :--- | :--- |
-| **Perintah tidak ada**: README menyebut `python stats.py`, mesinnya hanya punya `python3` | ❌ **5 / 5** sesi melakukan pemanggilan gagal itu | ✅ **0 / 7** sesi setelah adaptasi (9 / 9 sebelumnya) | `deny` + `prompt`, ditulis model, lolos gerbang pada percobaan pertama |
-| **Aturan yang hanya sekali disebut pengguna**: "jangan pernah mengubah `notes.txt`, tulis ke `notes.draft.txt`" | ❌ Sesi berikutnya mengedit `notes.txt` | ✅ Sesi berikutnya menulis ke `notes.draft.txt` tanpa diminta | `deny` + `prompt`, ditulis model tepat setelah koreksi itu |
+| **Perintah tidak ada**: instruksinya menyebut `python`, mesinnya hanya punya `python3` | ❌ **5 / 5** sesi melakukan pemanggilan gagal itu | ✅ **0 / 7** sesi setelah adaptasi (9 / 9 sebelumnya) | `deny` + `prompt`, ditulis model, lolos gerbang pada percobaan pertama |
+| **Aturan yang hanya sekali disebut pengguna**: jangan pernah mengubah satu file tertentu, tulis ke draf file itu sebagai gantinya | ❌ Sesi berikutnya mengedit file itu | ✅ Sesi berikutnya menulis ke drafnya tanpa diminta | `deny` + `prompt`, ditulis model tepat setelah koreksi itu |
 | **Fix yang tidak diminta siapa pun untuk diverifikasi** | tidak dijalankan | ⚪ Tidak ada yang ditulis: model memverifikasi fix-nya di 3 / 3 sesi, jadi tidak ada yang perlu dipelajari | tidak ada |
-
-Skenario pertama dijalankan tiga kali dengan plugin, setiap kali dari pustaka kosong, ditambah satu run kontrol. Skenario kedua dijalankan sekali dengan plugin dan sekali tanpa plugin.
-
-**Perintah tidak ada, sesi demi sesi** (pemanggilan tool yang gagal per sesi):
-
-| Run | S1 | S2 | S3 | S4 | S5 | S6 |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Tanpa DSHRSI** | ❌ 1 | ❌ 1 | ❌ 1 | ❌ 1 | ❌ 1 | |
-| **Dengan DSHRSI · run 1** | ❌ 1 | ❌ 1 | ❌ 1 → 🧬 | ✅ 0 | ✅ 0 | ✅ 0 |
-| **Dengan DSHRSI · run 2** | ❌ 1 | ❌ 1 | ❌ 1 → 🧬 | ✅ 0 | ✅ 0 | |
-| **Dengan DSHRSI · run 3** | ❌ 1 | ❌ 1 | ❌ 1 → 🧬 | ✅ 0 | ✅ 0 | |
-
-🧬 menandai giliran saat model menulis adaptasi dan harness memasangnya. Di 3 dari 7 sesi sesudahnya, model masih mencoba `python`, dan harness menolak pemanggilan itu sebelum dijalankan. Setiap sesi dalam skenario ini berakhir dengan jawaban yang benar, dengan atau tanpa plugin.
-
-Reproduksi secara lokal:
-
-```bash
-MIMO_API_KEY=... npm run test:live -- python --sessions 6          # dengan plugin
-MIMO_API_KEY=... npm run test:live -- python --sessions 5 --off    # run kontrol tanpa plugin
-```
-
-<details>
-<summary><strong>Belum diverifikasi di mesin ini (klik untuk membuka)</strong></summary>
-
-<br />
-
-Jalur-jalur kode ini ada di repositori dan tercakup oleh unit test atau tes end-to-end dengan model simulasi, tetapi belum pernah diamati di sesi sungguhan atau aplikasi sungguhan:
-
-| Area | Mengapa Belum Diverifikasi di Sini |
-| :--- | :--- |
-| Aplikasi desktop DeepSeek Harness | Tidak terinstal di mesin pengembangan. Diverifikasi pada profile `web` dan mekanisme instalasi yang dibungkus aplikasi itu |
-| `negative-feedback`, `approval-denied`, `context-pressure`, `model-instability` | Hanya diuji dengan event buatan, belum pernah terpicu di sesi sungguhan |
-| Tes browser otomatis | Tidak ada. UI-nya ditelusuri secara manual di halaman `dsh web` sungguhan, dalam mode terang dan gelap |
-| Profile ACP dan SDK | Tidak ada UI di sana, dan belum diverifikasi |
-| Model di luar keluarga MiMo v2.6 | Belum ada run. Benchmark memakai `mimo-v2.6-pro` dan `mimo-v2.6-flash`; tiga skenario di atas memakai `mimo-v2.6-pro` |
-
-</details>
 
 ---
 
@@ -270,26 +187,17 @@ DeepSeek Harness polos melawan DeepSeek Harness + DSHRSI, dalam 3,390 sesi `dsh`
 
 **Yang benar-benar dilakukan DSHRSI, tanpa satu petunjuk pun, adalah mengubah dirinya sendiri.** Sepanjang delapan run itu, model-model menulis **56 adaptasi**; 15 di antaranya bertindak, dan 10 dari yang bertindak itu sudah diperluas ke seluruh mesin. Untuk masing-masing dari 10 adaptasi itu, kami mengambil tugas-tugas yang dimulai sesudahnya dan membandingkannya dengan tugas yang persis sama pada DSH polos:
 
-| Adaptasi yang Ditulis Model | Kegagalan yang Dijawabnya | DSH Polos | DSH + DSHRSI | p |
-| :--- | :--- | ---: | ---: | ---: |
-| *Stop inline python checks that abort on first mismatch* (MBPP, `mimo-v2.6-pro`) | Eksekusi tes yang mati pada assertion pertama yang gagal | 16 dari 310 tugas | **3 dari 310** | 0.002 |
-| *Redirect missing lib.rs reads to a glob lookup* (Polyglot, `mimo-v2.6-flash`) | Membaca `lib.rs` di path yang tidak ada | 7 dari 151 tugas | **1 dari 151** | 0.07 |
-| 8 lainnya | | tidak ada perubahan yang terukur | | |
+| Kegagalan yang Harness Belajar Sendiri Cara Menghindarinya | DSH Polos | DSH + DSHRSI | p |
+| :--- | ---: | ---: | ---: |
+| Eksekusi tes yang mati pada assertion pertama yang gagal (MBPP, `mimo-v2.6-pro`) | 16 dari 310 tugas | **3 dari 310** | 0.002 |
+| Membaca file di path yang tidak ada (Polyglot, `mimo-v2.6-flash`) | 7 dari 151 tugas | **1 dari 151** | 0.07 |
+| 8 adaptasi lainnya | tidak ada perubahan yang terukur | | |
 
-Tidak satu pun dari keduanya membuat lebih banyak tugas lolos, dan plugin ini memakan sekitar 8–9% lebih banyak waktu agen dan token input. Kesepuluhnya tercantum di [`bench/README.md`](../../bench/README.md#did-those-adaptations-work).
+Tidak satu pun dari keduanya membuat lebih banyak tugas lolos, dan plugin ini memakan sekitar 8–9% lebih banyak waktu agen dan token input. Kesepuluhnya tercantum di [catatan benchmark](../../bench/README.md#did-those-adaptations-work).
 
 **LiveCodeBench v6 terhenti di tengah jalan:** akun model kehabisan saldo sebelum selesai. Pada tugas-tugas yang saat itu sudah selesai dijalankan kedua sisi, DSH polos berhasil menyelesaikan 94 dan DSHRSI 96 dari 105 dengan `mimo-v2.6-pro`, serta 42 lawan 42 dari 51 dengan `mimo-v2.6-flash`. Karena alasan yang sama, putaran kedua, yaitu tugas-tugas yang sama sekali lagi di atas pustaka yang ditinggalkan putaran pertama, belum dijalankan.
 
-Reproduksi secara lokal:
-
-```bash
-bench/setup.sh                                                        # toolchain, dataset, kode penilaian
-MIMO_API_KEY=... node bench/run.mjs polyglot --arm dsh --run dsh-p1   # DeepSeek Harness polos
-MIMO_API_KEY=... node bench/run.mjs polyglot --arm rsi --run rsi-p1   # dengan plugin
-node bench/report.mjs --write                                         # tabel dan bench/results/*.json
-```
-
-Protokol, tabel biaya dan kegagalan, serta batasannya ada di [`bench/README.md`](../../bench/README.md); hasil per tugas ada di [`bench/results/`](../../bench/results).
+Protokol, tabel biaya dan kegagalan, batasannya, serta perintah untuk mereproduksi semuanya ada di [catatan benchmark](../../bench/README.md).
 
 ---
 
@@ -297,26 +205,7 @@ Protokol, tabel biaya dan kegagalan, serta batasannya ada di [`bench/README.md`]
 
 ## 🛡️ Detektor & Kapabilitas
 
-**16 detektor** menentukan kapan harness harus berubah. Detektor yang sama berjalan pada sesi yang sedang berlangsung maupun pada sesi yang tersimpan di disk (`dsh-rsi mine`):
-
-| Detektor | Yang Ditemukannya | Respons |
-| :--- | :--- | :---: |
-| `repeat-failing-call` | Pemanggilan yang sama gagal lagi dengan argumen yang sama | beradaptasi |
-| `failure-signature` | Penyebab kegagalan yang sama terus muncul kembali: perintah tidak ada, dependensi tidak ada, jaringan, izin, port sedang dipakai, path tidak ditemukan, edit tidak cocok, argumen tidak valid, kehabisan memori | beradaptasi |
-| `command-flailing` | Jenis perintah yang sama gagal berturut-turut dengan argumen yang berganti-ganti | beradaptasi |
-| `read-thrash` | File yang sama, tanpa perubahan, dibaca berulang-ulang | beradaptasi |
-| `edit-churn` | File yang sama diedit berkali-kali dalam satu giliran | beradaptasi |
-| `error-storm` | Sebagian besar pemanggilan tool terakhir gagal | beradaptasi |
-| `stall` | Kegagalan berturut-turut tanpa satu pun keberhasilan di antaranya | beradaptasi |
-| `timeout-recurrence` | Jenis perintah yang sama terus-menerus timeout | beradaptasi |
-| `output-flood` | Jenis perintah yang sama terus menghasilkan output yang terlalu besar | beradaptasi |
-| `approval-denied` / `denied-repeat` | Pengguna terus menolak jenis tindakan yang sama, atau pemanggilan yang ditolak dicoba lagi tanpa perubahan | beradaptasi |
-| `user-correction` | Pengguna mengoreksi model, atau menyela lalu mengubah arah | beradaptasi |
-| `premature-completion` | Kode sudah diubah dan giliran akan berakhir tanpa ada pemeriksaan yang dijalankan | beradaptasi |
-| `negative-feedback` | Pengguna menandai sebuah balasan sebagai buruk dan menuliskan alasannya | beradaptasi |
-| `user-interrupt` | Pengguna menyela di tengah giliran | dicatat |
-| `model-instability` | Request model terus gagal, diulang, atau mentok di batas output | dicatat |
-| `context-pressure` | Konteks dipadatkan di tengah tugas | dicatat |
+**16 detektor** menentukan kapan harness harus berubah. [Daftar lengkapnya](../../packages/dsh-rsi/README.md#detectors) ada di referensi plugin.
 
 **10 kapabilitas** adalah semua yang bisa dilakukan sebuah adaptasi. Adaptasi hanya bisa menjangkau harness melalui kapabilitas ini:
 
@@ -360,17 +249,9 @@ Setiap adaptasi termasuk dalam salah satu dari tiga lapisan. Setiap lapisan bisa
 | :--- | :--- | :--- | :--- |
 | **`machine`** | Fakta tentang komputer ini | Tidak ada `python`; sebuah port sudah terpakai; sebuah host internal tidak bisa di-resolve | Workspace tempat adaptasi itu dipelajari, lalu seluruh mesin begitu workspace kedua mengalaminya |
 | **`user`** | Bagaimana Anda ingin diperlakukan | Balasan yang ditandai buruk dengan alasan "terlalu panjang" | Seluruh mesin |
-| **`project`** | Aturan dan kebiasaan satu repositori | "Repositori ini selalu memakai pnpm" | Workspace itu, dan repositori itu sendiri melalui `.dsh-rsi/` |
+| **`project`** | Aturan dan kebiasaan satu repositori | "Repositori ini selalu memakai pnpm" | Workspace itu, dan repositori itu sendiri: aturannya di-commit bersama kodenya |
 
 **Lapisan proyek ikut bersama kodenya:**
-
-```
-.dsh-rsi/
-  harness.json           penanda format dan pengaturan tingkat proyek
-  adaptations/
-    remember-the-user-s-instruction-3f2a1c.js     dipelajari, lalu ditulis di sini
-    no-force-push.js                              yang ditulis tangan bekerja dengan cara yang sama
-```
 
 - **Commit untuk berbagi, hapus untuk mencabut.** Satu file adalah satu adaptasi.
 - **Tidak ada yang berjalan hanya karena di-clone.** Setiap mesin menerima isi persis file-file itu dengan `dsh-rsi trust`, dan menerimanya lagi ketika file-file itu berubah.
@@ -387,7 +268,7 @@ Setiap adaptasi termasuk dalam salah satu dari tiga lapisan. Setiap lapisan bisa
 - **Persetujuan untuk Kapabilitas Kuat (`autonomy: tighten`)** — Adaptasi yang menulis ulang hasil, menambah tool, atau menjalankan perintah disimpan sebagai `proposed` dan menunggu `dsh-rsi approve <id>`.
 - **Tak Terlihat Sampai Dibutuhkan** — Tanpa friksi dan tanpa adaptasi yang terpasang, system prompt, daftar tool, dan pesan tidak berubah byte demi byte. Sebuah tes end-to-end menjaga hal ini.
 - **Kegagalan Terisolasi** — Handler yang melempar error tidak pernah memengaruhi pemanggilan tool tempat ia terpasang. Setelah tiga error, adaptasi itu dikarantina.
-- **Semua Tercatat** — Setiap keputusan ada di `audit.jsonl`, setiap friksi, pemasangan, dan tindakan ada di `ledger.jsonl`. `dsh-rsi disable`, `retire`, dan `rollback` mencabut sebuah adaptasi atau memundurkannya.
+- **Semua Tercatat** — Setiap keputusan, friksi, pemasangan, dan tindakan dicatat dalam log. `dsh-rsi disable`, `retire`, dan `rollback` mencabut sebuah adaptasi atau memundurkannya.
 - **Tiga Mode** — `adapt` langsung memasang (default), `propose` membuat adaptasi lalu menunggu Anda, `observe` hanya mencatat.
 
 ---
@@ -457,7 +338,6 @@ DSHRSI hadir sebagai plugin pihak ketiga biasa dengan metadata yang dibaca halam
 - [🛠️ Command Line `dsh-rsi`](../../packages/dsh-rsi/README.md#command-line) · [⚙️ Konfigurasi](../../packages/dsh-rsi/README.md#configuration)
 - [⚠️ Batasan yang Diketahui](../../packages/dsh-rsi/README.md#known-limits)
 - [📊 Protokol & Hasil Benchmark](../../bench/README.md)
-- [🌐 Kode sumber situs web](../../website) — perbaikan diri rekursif, cara kerjanya, menulis adaptasi, evaluasi; buka `website/index.html` di browser
 - [🧱 DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) — harness tempat plugin ini dicolokkan
 
 <a id="contributing"></a>
@@ -471,23 +351,6 @@ npm install && npm test    # 130 unit test, lalu 29 tes end-to-end; tidak perlu 
 ```
 
 Tes end-to-end mengganti endpoint model dengan endpoint simulasi. Selebihnya sungguhan: proses `dsh`, eksekusi tool, log sesi, dan instalasi plugin.
-
-```
-packages/dsh-rsi/        bundle plugin (ESM murni, tanpa langkah build)
-  index.js               sisi host: binding ke titik ekstensi DSH
-  client.js              sisi browser: badge RSI dan pill status
-  src/engine.js          amati → putuskan → hasilkan → validasi → pasang → simpan → bagikan
-  src/signals.js         16 detektor
-  src/validate.js        gerbang validasi
-  src/sandbox.js         tempat kode adaptasi berjalan
-  src/project.js         harness proyek: <repositori>/.dsh-rsi
-  bin/rsi.js             perintah dsh-rsi
-market/index.json        indeks plugin yang bisa ditambahkan ke DSH
-test/unit/  test/e2e/    unit test, dan tes end-to-end pada proses dsh sungguhan
-test/live/               run terhadap model sungguhan (perlu MIMO_API_KEY)
-bench/                   benchmark: DSH polos melawan DSH + dsh-rsi
-website/                 situs web (halaman statis, tanpa langkah build)
-```
 
 ## 📄 Lisensi
 
