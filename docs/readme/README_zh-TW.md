@@ -21,14 +21,11 @@
 
 [![RSI](https://img.shields.io/badge/RSI-Recursive_Self--Improvement-4d6bfe?style=for-the-badge)](#rsi)
 [![DeepSeek Harness](https://img.shields.io/badge/DeepSeek_Harness-0.2.2--rc.3_plugin-7c5cff?style=for-the-badge)](https://github.com/deepseek-ai/deepseek-harness)
-[![Detectors](https://img.shields.io/badge/Detectors-16-12b5e5?style=for-the-badge)](#coverage)
 [![Validation](https://img.shields.io/badge/Validation-5--Stage_Gate-0ea5e9?style=for-the-badge)](#how-it-works)
-[![Layers](https://img.shields.io/badge/Layers-Machine_%C2%B7_User_%C2%B7_Project-0284c7?style=for-the-badge)](#project-harness)
 [![Benchmarks](https://img.shields.io/badge/Benchmarks-4_Suites_%C2%B7_2_Models-2563eb?style=for-the-badge)](#benchmarks)
-[![Tests](https://img.shields.io/badge/Tests-130_unit_%C2%B7_29_e2e-1d4ed8?style=for-the-badge)](#contributing)
 [![MIT License](https://img.shields.io/badge/License-MIT-38bdf8?style=for-the-badge)](../../LICENSE)
 
-**[🌐 官網](https://qybaihe.github.io/dshrsi/) · [📖 外掛參考文件](../../packages/dsh-rsi/README.md) · [🧩 專案 Harness](../../packages/dsh-rsi/README.md#layers-and-the-project-harness) · [🔬 驗證關卡](../../packages/dsh-rsi/README.md#the-validation-gate) · [⚠️ 已知限制](../../packages/dsh-rsi/README.md#known-limits) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
+**[🌐 官網](https://qybaihe.github.io/dshrsi/) · [📖 外掛參考文件](../../packages/dsh-rsi/README.md) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
 
 [RSI 是什麼](#rsi) · [快速上手](#quick-start) · [運作原理](#how-it-works) · [實測結果](#measured) · [基準測試](#benchmarks) · [偵測器與能力](#coverage) · [專案 Harness](#project-harness) · [安全預設值](#security) · [常見問題](#faq)
 
@@ -116,26 +113,6 @@ dsh web
 
 在任何工作階段輸入 `/rsi`，就能看到掛載了哪些調適、各自屬於哪一層，以及哪些正在等你核准。
 
-### 3. 給儲存庫一套專屬的 Harness
-在某個儲存庫裡學到的規矩，可以就放在那個儲存庫裡，一個調適一個檔案：
-
-```bash
-# 這個指令隨外掛一起提供，就在安裝外掛的那個 profile 裡
-alias dsh-rsi="$HOME/.dsh/profiles/web/node_modules/.bin/dsh-rsi"
-
-dsh-rsi project init      # 在儲存庫中執行：建立 .dsh-rsi/，然後提交它
-dsh-rsi trust             # 在其他每台機器上：讀過這些檔案之後接受它們
-```
-
-### 4. 從原始碼執行
-
-```bash
-git clone https://github.com/qybaihe/dshrsi.git && cd dshrsi
-npm install               # 會帶來一個固定版本的 dsh，以及它要呼叫的 pnpm
-npx dsh plugin --profile web add "$PWD/packages/dsh-rsi"
-npx dsh web
-```
-
 `desktop` 與 `headless` profile、外掛索引、本機 tarball，以及只在單次執行時載入的做法，都寫在[外掛參考文件](../../packages/dsh-rsi/README.md#install)裡。
 
 ---
@@ -155,36 +132,13 @@ Skill、記憶檔、更長的系統提示詞，全都是在上下文這一層下
 
 **DSHRSI 則是在 Harness 這一層下功夫。它學到的東西，會變成掛在 Harness 自身擴充點上的程式碼：**
 
-```mermaid
-flowchart LR
-  subgraph S1["1 · 觀察"]
-    A["工作階段事件"] --> B["16 個偵測器"]
-  end
-  subgraph S2["2 · 決策"]
-    B --> C["摩擦特徵碼<br/>+ 調適庫 + 過往的工作階段"]
-  end
-  subgraph S3["3 · 改寫"]
-    C --> D["工作階段的模型<br/>寫出一個調適"]
-    D --> E["5 道驗證關卡"]
-    E -. "退回，並附上原因" .-> D
-  end
-  subgraph S4["4 · 掛載"]
-    E --> F["獨立的 node:vm context<br/>在下一次模型請求之前生效"]
-  end
-  subgraph S5["5 · 留存與共享"]
-    F --> G["調適庫：升格 · 隔離 · 修訂"]
-    G --> H["儲存庫裡的 .dsh-rsi/"]
-  end
-  G -. "下一個工作階段從這裡開始" .-> A
-```
-
 | 階段 | 機制 | 效果 |
 | :--- | :--- | :--- |
-| **1. 觀察** | 16 個偵測器讀取正規化後的工作階段事件：再次失敗的呼叫、一再出現的失敗原因、亂槍打鳥式的嘗試、使用者的糾正，以及什麼都沒驗證就結束的回合。 | 麻煩有了一個跨工作階段都穩定的特徵碼，例如 `bash:command-not-found:python`。 |
+| **1. 觀察** | 16 個偵測器讀取正規化後的工作階段事件：再次失敗的呼叫、一再出現的失敗原因、亂槍打鳥式的嘗試、使用者的糾正，以及什麼都沒驗證就結束的回合。 | 麻煩有了一個特徵碼，從這個工作階段到下一個都不會變。 |
 | **2. 改寫** | 工作階段自己的模型依照一套有 10 種能力的 API，寫出一個 JavaScript 調適。沒通過的程式碼會連同原因退回重寫，最多兩次，之後就由內建範本接手。 | 修正的方式是 Harness 程式碼，而不是在提示詞裡再多塞一段話。 |
 | **3. 驗證** | 靜態 → 載入 → 重播 → 回歸 → 權限。調適必須對觸發它的那些呼叫有所作為，而且不能動到這個工作階段裡任何一個成功的呼叫。 | 什麼都沒做的程式碼，或是會把原本好好的東西弄壞的程式碼，永遠不會被掛載。 |
-| **4. 掛載** | 調適在自己獨立的 `node:vm` context 裡執行，隔著一道 JSON 橋接，每次呼叫都有逾時限制，並在下一次模型請求之前生效。 | 碰上麻煩的那個回合，就是第一個受惠的。 |
-| **5. 留存與共享** | 每台機器一個調適庫，附帳本和稽核紀錄。管用的升格，拋出例外的隔離，沒守住的改寫得更嚴格，專案的規矩則寫進 `.dsh-rsi/`。 | 下一個工作階段一開始就是調適過的；隊友執行 `dsh-rsi trust` 之後，就能拿到專案的規矩。 |
+| **4. 掛載** | 調適在自己的隔離 context 裡執行，每次呼叫都有逾時限制，並在下一次模型請求之前生效。 | 碰上麻煩的那個回合，就是第一個受惠的。 |
+| **5. 留存與共享** | 每台機器都有自己的調適庫。管用的升格，拋出例外的隔離，沒守住的改寫得更嚴格，專案的規矩則寫進儲存庫。 | 下一個工作階段一開始就是調適過的；隊友接受之後，就能拿到專案的規矩。 |
 | **↻ 再來一輪** | 下一個工作階段跑在第 5 階段留下的 Harness 上，而第 1 階段會帶著所有已就位的調適去觀察它。 | 改進建立在改進之上。這就是遞迴。 |
 
 ---
@@ -199,46 +153,9 @@ flowchart LR
 
 | 情境 | 沒有 DSHRSI | 有 DSHRSI | Harness 寫了什麼 |
 | :--- | :--- | :--- | :--- |
-| **缺少指令**：README 寫的是 `python stats.py`，但機器上只有 `python3` | ❌ **5 / 5** 個工作階段發出了失敗的呼叫 | ✅ 調適寫出之後 **0 / 7** 個工作階段（寫出之前是 9 / 9） | `deny` + `prompt`，由模型撰寫，第一次嘗試就通過關卡 |
-| **使用者只講過一次的規矩**：「絕對不要修改 `notes.txt`，要寫到 `notes.draft.txt`」 | ❌ 下一個工作階段編輯了 `notes.txt` | ✅ 下一個工作階段不用提醒就寫到 `notes.draft.txt` | `deny` + `prompt`，由模型在被糾正後當下撰寫 |
+| **缺少指令**：說明裡寫的是 `python`，但機器上只有 `python3` | ❌ **5 / 5** 個工作階段發出了失敗的呼叫 | ✅ 調適寫出之後 **0 / 7** 個工作階段（寫出之前是 9 / 9） | `deny` + `prompt`，由模型撰寫，第一次嘗試就通過關卡 |
+| **使用者只講過一次的規矩**：絕對不要修改某個檔案，要寫就寫到它的草稿裡 | ❌ 下一個工作階段編輯了那個檔案 | ✅ 下一個工作階段不用提醒就寫到草稿裡 | `deny` + `prompt`，由模型在被糾正後當下撰寫 |
 | **沒人要求驗證的修正** | 未執行 | ⚪ 什麼都沒寫：模型在 3 / 3 個工作階段都自己驗證了修正，所以沒有什麼可學的 | 無 |
-
-第一個情境裝著外掛跑了三輪，每一輪都從空的調適庫開始，另外再加一輪對照。第二個情境則是有外掛、沒外掛各跑一輪。
-
-**缺少指令，逐個工作階段來看**（每個工作階段中失敗的工具呼叫次數）：
-
-| 輪次 | S1 | S2 | S3 | S4 | S5 | S6 |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **沒有 DSHRSI** | ❌ 1 | ❌ 1 | ❌ 1 | ❌ 1 | ❌ 1 | |
-| **有 DSHRSI · 第 1 輪** | ❌ 1 | ❌ 1 | ❌ 1 → 🧬 | ✅ 0 | ✅ 0 | ✅ 0 |
-| **有 DSHRSI · 第 2 輪** | ❌ 1 | ❌ 1 | ❌ 1 → 🧬 | ✅ 0 | ✅ 0 | |
-| **有 DSHRSI · 第 3 輪** | ❌ 1 | ❌ 1 | ❌ 1 → 🧬 | ✅ 0 | ✅ 0 | |
-
-🧬 標示的是模型寫出調適、Harness 把它掛載上去的那個回合。在那之後的 7 個工作階段裡，有 3 個模型還是試著去跑 `python`，而 Harness 在呼叫執行前就把它擋了下來。這個情境裡的每個工作階段，不管有沒有裝外掛，最後都得出了正確答案。
-
-在本機重現：
-
-```bash
-MIMO_API_KEY=... npm run test:live -- python --sessions 6          # 裝上外掛
-MIMO_API_KEY=... npm run test:live -- python --sessions 5 --off    # 對照組，不裝外掛
-```
-
-<details>
-<summary><strong>尚未在這台機器上驗證的部分（點擊展開）</strong></summary>
-
-<br />
-
-這些路徑的程式碼都已經在儲存庫裡，也有單元測試或使用模擬模型的端對端測試涵蓋，但還沒有在真實的工作階段或真實的應用程式中觀察到過：
-
-| 範圍 | 為什麼這裡沒驗證 |
-| :--- | :--- |
-| DeepSeek Harness 桌面應用程式 | 開發用的機器上沒有安裝。已在該應用程式所包裝的 `web` profile 與安裝機制上驗證過 |
-| `negative-feedback`、`approval-denied`、`context-pressure`、`model-instability` | 只用人工建構的事件測試過，從未在真實的工作階段中觸發 |
-| 自動化瀏覽器測試 | 沒有。UI 是在真實的 `dsh web` 頁面上手動走過一遍的，淺色與深色模式都看過 |
-| ACP 與 SDK profile | 那裡沒有 UI，也沒有驗證過 |
-| MiMo v2.6 系列以外的模型 | 還沒跑過。基準測試用的是 `mimo-v2.6-pro` 和 `mimo-v2.6-flash`；上面三個情境用的是 `mimo-v2.6-pro` |
-
-</details>
 
 ---
 
@@ -270,26 +187,17 @@ MIMO_API_KEY=... npm run test:live -- python --sessions 5 --off    # 對照組�
 
 **DSHRSI 真正做到的，是在沒有任何人提示的情況下改了自己。** 八輪執行下來，模型一共寫出 **56 個調適**；其中 15 個實際發揮過作用，而這當中又有 10 個已擴大到整台機器。針對這 10 個，我們逐一取出在它之後才開始的題目，拿來和原版 DSH 跑同樣這些題目的結果相比：
 
-| 模型寫出的調適 | 它針對的失敗 | 原版 DSH | DSH + DSHRSI | p |
-| :--- | :--- | ---: | ---: | ---: |
-| *Stop inline python checks that abort on first mismatch*（MBPP，`mimo-v2.6-pro`） | 測試一碰到第一個失敗的斷言就整個中止 | 310 題中的 16 題 | **310 題中的 3 題** | 0.002 |
-| *Redirect missing lib.rs reads to a glob lookup*（Polyglot，`mimo-v2.6-flash`） | 到一個不存在的路徑去讀 `lib.rs` | 151 題中的 7 題 | **151 題中的 1 題** | 0.07 |
-| 其餘 8 個 | | 量測不到變化 | | |
+| Harness 自己學會避開的失敗 | 原版 DSH | DSH + DSHRSI | p |
+| :--- | ---: | ---: | ---: |
+| 測試一碰到第一個失敗的斷言就整個中止（MBPP，`mimo-v2.6-pro`） | 310 題中的 16 題 | **310 題中的 3 題** | 0.002 |
+| 到一個不存在的路徑去讀檔案（Polyglot，`mimo-v2.6-flash`） | 151 題中的 7 題 | **151 題中的 1 題** | 0.07 |
+| 其餘 8 個調適 | 量測不到變化 | | |
 
-這兩個調適都沒有讓更多題目通過，而且裝上外掛後，agent 執行時間和輸入 token 大約多了 8–9%。十個調適全都列在 [`bench/README.md`](../../bench/README.md#did-those-adaptations-work)。
+這兩個調適都沒有讓更多題目通過，而且裝上外掛後，agent 執行時間和輸入 token 大約多了 8–9%。十個調適全都列在[基準測試說明](../../bench/README.md#did-those-adaptations-work)裡。
 
 **LiveCodeBench v6 沒能跑完：** 模型帳戶的餘額在半途用完了。就雙方當時都已完成的題目來看，`mimo-v2.6-pro` 是 105 題中原版 DSH 解出 94 題、DSHRSI 解出 96 題，`mimo-v2.6-flash` 則是 51 題中 42 對 42。基於同樣的原因，第二輪（帶著第一輪留下的調適庫，把同樣的題目再跑一次）也還沒有跑。
 
-在本機重現：
-
-```bash
-bench/setup.sh                                                        # 工具鏈、資料集、評分程式碼
-MIMO_API_KEY=... node bench/run.mjs polyglot --arm dsh --run dsh-p1   # 原版 DeepSeek Harness
-MIMO_API_KEY=... node bench/run.mjs polyglot --arm rsi --run rsi-p1   # 裝上外掛
-node bench/report.mjs --write                                         # 表格與 bench/results/*.json
-```
-
-評測方法、成本與失敗的統計表，以及各項限制，都寫在 [`bench/README.md`](../../bench/README.md)；每一題的結果則在 [`bench/results/`](../../bench/results)。
+評測方法、成本與失敗的統計表、各項限制，以及重現這一切所需的指令，都寫在[基準測試說明](../../bench/README.md)裡。
 
 ---
 
@@ -297,26 +205,7 @@ node bench/report.mjs --write                                         # 表格�
 
 ## 🛡️ 偵測器與能力
 
-**16 個偵測器**決定 Harness 什麼時候該改變。同一套偵測器既能跑在進行中的工作階段上，也能跑在存放在磁碟上的工作階段上（`dsh-rsi mine`）：
-
-| 偵測器 | 它發現什麼 | 回應 |
-| :--- | :--- | :---: |
-| `repeat-failing-call` | 同一個呼叫以同樣的引數再次失敗 | 調適 |
-| `failure-signature` | 同一個失敗原因一再出現：缺少指令、缺少相依套件、網路、權限、連接埠被占用、找不到路徑、編輯內容對不上、引數無效、記憶體不足 | 調適 |
-| `command-flailing` | 同一類指令換著引數連續失敗 | 調適 |
-| `read-thrash` | 同一個沒有變動的檔案被一讀再讀 | 調適 |
-| `edit-churn` | 同一個檔案在一個回合內被編輯了很多次 | 調適 |
-| `error-storm` | 最近的工具呼叫大多失敗 | 調適 |
-| `stall` | 連續失敗，中間沒有任何一次成功 | 調適 |
-| `timeout-recurrence` | 同一類指令一再逾時 | 調適 |
-| `output-flood` | 同一類指令一再產生過大的輸出 | 調適 |
-| `approval-denied` / `denied-repeat` | 使用者一再拒絕同一類操作，或是被拒絕的呼叫原封不動地重試 | 調適 |
-| `user-correction` | 使用者糾正了模型，或是中斷之後改了方向 | 調適 |
-| `premature-completion` | 程式碼改了，回合卻在沒跑任何檢查的情況下就要結束 | 調適 |
-| `negative-feedback` | 使用者把某則回覆標記為不佳，並寫下原因 | 調適 |
-| `user-interrupt` | 使用者在回合進行到一半時中斷 | 僅記錄 |
-| `model-instability` | 模型請求一再失敗、被重試，或撞上輸出上限 | 僅記錄 |
-| `context-pressure` | 上下文在任務進行到一半時被壓縮 | 僅記錄 |
+**16 個偵測器**決定 Harness 什麼時候該改變。[完整清單](../../packages/dsh-rsi/README.md#detectors)在外掛參考文件裡。
 
 **10 種能力**就是一個調適所能做的全部。它只能透過這些能力接觸到 Harness：
 
@@ -360,17 +249,9 @@ define({
 | :--- | :--- | :--- | :--- |
 | **`machine`** | 關於這台電腦的事實 | 沒有 `python`；某個連接埠被占用；某個內部主機名稱解析不了 | 先是學到它的那個工作區；等第二個工作區也碰上，就擴大到整台機器 |
 | **`user`** | 你希望被怎麼對待 | 把某則回覆標記為不佳，原因是「太長」 | 整台機器 |
-| **`project`** | 單一儲存庫的規矩與習慣 | 「這個儲存庫一律用 pnpm」 | 該工作區，以及透過 `.dsh-rsi/` 跟著走的儲存庫本身 |
+| **`project`** | 單一儲存庫的規矩與習慣 | 「這個儲存庫一律用 pnpm」 | 該工作區，以及儲存庫本身：規矩會跟著程式碼一起提交 |
 
 **專案層會跟著程式碼一起走：**
-
-```
-.dsh-rsi/
-  harness.json           格式標記與專案層級的設定
-  adaptations/
-    remember-the-user-s-instruction-3f2a1c.js     學到之後寫在這裡
-    no-force-push.js                              手寫的也是同樣的運作方式
-```
 
 - **提交就能共享，刪除就能拔掉。** 一個檔案就是一個調適。
 - **不會因為被 clone 下來就執行。** 每台機器都要用 `dsh-rsi trust` 接受這些檔案的確切內容，檔案一有變動就得重新接受。
@@ -387,7 +268,7 @@ define({
 - **強大的能力需要核准（`autonomy: tighten`）** — 會改寫結果、新增工具或執行指令的調適，會以 `proposed` 狀態存放，等候 `dsh-rsi approve <id>`。
 - **用不到時就隱形** — 沒有摩擦、也沒有掛載任何東西時，系統提示詞、工具清單和訊息逐位元組完全不變。有一項端對端測試守著這一點。
 - **失敗不外溢** — 拋出例外的處理常式，絕不會影響它所附掛的那次工具呼叫。累計三次錯誤後，該調適就會被隔離。
-- **一切留有紀錄** — 每個決定都記在 `audit.jsonl`，每一次摩擦、掛載和動作都記在 `ledger.jsonl`。`dsh-rsi disable`、`retire` 和 `rollback` 可以把一個調適撤下或退回。
+- **一切留有紀錄** — 每個決定、每一次摩擦、掛載和動作都會記錄下來。`dsh-rsi disable`、`retire` 和 `rollback` 可以把一個調適撤下或退回。
 - **三種模式** — `adapt` 直接掛載（預設），`propose` 產生後等你決定，`observe` 只記錄。
 
 ---
@@ -457,7 +338,6 @@ define({
 - [🛠️ `dsh-rsi` 命令列](../../packages/dsh-rsi/README.md#command-line) · [⚙️ 設定](../../packages/dsh-rsi/README.md#configuration)
 - [⚠️ 已知限制](../../packages/dsh-rsi/README.md#known-limits)
 - [📊 基準測試方法與結果](../../bench/README.md)
-- [🌐 網站原始碼](../../website) — 遞迴自我改進、運作原理、如何撰寫調適、評測；用瀏覽器開啟 `website/index.html` 即可
 - [🧱 DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) — 這個外掛所接入的 Harness
 
 <a id="contributing"></a>
@@ -471,23 +351,6 @@ npm install && npm test    # 130 個單元測試，接著 29 個端對端測試�
 ```
 
 端對端測試會把模型端點換成一個模擬的端點。其餘全都是真的：`dsh` 行程、工具執行、工作階段紀錄和外掛安裝。
-
-```
-packages/dsh-rsi/        外掛套件本體（純 ESM，沒有建置步驟）
-  index.js               宿主端：與 DSH 擴充點的繫結
-  client.js              瀏覽器端：RSI 徽章與狀態膠囊
-  src/engine.js          觀察 → 決策 → 產生 → 驗證 → 掛載 → 留存 → 共享
-  src/signals.js         16 個偵測器
-  src/validate.js        驗證關卡
-  src/sandbox.js         調適程式碼執行的地方
-  src/project.js         專案 Harness：<儲存庫>/.dsh-rsi
-  bin/rsi.js             dsh-rsi 指令
-market/index.json        可以加入 DSH 的外掛索引
-test/unit/  test/e2e/    單元測試，以及跑在真實 dsh 行程上的端對端測試
-test/live/               對真實模型執行（需要 MIMO_API_KEY）
-bench/                   基準測試：原版 DSH 對上 DSH + dsh-rsi
-website/                 網站（靜態頁面，沒有建置步驟）
-```
 
 ## 📄 授權條款
 
