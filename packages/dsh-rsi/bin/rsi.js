@@ -6,9 +6,16 @@
 //   dsh-rsi approve <id>            let a proposed adaptation mount
 //   dsh-rsi disable|enable <id>     switch an adaptation off or back on
 //   dsh-rsi retire <id>             remove it for good (the cause is not re-learned)
-//   dsh-rsi rollback <id>           restore the previous version of a revised adaptation
 //   dsh-rsi scope <id> global|<dir> change where it applies
 //   dsh-rsi log [-n 20]             decisions the system took
+//
+// Going back. All of it reaches running sessions before their next model request, and none of it deletes anything.
+//   dsh-rsi undo                    take back the last thing the harness put to work
+//   dsh-rsi rollback <id> [--to n]  one adaptation: the version before, or exactly version n
+//   dsh-rsi timeline [-n 20]        every change to what the harness runs, numbered
+//   dsh-rsi restore <generation>    the whole harness as it was at that number (0: before it learned anything)
+//   dsh-rsi off | on                the stock harness, and back; nothing is mounted or written while off
+//
 //   dsh-rsi mine <session.jsonl>    run the detectors over a stored session; --adapt proposes adaptations
 //
 //   dsh-rsi project [dir]           the project harness of a repository, and what this machine has accepted of it
@@ -48,6 +55,7 @@ function parse(argv) {
     else if (arg === '-o' || arg === '--out') options.out = argv[++index]
     else if (arg === '--layer') options.layer = argv[++index]
     else if (arg === '--scope') options.scope = argv[++index]
+    else if (arg === '--to') options.to = Number(argv[++index])
     else if (arg === '-n' || arg === '--tail') options.tail = Number(argv[++index])
     else if (arg === '-h' || arg === '--help') options.help = true
     else positional.push(arg)
@@ -68,10 +76,33 @@ function fail(message) {
   process.exitCode = 1
 }
 
+/** How long ago, in the largest unit that fits. */
+function ago(time) {
+  const seconds = Math.max(0, Math.round((Date.now() - time) / 1000))
+  if (seconds < 90) return `${seconds} s ago`
+  if (seconds < 5400) return `${Math.round(seconds / 60)} min ago`
+  if (seconds < 129600) return `${Math.round(seconds / 3600)} h ago`
+  return `${Math.round(seconds / 86400)} d ago`
+}
+
+/** One change of state in words: "v1 -> v2", "active -> disabled", "alpha -> global". */
+function stepText(before, after) {
+  if (!after) return ''
+  if (!before) return `v${after.version} ${after.status}`
+  const parts = []
+  if (before.version !== after.version) parts.push(`v${before.version} -> v${after.version}`)
+  if (before.status !== after.status) parts.push(`${before.status} -> ${after.status}`)
+  if (scopeLabel(before.scope) !== scopeLabel(after.scope)) parts.push(`${scopeLabel(before.scope)} -> ${scopeLabel(after.scope)}`)
+  return parts.join(', ')
+}
+
 function status(library, options) {
   const summary = summarize(library, DEFAULT_POLICY)
-  if (options.json) return process.stdout.write(`${JSON.stringify(summary, null, 2)}\n`)
-  const lines = [`library  ${library.home}`, `sessions ${summary.sessions}`, '']
+  const stock = library.stock()
+  if (options.json) return process.stdout.write(`${JSON.stringify({ ...summary, stock: stock ?? null, generation: library.timeline().length }, null, 2)}\n`)
+  const lines = [`library  ${library.home}`, `sessions ${summary.sessions}`]
+  if (stock) lines.push('', `OFF: the harness runs as stock since ${ago(stock.time)}${stock.reason ? ` (${stock.reason})` : ''}. Nothing below is mounted. "dsh-rsi on" ends this.`)
+  lines.push('')
   if (summary.adaptations.length === 0) lines.push('No adaptations yet.')
   else {
     lines.push(`${pad('ID', 20)} ${pad('STATUS', 11)} ${pad('V', 2)} ${pad('LAYER', 7)} ${pad('SCOPE', 14)} ${pad('FIRES', 5)} ${pad('FAULTS', 6)} ${pad('SECOND-HIT', 16)} ${pad('PER SESSION', 11)} TITLE`)
@@ -262,27 +293,100 @@ function show(library, id, options) {
   process.stdout.write(`${lines.join('\n')}\n`)
 }
 
-function change(library, action, id, extra) {
+function change(library, action, id, extra, options = {}) {
   const record = library.get(id)
   if (!record) return fail(`no adaptation ${id}`)
+  const meta = { by: 'user', change: action }
   let next
   try {
-    if (action === 'approve') next = library.approve(id)
-    else if (action === 'disable') next = library.setStatus(id, 'disabled', 'switched off by the user')
+    if (action === 'approve') next = library.approve(id, meta)
+    else if (action === 'disable') next = library.setStatus(id, 'disabled', 'switched off by the user', meta)
     else if (action === 'enable') {
       if (!['disabled', 'quarantined'].includes(record.status)) return fail(`adaptation ${id} is ${record.status}; only disabled or quarantined adaptations can be enabled`)
-      next = library.setStatus(id, 'candidate', 'switched on by the user')
-    } else if (action === 'retire') next = library.setStatus(id, 'retired', 'retired by the user')
-    else if (action === 'rollback') next = library.rollback(id)
-    else if (action === 'scope') {
+      next = library.setStatus(id, 'candidate', 'switched on by the user', meta)
+    } else if (action === 'retire') next = library.setStatus(id, 'retired', 'retired by the user', meta)
+    else if (action === 'rollback') {
+      if (options.to !== undefined && !Number.isInteger(options.to)) return fail('--to needs a version number')
+      next = library.rollback(id, options.to, meta)
+    } else if (action === 'scope') {
       if (!extra) return fail('scope needs "global" or a directory')
-      next = library.setScope(id, extra === 'global' ? { kind: 'global' } : { kind: 'workspace', cwd: path.resolve(extra) })
+      next = library.setScope(id, extra === 'global' ? { kind: 'global' } : { kind: 'workspace', cwd: path.resolve(extra) }, meta)
     }
   } catch (error) {
     return fail(error.message)
   }
-  library.audit({ type: 'user', action, adaptationId: id, from: record.status, to: next.status })
+  library.audit({ type: 'user', action, adaptationId: id, from: record.status, to: next.status, version: next.version })
+  if (options.json) return process.stdout.write(`${JSON.stringify(next, null, 2)}\n`)
   process.stdout.write(`${next.id}  ${next.status}  v${next.version}  ${next.title}\n`)
+  if (action === 'rollback' && !['candidate', 'active'].includes(next.status)) process.stdout.write(`It is ${next.status}, so it does not run; "dsh-rsi enable ${next.id}" switches it on.\n`)
+}
+
+/** Takes back the last thing the harness put to work. */
+function undo(library, options) {
+  let result
+  try {
+    result = library.undo({ by: 'user' })
+  } catch (error) {
+    return fail(error.message)
+  }
+  if (!result) {
+    if (options.json) return process.stdout.write('null\n')
+    return process.stdout.write('Nothing to undo: the harness has put nothing to work that is still in place.\n')
+  }
+  library.audit({ type: 'user', action: 'undo', adaptationId: result.record?.id, undoes: result.undoes })
+  if (options.json) return process.stdout.write(`${JSON.stringify(result, null, 2)}\n`)
+  if (result.restored) return process.stdout.write(`Undid generation ${result.undoes} (a restore): ${result.restored.changes.length} adaptation(s) are back as they were before it.\n`)
+  const { record } = result
+  const now = ['candidate', 'active'].includes(record.status) ? `v${record.version} ${record.status}  ${record.title}` : record.status
+  process.stdout.write(`Undid generation ${result.undoes} (${result.change}): ${result.title}\n${record.id}  now ${now}\nRunning sessions follow before their next model request. "dsh-rsi timeline" shows the steps.\n`)
+}
+
+/** Every change to what the harness runs, oldest first. */
+function timeline(library, options) {
+  const entries = library.timeline()
+  const shown = entries.slice(-options.tail)
+  if (options.json) return process.stdout.write(`${JSON.stringify(shown, null, 2)}\n`)
+  if (entries.length === 0) return process.stdout.write('The timeline is empty: the harness has not changed itself yet.\n')
+  const mounted = state => Object.values(state ?? {}).filter(([, held]) => ['candidate', 'active'].includes(held)).length
+  process.stdout.write(`${pad('GEN', 4)} ${pad('WHEN', 10)} ${pad('BY', 7)} ${pad('CHANGE', 14)} ${pad('AT WORK', 7)} WHAT\n`)
+  for (const entry of shown) {
+    const what = entry.change === 'restore' || (entry.change === 'undo' && entry.to !== undefined) ? `the whole harness as at generation ${entry.to} (${entry.changed} changed)`
+      : entry.change === 'off' ? 'stock harness: nothing mounted, nothing written'
+        : entry.change === 'on' ? 'adapting again'
+          : entry.change === 'baseline' ? 'what the library already held'
+            : `${entry.title ?? entry.adaptationId ?? ''}  ${stepText(entry.before, entry.after)}`.trim()
+    process.stdout.write(`${pad(entry.generation, 4)} ${pad(ago(entry.time), 10)} ${pad(entry.by ?? '', 7)} ${pad(entry.change, 14)} ${pad(mounted(entry.state), 7)} ${what}${entry.reason && !['restore', 'baseline'].includes(entry.change) ? `\n${' '.repeat(47)}${String(entry.reason).slice(0, 110)}` : ''}\n`)
+  }
+  process.stdout.write(`\n"dsh-rsi restore <GEN>" puts the whole harness back to how that line left it; "dsh-rsi restore 0" is before it learned anything.\n`)
+}
+
+/** The whole harness as it was at a generation. */
+function restore(library, target, options) {
+  const generation = Number(target)
+  if (target === undefined || !Number.isInteger(generation)) return fail('restore needs a generation number; "dsh-rsi timeline" lists them')
+  let result
+  try {
+    result = library.restore(generation, { by: 'user' })
+  } catch (error) {
+    return fail(error.message)
+  }
+  library.audit({ type: 'user', action: 'restore', to: generation, changed: result.changes.length })
+  if (options.json) return process.stdout.write(`${JSON.stringify(result, null, 2)}\n`)
+  if (result.changes.length === 0) return process.stdout.write(`The harness already is as it was at generation ${generation}.\n`)
+  process.stdout.write(`The harness is back as it was at generation ${generation}: ${result.changes.length} adaptation(s) changed.\n`)
+  for (const item of result.changes) process.stdout.write(`  ${pad(item.id, 20)} ${pad(stepText(item.before, item.after), 26)} ${item.title}\n`)
+  const shared = result.changes.filter(item => library.get(item.id)?.project && !library.get(item.id).project.detached).length
+  if (shared > 0) process.stdout.write(`${shared} adaptation(s) are also files of a project harness. Those files are the repository's: remove them there with "dsh-rsi project remove" or a revert.\n`)
+  process.stdout.write(`This was generation ${result.generation}; "dsh-rsi undo" takes it back.\n`)
+}
+
+/** The stock harness, and back. */
+function stockSwitch(library, off, reason, options) {
+  const changed = library.setStock(off, { by: 'user', reason: reason || undefined })
+  if (changed) library.audit({ type: 'user', action: off ? 'off' : 'on', reason: reason || undefined })
+  if (options.json) return process.stdout.write(`${JSON.stringify({ off, changed })}\n`)
+  if (off) process.stdout.write(`${changed ? 'The harness now runs as stock' : 'The harness already runs as stock'}: nothing is mounted and nothing is written, in running sessions from their next model request on.\nEverything it learned is kept. "dsh-rsi on" brings it back.\n`)
+  else process.stdout.write(`${changed ? 'Adapting again' : 'The harness was not off'}: ${library.list({ status: ['candidate', 'active'] }).length} adaptation(s) are at work.\n`)
 }
 
 function log(library, options) {
@@ -341,12 +445,22 @@ async function mine(library, file, options) {
 
 const { options, command, args } = parse(process.argv.slice(2))
 if (options.help) {
-  process.stdout.write(`${fs.readFileSync(new URL(import.meta.url), 'utf8').split('\n').slice(1, 23).map(line => line.replace(/^\/\/ ?/, '')).join('\n')}\n`)
+  const source = fs.readFileSync(new URL(import.meta.url), 'utf8').split('\n')
+  process.stdout.write(`${source.slice(1, source.indexOf('import fs from \'node:fs\'')).map(line => line.replace(/^\/\/ ?/, '')).join('\n')}\n`)
 } else {
-  const library = openLibrary(path.resolve(options.home ?? defaultHome()))
+  // Versions stored before each kept its own description get it from their source.
+  const describe = (text) => {
+    const inspected = inspectAdaptation(text)
+    return inspected.ok ? { title: inspected.meta.title, description: inspected.meta.description, capabilities: inspected.meta.capabilities, tier: inspected.tier } : undefined
+  }
+  const library = openLibrary(path.resolve(options.home ?? defaultHome()), { describe })
   if (command === 'status') status(library, options)
   else if (command === 'show') show(library, args[0], options)
-  else if (['approve', 'disable', 'enable', 'retire', 'rollback', 'scope'].includes(command)) change(library, command, args[0], args[1])
+  else if (['approve', 'disable', 'enable', 'retire', 'rollback', 'scope'].includes(command)) change(library, command, args[0], args[1], options)
+  else if (command === 'undo') undo(library, options)
+  else if (command === 'timeline' || command === 'history') timeline(library, options)
+  else if (command === 'restore') restore(library, args[0], options)
+  else if (command === 'off' || command === 'on') stockSwitch(library, command === 'off', args.join(' '), options)
   else if (command === 'log') log(library, options)
   else if (command === 'mine') await mine(library, args[0], options)
   else if (command === 'project') project(library, args, options)
