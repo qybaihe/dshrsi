@@ -99,9 +99,9 @@ Over the three suites that ran to the end, the plugin arm took 9.3% more agent t
 | :--- | :--- |
 | **Stock** (`--arm dsh`) | `@deepseek-ai/dsh` 0.2.2-rc.3, `headless` profile |
 | **With the plugin** (`--arm rsi`) | The same, plus `dsh-rsi` at its default settings |
-| **Model** | The same model for both arms, set with `MIMO_MODEL` (`mimo-v2.6-pro` by default) |
+| **Model** | The same model for both arms, set with `MIMO_MODEL` (`mimo-v2.6-pro` by default), or any OpenAI-compatible endpoint with `BENCH_BASE_URL`, `BENCH_MODEL` and `BENCH_API_KEY` |
 | **Prompts** | The same, word for word |
-| **Sandbox** | DSH's `workspace-write`: writes only inside the task's workspace and one shared build-cache directory; no approval is ever asked for |
+| **Sandbox** | DSH's `workspace-write`: writes only inside the task's workspace and one shared build-cache directory; no approval is ever asked for. SWE-bench sessions are [sealed](#sealed-sessions) on top of that |
 | **Toolchains, task order** | The same; the order is a fixed shuffle (seed `20261113`) |
 
 All sessions of one run share one harness home. In the `rsi` arm this means that what one session learns is there for every session that starts after it. Sessions of a run overlap (8 to 12 at a time), so a session only benefits from what was learned before it started.
@@ -140,16 +140,73 @@ node bench/trace.mjs --write                     # one adaptation's story out of
 node scripts/hero/render.mjs                     # the README's animation and picture, drawn from that data
 ```
 
+Another model endpoint (any that speaks the OpenAI chat-completions protocol) is named by three variables, which take the place of the `MIMO_*` ones; `BENCH_PROVIDER` optionally gives it a display name. The key is read from the environment by the harness and is never written to a file.
+
+```bash
+export BENCH_BASE_URL=https://api.example.com/v1 BENCH_MODEL=some-model BENCH_API_KEY=...
+```
+
+### SWE-bench Verified
+
+```bash
+node bench/lib/swebench.mjs repos                # optional: all 12 repositories' object stores ahead of the run
+node bench/lib/swebench.mjs seal                 # what a session can and cannot do, tried in a session's sandbox
+node bench/run.mjs swebench --arm dsh --run dsh-p1 --concurrency 4
+node bench/run.mjs swebench --arm rsi --run rsi-p1 --concurrency 4
+node bench/run.mjs swebench --arm rsi --run rsi-mini --subset mini     # the 50 instances of swe-bench-verified-mini
+node bench/lib/swebench.mjs check dsh-p1         # every patch against a fresh checkout: git apply --check
+node bench/lib/swebench.mjs audit dsh-p1         # every session log, for attempts to reach outside
+```
+
+Each of the [500 instances](https://huggingface.co/datasets/princeton-nlp/SWE-bench_Verified) is one turn in a checkout of its repository at the commit the issue was reported against. The agent gets the issue text, one sentence asking it to resolve the issue in the source and not in the tests, and a note about the machine. It never gets the reference patch, the hints, the test patch or the names of the tests; those are in `~/.cache/dshrsi-bench/swebench/evaluation.jsonl`, which no session can read.
+
+What the agent changed is collected as a unified diff against that commit (edits, deletions and new files; not what `.gitignore` names, and not virtual environments, caches or new files over 1 MB) and written to the result row and to `<run>/predictions.jsonl`, one `{instance_id, model_name_or_path, model_patch}` line per task. **Nothing is scored here.** SWE-bench's evaluation runs each project's tests in one container per instance and takes that file as it is.
+
+#### Sealed sessions
+
+The fix of every instance is public. In the first trials of this suite, 7 of 12 sessions went and got it (`audit smoke-dsh` lists the calls). A session of this suite therefore cannot leave its own directory, in either arm:
+
+| | A session of this suite |
+| :--- | :--- |
+| **Network** | None. The `dsh` process reaches the model relay on loopback and nothing else. Its commands reach a package index on loopback and nothing else: not the relay, not another loopback port, no name lookup. The harness's web tools are switched off |
+| **Packages** | The index ([`lib/pypi-index.mjs`](lib/pypi-index.mjs)) passes PyPI through and refuses the project under test, under every name it is published or bundled as (`scikit-learn` and `sklearn`; for `requests` also `pip`, which carries a copy). The names are in a signed prefix of the session's index URL, so a session cannot make itself a prefix that refuses less |
+| **Files** | It reads the operating system, its checkout, its own temporary directory, and the interpreters it is given. Not the home directory, not another session's checkout or log, not Homebrew, not `/tmp`. This holds for its commands, and for the harness's own `read`, `glob` and `grep` with one addition: the `dsh` process has to read its own code, wherever that is installed (see [Known limits](#known-limits)) |
+| **Git** | A checkout is a repository of its own: one pack with the history up to its commit and the files of that commit. No remote, no objects borrowed from the shared store, nothing later than its commit. Asking for an older version of a file (`git log -p`, `git blame`, `git show <commit>`) ends at once with "unable to read": those were never downloaded |
+| **Paths** | Everything it sees is under `/Users/Shared/dshrsi-bench` (`DSHRSI_BENCH_SEALED_ROOT`), in directories named by digests. The account's name, the instance id (which ends in the number of the pull request that fixed the issue) and the run's name are in no path, variable or command output |
+| **Model key** | In no variable a command sees, and commands cannot look at other processes |
+| **Environment** | Python 3.9 to 3.12 with pip, and `uv`; no other package. The prompt says so, and says what is closed, in the same words in both arms (`environmentNote` in [`lib/swebench.mjs`](lib/swebench.mjs)) |
+| **State** | Checkout, virtual environments, package caches and temporary files belong to one session and are removed with it. Nothing an arm installs is there for the other, or for the next session of the same arm. A session may hold 3 GB (`BENCH_SESSION_GB`) |
+
+It is enforced by macOS's sandbox, in two layers ([`lib/sealed.mjs`](lib/sealed.mjs)). The `dsh` process starts inside one profile; that covers its tools and whatever a plugin does in the process. Each command the session runs is started by a broker in the runner under a second, stricter profile: sandbox profiles cannot be nested, so the harness's sandbox runner is a small client that hands the command over. `node bench/lib/swebench.mjs seal [instance id]` tries all of the above in a session made the way the runner makes it, and with a model key set also runs one real turn.
+
+`node bench/lib/swebench.mjs audit <run>` reads every session log of a run and lists, per instance, each call that reached or tried to reach outside: URLs, network commands, git remotes, the project under test from the index (also from the index's own log), paths under a home directory, searches of the disk, requests for history the checkout does not hold. Each entry says how the call ended: `refused` when the sandbox, git or the index said no, otherwise the call's own exit status. It reads what the agent asked for and is broad on purpose; an entry is something to read, not a verdict.
+
+The rest of the harness is the same in both arms and in the other suites. The four other suites are not sealed and run as they did when their numbers were made.
+
+#### Endpoint, outages and disk
+
+The model endpoint has to be a loopback relay, because one loopback port is all a sealed `dsh` process may connect to. With a provider whose name the network resolves wrongly, that relay is [`lib/relay.mjs`](lib/relay.mjs); `--keep-alive` starts it again whenever it exits:
+
+```bash
+nohup node bench/lib/relay.mjs --keep-alive https://api.example.com 203.0.113.7,203.0.113.8 8791 > ~/.cache/dshrsi-bench/logs/relay.log 2>&1 &
+export BENCH_BASE_URL=http://127.0.0.1:8791/v1 BENCH_MODEL=some-model BENCH_API_KEY=...
+```
+
+When the endpoint stops answering, the run waits and asks it for one token, at most once a minute, until it answers again. Tasks whose sessions were cut short start over from a fresh checkout and lose no attempt. The package index is started by the first run that needs it and keeps running (`pkill -f bench/lib/pypi-index.mjs` stops it); it keeps at most 1 GB of downloaded files (`BENCH_INDEX_CACHE_GB`).
+
+A run's results are in `/Users/Shared/dshrsi-bench/runs/swebench/<run>/`; its sessions work in `/Users/Shared/dshrsi-bench/w/<digest>/`, which is empty when the run is not running. No new checkout is started while less than 4.5 GB is free on the disk, and a session's commands are refused under 3 GB (`BENCH_MIN_FREE_GB`); a task that happened to is not an answer and runs again when the run is resumed. A session with a virtual environment holds 0.2 to 1 GB, so the concurrency of the two arms together should stay under the free space in GB minus 4.
+
 A run is resumable: finished tasks are skipped. A session the provider refuses (no balance, no valid key, too many requests) is not an answer; after eight refusals in a row the run stops, and `node bench/void.mjs <benchmark> <run>` takes back tasks that were recorded before that rule existed.
 
-Everything a run produces is under `~/.cache/dshrsi-bench/runs/<benchmark>/<run>/` (`DSHRSI_BENCH_HOME` moves it): the harness home with every session log, the workspaces, `results.jsonl`, and for the `rsi` arm the adaptation library with its ledger and audit log.
+Everything a run produces is under `~/.cache/dshrsi-bench/runs/<benchmark>/<run>/` (`DSHRSI_BENCH_HOME` moves it; SWE-bench runs are under `/Users/Shared/dshrsi-bench/runs/` instead): the harness home with every session log, the workspaces, `results.jsonl`, and for the `rsi` arm the adaptation library with its ledger and audit log.
 
 ## Known limits
 
 - **One run per configuration.** No second sample of the same configuration exists yet, so the run-to-run spread is not measured; the paired tests are the guard against reading noise as an effect.
 - **LiveCodeBench is partial and the second pass is missing**, as described above.
 - **One machine** (macOS, Apple silicon, 16 GB) **and one model family.**
-- **Sessions are not cut off from the network.** The sandbox confines writes, not downloads.
-- **The shared build-cache directory is writable by every session**, and some sessions use it as scratch space.
+- **The four suites above are not sealed.** Their sandbox confines writes, not downloads or reads: a session can use the network, read every file of the user, and write into one build-cache directory all sessions share. An agent that lacks a dependency searches the disk for it, the home directory included, and uses what it finds. For tasks whose answer is not public this decides little; for SWE-bench it decided everything, which is why those sessions are [sealed](#sealed-sessions).
+- **What the seal of SWE-bench sessions leaves open.** A package on PyPI that carries a copy of a project under another name than the ones refused is served; the audit lists every project a session asked the index for. The `dsh` process reads its own code, which is installed in this repository and so under a home directory: its file tools could read that code, the plugin's, and the harness home of their run (not other sessions' logs) if a session knew those paths. No session is shown them and none can list the directories above them; a call that names any path under `/Users` outside the session is in the audit, as `home-directory` or `outside-session`. The plugin's adaptations run inside the `dsh` process, so they are held by that process's profile and not by the stricter one of commands. The seal is macOS's sandbox; it has not been tried on another system.
+- **SWE-bench sessions do not get the benchmark's own environments.** Each instance's container has the interpreter and the dependencies its project needed at the time. Here a session gets Python 3.9 to 3.12 and an index, and builds what it can; old projects do not install on these interpreters without effort, and a server on a loopback port cannot be started. Patches are still scored by SWE-bench's evaluation in its containers.
 - **Toolchain versions are the current Homebrew ones**, not those of the benchmarks' own containers. Every Polyglot reference solution passes with them.
-- **Benchmarks that need a container per task (SWE-bench, Terminal-Bench) were not run:** the machine does not have the disk for their images. Their tasks work repeatedly inside one large repository or one environment, which is where a harness that learns its surroundings is most likely to differ.
+- **SWE-bench has not been run in full, and nothing here scores it.** Three instances were run in both arms to try the seal. Terminal-Bench, which needs a container per task, was not run: the machine does not have the disk for the images.
