@@ -43,6 +43,21 @@ test('request: a revision shows the installed script; a repair shows the rejecte
   assert.match(repair.user, /- define\(\) needs setup\(h\)/)
 })
 
+test('request: an adaptation that was taken back is shown with the harm it did, and is not written or installed again', async () => {
+  const { finding, history } = missingCommand()
+  const request = buildRequest({ finding, withdrawn: { source: GOOD, reason: 'refused a call that works: frobnicate --version' } })
+  assert.match(request.user, /was taken back because it did harm: refused a call that works: frobnicate --version\. Its source:/)
+  assert.ok(request.user.includes(GOOD))
+  assert.match(request.user, /Do not write that again/)
+
+  // A template writes the same script every time: the one that did harm is not what the fallback installs.
+  const template = synthesize(finding)
+  const again = await generateAdaptation({ finding, history, strategy: 'synth', withdrawn: { source: template, reason: 'refused a call that works' } })
+  assert.equal(again.ok, false)
+  assert.deepEqual(again.attempts.at(-1).problems, ['the template for this friction was already taken back for doing harm'])
+  assert.equal((await generateAdaptation({ finding, history, strategy: 'synth', withdrawn: { source: GOOD, reason: 'x' } })).ok, true)
+})
+
 test('extractSource: fenced or bare scripts, and replies with no script', () => {
   assert.equal(extractSource(fenced(GOOD)), `${GOOD}\n`)
   assert.equal(extractSource(`\`\`\`js\n${GOOD}\n\`\`\``), `${GOOD}\n`)

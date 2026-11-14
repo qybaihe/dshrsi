@@ -38,7 +38,7 @@ function formatRecent(history) {
 }
 
 /** Builds the generator request for one finding. */
-export function buildRequest({ finding, env, previous, attempts, history }) {
+export function buildRequest({ finding, env, previous, withdrawn, attempts, history }) {
   const parts = [
     `Finding: ${finding.summary}`,
     `Kind: ${finding.kind}`,
@@ -53,6 +53,10 @@ export function buildRequest({ finding, env, previous, attempts, history }) {
   if (previous) {
     parts.push('', `An earlier adaptation for this finding is installed, and the trouble came back ${previous.recurrences} more time(s). Its source:`,
       '```javascript', previous.source.trim(), '```', 'Write a replacement that actually stops it. Enforce at the tool boundary where the earlier one only advised.')
+  }
+  if (withdrawn) {
+    parts.push('', `An earlier adaptation for this finding was taken back because it did harm: ${withdrawn.reason}. Its source:`,
+      '```javascript', withdrawn.source.trim(), '```', 'Do not write that again. Whatever it wrongly stopped must be left alone by yours.')
   }
   for (const attempt of attempts ?? []) {
     parts.push('', 'Your previous attempt was rejected by the validation gate:', '```javascript', attempt.source.trim(), '```',
@@ -77,6 +81,7 @@ export function extractSource(reply) {
  * @param {'model' | 'synth' | 'model-then-synth'} [input.strategy]
  * @param {number} [input.maxRepairs]
  * @param {object} [input.previous] `{ source, recurrences }` when revising an installed adaptation.
+ * @param {object} [input.withdrawn] `{ source, reason }` of an adaptation for this finding that was taken back for doing harm.
  * @param {'tighten' | 'full'} [input.autonomy]
  * @param {object} [input.env]
  * @param {object} [input.limits]
@@ -87,6 +92,7 @@ export async function generateAdaptation(input) {
   const maxRepairs = input.maxRepairs ?? 2
   const attempts = []
   const same = source => input.previous !== undefined && source.trim() === input.previous.source.trim()
+  const harmful = source => input.withdrawn !== undefined && source.trim() === input.withdrawn.source.trim()
   const validate = source => validateAdaptation({
     source, finding: input.finding, history: input.history, autonomy: input.autonomy, env: input.env, limits: input.limits,
   })
@@ -96,7 +102,7 @@ export async function generateAdaptation(input) {
     for (let round = 0; round <= maxRepairs; round += 1) {
       let reply
       try {
-        reply = await input.complete(buildRequest({ finding: input.finding, env: input.env, previous: input.previous, attempts: rejected.slice(-1), history: input.history }))
+        reply = await input.complete(buildRequest({ finding: input.finding, env: input.env, previous: input.previous, withdrawn: input.withdrawn, attempts: rejected.slice(-1), history: input.history }))
       } catch (error) {
         attempts.push({ generator: 'model', round, ok: false, problems: [`model request failed: ${error?.message ?? error}`] })
         break
@@ -114,6 +120,12 @@ export async function generateAdaptation(input) {
         rejected.push({ source, problems })
         continue
       }
+      if (harmful(source)) {
+        const problems = ['this is the script that was taken back for doing harm; write a different one']
+        attempts.push({ generator: 'model', round, ok: false, problems })
+        rejected.push({ source, problems })
+        continue
+      }
       const validation = await validate(source)
       attempts.push({ generator: 'model', round, ok: validation.ok, problems: validation.problems, failedAt: validation.report.failedAt })
       if (validation.ok) return { ok: true, source, validation, generator: 'model', attempts }
@@ -123,7 +135,10 @@ export async function generateAdaptation(input) {
 
   if (strategy !== 'model') {
     const source = synthesize(input.finding, { stricter: input.previous !== undefined })
-    if (source === undefined || same(source)) {
+    if (source !== undefined && harmful(source)) {
+      // A template writes the same script every time; the one that did harm is not installed twice.
+      attempts.push({ generator: 'synth', ok: false, problems: ['the template for this friction was already taken back for doing harm'] })
+    } else if (source === undefined || same(source)) {
       attempts.push({ generator: 'synth', ok: false, problems: [input.previous ? `no stricter template for friction kind "${input.finding.kind}"` : `no template for friction kind "${input.finding.kind}"`] })
     } else {
       const validation = await validate(source)
