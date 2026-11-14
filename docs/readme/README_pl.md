@@ -320,6 +320,12 @@ DSHRSI jest dostarczany jako zwykła wtyczka zewnętrzna z metadanymi, które cz
 </details>
 
 <details>
+<summary><strong>A co, jeśli ulepszenie okaże się błędne?</strong></summary>
+
+Zawsze da się je cofnąć: kodu samego harnessu nigdy się nie rusza, a żadnej wersji adaptacji nigdy się nie usuwa. Harness sam się wycofuje, gdy adaptacja raz za razem zawodzi albo gdy okazuje się, że wywołanie, które odrzuciła, jednak działa. Ty też możesz to zrobić: `/rsi undo` cofa ostatnią zmianę, `dsh-rsi restore` przywraca cały harness do wcześniejszego punktu, a `/rsi off` uruchamia czysty harness. Wszystko to zaczyna działać w sesji, która już trwa. [Jak działa cofanie](../../packages/dsh-rsi/README.md#going-back).
+</details>
+
+<details>
 <summary><strong>Jak zobaczyć, cofnąć albo wyłączyć to, czego się nauczył?</strong></summary>
 
 `/rsi` w sesji albo `dsh-rsi status` w terminalu. `dsh-rsi show <id>` wypisuje kod źródłowy adaptacji i raport z walidacji; `disable`, `retire` i `rollback` wycofują ją albo przywracają poprzednią wersję. Ustaw `mode: observe`, żeby zapisywać bez zmieniania czegokolwiek.
