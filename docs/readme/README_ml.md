@@ -320,6 +320,12 @@ Plugin pages വായിക്കുന്ന metadata സഹിതമുള്
 </details>
 
 <details>
+<summary><strong>ഒരു മെച്ചപ്പെടുത്തൽ തെറ്റാണെന്നു വന്നാലോ?</strong></summary>
+
+അത് എപ്പോഴും തിരിച്ചെടുക്കാം: harness-ന്റെ സ്വന്തം കോഡ് ഒരിക്കലും തൊടില്ല, ഒരു adaptation-ന്റെയും ഒരു version-ഉം ഒരിക്കലും delete ചെയ്യുകയുമില്ല. ഒരു adaptation വീണ്ടും വീണ്ടും പരാജയപ്പെടുമ്പോഴോ, അത് നിരസിച്ച ഒരു call പ്രവർത്തിക്കുമെന്നു തെളിയുമ്പോഴോ harness സ്വയം പിന്മാറും. നിങ്ങൾക്കും ഇത് ചെയ്യാം: `/rsi undo` അവസാനത്തെ മാറ്റം തിരിച്ചെടുക്കും, `dsh-rsi restore` മുഴുവൻ harness-നെയും മുമ്പത്തെ ഒരു ഘട്ടത്തിലേക്ക് മടക്കും, `/rsi off` stock harness ഓടിക്കും. ഇതെല്ലാം ഇതിനകം ഓടിക്കൊണ്ടിരിക്കുന്ന session-ൽ തന്നെ പ്രാബല്യത്തിൽ വരും. [പിന്നോട്ടു പോകുന്നത് എങ്ങനെ പ്രവർത്തിക്കുന്നു](../../packages/dsh-rsi/README.md#going-back).
+</details>
+
+<details>
 <summary><strong>അത് പഠിച്ചത് എങ്ങനെ കാണാം, undo ചെയ്യാം, അല്ലെങ്കിൽ off ചെയ്യാം?</strong></summary>
 
 Session-ൽ `/rsi`, അല്ലെങ്കിൽ terminal-ൽ `dsh-rsi status`. `dsh-rsi show <id>` ഒരു adaptation-ന്റെ source-ഉം validation report-ഉം print ചെയ്യും; `disable`, `retire`, `rollback` എന്നിവ അതിനെ പുറത്താക്കുകയോ പഴയ നിലയിലേക്ക് മടക്കുകയോ ചെയ്യും. ഒന്നും മാറ്റാതെ രേഖപ്പെടുത്തുക മാത്രം ചെയ്യാൻ `mode: observe` set ചെയ്യുക.
