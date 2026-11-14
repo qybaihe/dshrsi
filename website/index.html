@@ -150,14 +150,14 @@
       </div>
       <div class="card">
         <h3><span lang="zh">通过命令行</span><span lang="en">From the command line</span></h3>
-        <p><span lang="zh">每个 profile 有自己的一套插件。<code>dsh plugin add</code> 会调用 <code>pnpm</code>，它需要在 <code>PATH</code> 上。</span><span lang="en">Each profile keeps its own plugins. <code>dsh plugin add</code> calls <code>pnpm</code>, which has to be on <code>PATH</code>.</span></p>
+        <p><span lang="zh">一条命令装好，再打开界面。</span><span lang="en">One command to install, one to open the UI.</span></p>
 <pre><code>dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
 dsh web</code></pre>
       </div>
     </div>
     <div class="callout warn" style="margin-top:32px">
-      <span lang="zh"><strong>开发者预览。</strong>DSHRSI 针对 DeepSeek Harness <code>0.2.2-rc.3</code> 开发，后者本身是预览版，未来会有破坏兼容性的变更。适配是模型写的代码，它的隔离防的是写错，防不了恶意代码。</span>
-      <span lang="en"><strong>Developer preview.</strong> DSHRSI is built against DeepSeek Harness <code>0.2.2-rc.3</code>, itself a preview, and breaking changes will come. An adaptation is code written by a model; its isolation guards against mistakes, not against malicious code.</span>
+      <span lang="zh"><strong>开发者预览。</strong>适配是模型写的代码，它的隔离防的是写错，防不了恶意代码。DeepSeek Harness 本身也是预览版，之后的版本可能不兼容。</span>
+      <span lang="en"><strong>Developer preview.</strong> An adaptation is code written by a model; its isolation guards against mistakes, not against malicious code. DeepSeek Harness is itself a preview, and later versions may break compatibility.</span>
     </div>
   </div>
 </section>
@@ -171,7 +171,7 @@ dsh web</code></pre>
       <a class="card" href="rsi.html"><div class="num">01</div><h3><span lang="zh">递归自我改进</span><span lang="en">Recursive self-improvement</span></h3><p><span lang="zh">这个词在这里具体指什么，边界在哪。</span><span lang="en">What the term means here, and where it stops.</span></p><span class="go">→</span></a>
       <a class="card" href="tech.html"><div class="num">02</div><h3><span lang="zh">技术路线</span><span lang="en">How it works</span></h3><p><span lang="zh">从会话事件到挂载的代码，每一步怎么做。</span><span lang="en">From session events to mounted code, step by step.</span></p><span class="go">→</span></a>
       <a class="card" href="guide.html"><div class="num">03</div><h3><span lang="zh">怎么写</span><span lang="en">Writing adaptations</span></h3><p><span lang="zh">亲手写一个适配，放进仓库，让全组用上。</span><span lang="en">Write an adaptation by hand, put it in the repository, share it with the team.</span></p><span class="go">→</span></a>
-      <a class="card" href="bench.html"><div class="num">04</div><h3><span lang="zh">评测</span><span lang="en">Evaluation</span></h3><p><span lang="zh">四个基准，原版 DSH 逐题对照，结果和局限都在。</span><span lang="en">Four benchmarks, task by task against stock DSH, results and limits included.</span></p><span class="go">→</span></a>
+      <a class="card" href="bench.html"><div class="num">04</div><h3><span lang="zh">评测</span><span lang="en">Evaluation</span></h3><p><span lang="zh">四个基准，和原版逐题对照，结果和局限都在。</span><span lang="en">Four benchmarks, task by task against the stock harness, results and limits included.</span></p><span class="go">→</span></a>
     </div>
   </div>
 </section>
