@@ -4,11 +4,11 @@
 
 [English](README.md) · **简体中文**
 
-`dsh-rsi` 是一个 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（DSH）插件包，Harness 通过它改造自己。
+`dsh-rsi` 把 **RSI**（Recursive Self-Improvement，**递归自我改进**）带到 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（DSH）上：一个插件包，Harness 通过它从自己的运行里改进自己，每一次改进又是下一次改进的起点。
 
 装上之后，Harness 会盯着每一次运行：哪里反复出错、哪里被用户纠正、哪里没验证就收工。发现之后，它让会话里的模型**当场写一段 Harness 代码**（我们叫它“适配”），过一道校验关，然后在**同一轮任务还没结束时**挂进运行中的会话。有效的适配沉淀到本机的适配库里，下一次会话一开始就带着。
 
-用得越久，这份 Harness 越贴合这台机器、这个人和这个项目：机器上缺什么命令、项目里的规矩是什么、你纠正过它什么，都变成 Harness 自身的一部分，而不是一段每次都要重新读的提示词。项目里学到的规矩还可以写进仓库，跟着代码走到每个人的机器上。
+递归就在这里：改进过的 Harness 去跑下一个会话，带着已经学到的东西继续观察，然后再改进。没管住的适配会被改写得更严，管用的转正，同一个麻烦在第二个工作目录里又出现的，扩大到整台机器。用得越久，这份 Harness 越贴合这台机器、这个人和这个项目：机器上缺什么命令、项目里的规矩是什么、你纠正过它什么，都变成 Harness 自身的一部分，而不是一段每次都要重新读的提示词。项目里学到的规矩还可以写进仓库，跟着代码走到每个人的机器上。
 
 它本身就是一个普通插件，不改 DSH 一行源码。
 
@@ -85,12 +85,12 @@ dsh --profile headless --patch rsi.yml "run the tests"
 Web 界面（桌面 App 用的是同一套页面）里有三处：
 
 - 会话标题栏右侧的 **RSI** 徽标：本会话里有几个适配在生效。
-- 输入框下方的 **Harness adapted to you** 状态条：几个在生效、几个是本会话学到的、拦下了几次调用。点开是列表，每个适配写着它做了什么。Harness 改写自己的那一刻，徽标和状态条会亮起来，显示 “The harness just rewrote itself · <适配标题>”。
+- 输入框下方的 **Harness adapted to you** 状态条：几个在生效、几个是本会话学到的、拦下了几次调用。点开是列表，每个适配写着它做了什么。Harness 改进自己的那一刻，徽标和状态条会亮起来，显示 “The harness just improved itself · <适配标题>”。
 - 斜杠命令 **/rsi**：本会话挂载了哪些适配、各属于哪一层、适配库里有什么在等批准。
 
 没有适配在生效时，这三处在页面上都不出现。界面只读会话日志里已有的东西（Harness 的通知、被拦下的工具结果、系统提示词里的适配段），不额外写日志。
 
-![Harness 改写自己的那一刻](../../assets/ui-evolving.png)
+![Harness 改进自己的那一刻](../../assets/ui-evolving.png)
 
 <a id="detectors"></a>
 

@@ -374,6 +374,29 @@ test('a cause met in a second workspace widens the adaptation instead of learnin
   assert.equal(drive(engine, { sessionId: 's3', cwd: '/work/gamma' }, missingCommandWorld()).session.mounted().length, 1)
 })
 
+test('a cause another process answered while this session ran is taken from the library, not written again', async (t) => {
+  // Two engines on one library: two harness processes running at the same time.
+  const lib = tempLibrary()
+  t.after(lib.cleanup)
+  const first = createEngine({ library: lib.library, options: { generator: 'synth' }, host: fakeHost() })
+  const second = createEngine({ library: lib.library, options: { generator: 'synth' }, host: fakeHost() })
+  const elsewhere = drive(second, { sessionId: 's2', cwd: B }, missingCommandWorld())
+  const sameFolder = drive(second, { sessionId: 's3', cwd: A }, missingCommandWorld())
+  // Both sessions of the second process are open before the first process learns anything.
+  await hitMissingCommand(drive(first, { sessionId: 's1', cwd: A }, missingCommandWorld()))
+  assert.equal(lib.library.list().length, 1)
+
+  const notes = await hitMissingCommand(sameFolder)
+  assert.match(notes[0], /not installed on this machine/)
+  assert.equal(lib.library.list().length, 1, 'the stored adaptation is mounted')
+  assert.equal(lib.library.auditTrail().filter(entry => entry.type === 'generation').length, 1)
+
+  await hitMissingCommand(elsewhere)
+  assert.equal(lib.library.list().length, 1, 'met in a second workspace: widened, not written twice')
+  assert.deepEqual(lib.library.list()[0].scope, { kind: 'global' })
+  assert.equal(lib.library.auditTrail().filter(entry => entry.type === 'generation').length, 1)
+})
+
 test('a turn that ends on unverified edits is kept open, once, by a verifier written on the spot', async (t) => {
   const { library, engine, cleanup } = setup()
   t.after(cleanup)

@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>DSHRSI trace, frame by frame</title>
+<!-- The animation at the top of the README. scripts/hero/render.mjs opens this page, asks for one frame after
+     another and turns the screenshots into a GIF. Every name, time and count on it comes from
+     website/assets/trace-data.js, which bench/trace.mjs lifts out of the raw logs of the benchmark run. -->
+<style>
+  :root { --bg: #0d1117; --panel: #161b22; --line: #30363d; --text: #f0f6fc; --dim: #9198a1; --bad: #ff7b72; --good: #3fb950; --brand: #7b93ff; --warm: #f0883e; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); }
+  body { width: 1280px; height: 720px; overflow: hidden; color: var(--text); font: 30px/1.3 "SF Pro Display", -apple-system, "Helvetica Neue", "PingFang SC", sans-serif; -webkit-font-smoothing: antialiased; }
+  .mono { font-family: "SF Mono", Menlo, Monaco, "PingFang SC", monospace; }
+  .bar { display: flex; align-items: center; gap: 16px; height: 68px; padding: 0 44px; border-bottom: 2px solid var(--line); font-size: 23px; color: var(--dim); }
+  .bar .mark { display: inline-flex; align-items: center; gap: 12px; color: var(--text); font-weight: 700; font-size: 27px; letter-spacing: .02em; }
+  .bar .mark i { width: 18px; height: 18px; border-radius: 50%; background: var(--brand); }
+  .bar .grow { flex: 1; }
+  .bar .tag { padding: 5px 16px; border-radius: 100px; border: 2px solid var(--line); color: var(--text); font-weight: 600; font-size: 21px; letter-spacing: .04em; }
+  .bar .tag.on { border-color: var(--brand); color: var(--brand); }
+  .scene { position: absolute; inset: 68px 0 0; padding: 30px 44px 0; }
+  h1 { margin: 0 0 22px; font-size: 46px; line-height: 1.15; font-weight: 700; letter-spacing: -.01em; }
+  h1 b { color: var(--brand); font-weight: 700; }
+  .rows { display: grid; gap: 6px; }
+  .row { display: grid; grid-template-columns: 118px 330px 1fr; align-items: baseline; font-size: 30px; line-height: 44px; white-space: nowrap; }
+  .row .t { color: var(--dim); }
+  .row .bad { color: var(--bad); } .row .good { color: var(--good); }
+  .row.more { color: var(--dim); }
+  .foot { position: absolute; left: 44px; right: 44px; bottom: 34px; font-size: 34px; line-height: 1.25; font-weight: 600; }
+  .foot .bad { color: var(--bad); } .foot .good { color: var(--good); } .foot b { color: var(--brand); }
+  .box { margin: 14px 0 12px; padding: 16px 24px; border: 2px solid var(--brand); border-radius: 18px; background: #10162b; display: grid; gap: 4px; }
+  .box .l { display: flex; align-items: baseline; gap: 18px; font-size: 29px; line-height: 44px; white-space: nowrap; }
+  .box .l .k { color: var(--brand); font-weight: 700; min-width: 40px; }
+  .box .bad { color: var(--bad); } .box .good { color: var(--good); } .box .dim { color: var(--dim); }
+  .box .stage { margin-right: 14px; }
+  .strip { display: grid; grid-template-columns: 150px 1fr 150px; align-items: center; margin-top: 30px; font-size: 30px; }
+  .strip .who { font-weight: 700; }
+  .strip .cells { display: flex; gap: 7px; }
+  .strip .cells i { width: 32px; height: 60px; border-radius: 8px; background: #21262d; }
+  .strip .cells i.clean { background: var(--brand); }
+  .strip .cells i.hit { background: var(--bad); }
+  .strip.stock .cells i.clean { background: #3d444d; }
+  .strip .n { text-align: right; font-weight: 700; font-size: 38px; white-space: nowrap; }
+  .strip .n small { font-size: 22px; font-weight: 500; color: var(--dim); }
+  .note { margin-top: 26px; color: var(--dim); font-size: 25px; }
+  .end { display: grid; gap: 44px; margin-top: 26px; }
+  .stat { display: grid; grid-template-columns: 380px 1fr; align-items: center; gap: 28px; }
+  .stat .v { font-size: 92px; line-height: 1; font-weight: 800; letter-spacing: -.02em; white-space: nowrap; }
+  .stat .v span { color: var(--dim); font-weight: 500; }
+  .stat .v b { color: var(--brand); }
+  .stat .w { font-size: 33px; line-height: 1.25; }
+  .stat .w small { display: block; font-size: 24px; color: var(--dim); }
+  .hidden { visibility: hidden; }
+  .pill { position: absolute; left: 44px; right: 44px; bottom: 30px; display: flex; align-items: center; gap: 18px; padding: 16px 24px; border-radius: 18px; background: #10162b; border: 2px solid var(--brand); font-size: 30px; font-weight: 700; }
+  .pill span { font-weight: 500; color: var(--dim); font-size: 25px; }
+</style>
+</head>
+<body>
+<div class="bar"><span class="mark"><i></i>DSHRSI</span><span id="where"></span><span class="grow"></span><span class="tag" id="tag"></span></div>
+<div class="scene" id="scene"></div>
+<script src="../../website/assets/trace-data.js"></script>
+<script>
+const T = window.DSHRSI_TRACE
+const zh = new URLSearchParams(location.search).get('lang') === 'zh'
+const t = (en, inChinese) => (zh ? inChinese : en)
+const hm = clock => clock.slice(0, 5)
+const esc = text => String(text).replace(/[&<>]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[char]))
+const row = (session, file, ok) => `<div class="row mono"><span class="t">${hm(session.startedAt)}</span><span>${esc(session.task)}</span><span>read ${file} <span class="${ok ? 'good' : 'bad'}">${ok ? '✓' : `✗ ${t('not found', '找不到')}`}</span></span></div>`
+
+const stock = T.arms.dsh, plugin = T.arms.rsi, made = T.adaptation
+const stockHits = stock.sessions.filter(session => session.failed > 0)
+const pluginHits = plugin.sessions.filter(session => session.failed > 0 && session.startedMs <= made.widenedAtMs)
+const origin = plugin.sessions.find(session => session.task === made.writtenIn.task)
+const afterTasks = plugin.sessions.filter(session => session.startedMs > made.widenedAtMs).map(session => session.task)
+const cells = arm => afterTasks.map(task => (arm.sessions.find(session => session.task === task).failed > 0 ? 'hit' : 'clean'))
+const gate = T.session.events.find(event => event.kind === 'gate').stages.map(stage => stage.stage)
+const drafts = T.session.events.filter(event => event.kind === 'draft')
+const rejected = drafts.find(draft => !draft.ok)
+
+// A scene is a title and a list of pieces that appear one after another. `hold` is how long the frame that
+// first shows a piece stays up, in milliseconds.
+const shownStock = [...stockHits.slice(0, 5), stockHits[stockHits.length - 1]]
+const scenes = [
+  {
+    tag: t('STOCK HARNESS', '原版 HARNESS'), on: false,
+    title: t('The task says <b>lib.rs</b>. The file is <b>src/lib.rs</b>.', '题目写的是 <b>lib.rs</b>，文件其实在 <b>src/lib.rs</b>'),
+    wrap: 'rows',
+    pieces: [
+      ...shownStock.slice(0, 5).map(session => ({ html: row(session, 'lib.rs', false), hold: 330 })),
+      { html: `<div class="row mono more"><span class="t">…</span><span>${t(`${stockHits.length - 6} more sessions`, `还有 ${stockHits.length - 6} 个会话`)}</span><span></span></div>`, hold: 330 },
+      { html: row(shownStock[5], 'lib.rs', false), hold: 500 },
+    ],
+    foot: { html: t(`<span class="bad">${stock.hit} of ${stock.sessions.length}</span> sessions made the same failed call. Nothing was learned.`, `${stock.sessions.length} 个会话里有 <span class="bad">${stock.hit} 个</span>撞上同一个失败调用，什么都没学到。`), hold: 2000 },
+  },
+  {
+    tag: t('WITH DSHRSI', '装上 DSHRSI'), on: true,
+    title: t('Third time, <b>the harness improves itself</b>', '第三次撞上，<b>Harness 改进了自己</b>'),
+    pieces: [
+      ...pluginHits.slice(0, 3).map((session, index) => ({ html: row(session, 'lib.rs', false), hold: index === 2 ? 700 : 380 })),
+      { open: '<div class="box mono">' },
+      { html: `<div class="l"><span class="k">⚡</span><span>${t('same failure, 3rd session', '同一个失败，第 3 个会话')} <span class="dim">→ ${t('the model writes harness code', '会话里的模型给 Harness 写代码')}</span></span></div>`, hold: 900 },
+      { html: `<div class="l"><span class="k">✎</span><span>${t('draft 1', '第 1 稿')} <span class="bad">✗ ${t(`rejected at the gate (${rejected.failedAt})`, `被校验打回（${rejected.failedAt}）`)}</span></span></div>`, hold: 800 },
+      { html: `<div class="l"><span class="k">✎</span><span>${t('draft 2', '第 2 稿')} ${gate.map(stage => `<span class="stage">${stage} <span class="good">✓</span></span>`).join('')}</span></div>`, hold: 1000 },
+      { html: `<div class="l"><span class="k">▸</span><span>${t(`mounted in <b style="color:var(--text)">${made.secondsToMount} s</b>, before the turn is over`, `<b style="color:var(--text)">${made.secondsToMount} 秒</b>后挂载，这一轮还没结束`)}</span></div>`, hold: 1000 },
+      { close: '</div>' },
+      { html: row({ ...origin, startedAt: T.session.events.find(event => event.kind === 'call' && event.what === 'src/lib.rs').time }, 'src/lib.rs', true), hold: 1900 },
+    ],
+  },
+  {
+    tag: t(`NEXT ${afterTasks.length} SESSIONS`, `之后的 ${afterTasks.length} 个会话`), on: true,
+    title: t('The fix goes <b>machine-wide</b>, and it holds', '改动升级为<b>全机生效</b>，而且管用'),
+    pieces: [
+      { html: `<div class="row mono" style="grid-template-columns:118px 1fr"><span class="t">${hm(made.widenedAt)}</span><span>${t(`seen in ${made.widenedAfter.length} workspaces → widened to the whole machine`, `在 ${made.widenedAfter.length} 个工作目录里见过 → 升级为全机生效`)}</span></div>`, hold: 1100 },
+      { strip: 'plugin', who: 'DSHRSI', cells: cells(plugin), total: `${plugin.afterWidening.hit} <small>/ ${afterTasks.length}</small>` },
+      { strip: 'stock', who: t('Stock', '原版'), cells: cells(stock), total: `${stock.afterWidening.hit} <small>/ ${afterTasks.length}</small>` },
+      { html: `<div class="note">${t('One square is one session, the same tasks in both rows. Red: the read of lib.rs failed again.', '一格是一个会话，上下两行是同样的题。红色：又去读了不存在的 lib.rs。')}</div>`, hold: 1000 },
+    ],
+    foot: { html: t('Learned once. <b>Every later session starts from there.</b>', '学一次，<b>后面的每个会话都从这里出发。</b>'), hold: 2300 },
+  },
+  {
+    tag: t('MEASURED', '实测'), on: true,
+    title: '',
+    wrap: 'end',
+    pieces: [
+      { html: `<div class="stat"><div class="v">${stock.hit} <span>→</span> <b>${plugin.hit}</b></div><div class="w">${t('sessions that hit the same failed call', '撞上同一个失败调用的会话')}<small>${t(`${stock.sessions.length} Rust tasks, stock harness → with DSHRSI`, `${stock.sessions.length} 道 Rust 题，原版 → 装上 DSHRSI`)}</small></div></div>`, hold: 900 },
+      { html: `<div class="stat"><div class="v">${stock.afterWidening.hit} <span>→</span> <b>${plugin.afterWidening.hit}</b></div><div class="w">${t('once the fix was machine-wide', '改动全机生效之后')}<small>${t(`the same ${afterTasks.length} tasks on both sides`, `两边是同样的 ${afterTasks.length} 道题`)}</small></div></div>`, hold: 900 },
+      { html: `<div class="stat"><div class="v"><b>${made.secondsToMount}</b> <span>s</span></div><div class="w">${t('from the failed call to the mounted fix', '从失败的调用到修好挂载')}<small>${t('written by the session\'s own model, checked by a 5-stage gate', '会话里的模型自己写的，过了五道校验')}</small></div></div>`, hold: 1100 },
+    ],
+    pill: { html: `⚡ ${t('The harness just improved itself', 'Harness 刚刚改进了自己')} <span>· ${esc(made.title)}</span>`, hold: 3800 },
+  },
+]
+
+// ---------- frames ----------
+const frames = []
+scenes.forEach((scene, sceneIndex) => {
+  const steps = []
+  scene.pieces.forEach((piece, index) => {
+    if (piece.html) steps.push({ upTo: index, part: 1, hold: piece.hold })
+    // A strip fills in a few squares at a time.
+    if (piece.strip) for (let part = 1; part <= 6; part += 1) steps.push({ upTo: index, part: part / 6, hold: part === 6 ? 600 : 110 })
+  })
+  frames.push({ scene: sceneIndex, upTo: -1, part: 1, extra: false, hold: sceneIndex === 3 ? 250 : 800 })
+  for (const step of steps) frames.push({ scene: sceneIndex, ...step, extra: false })
+  const last = scene.foot ?? scene.pill
+  if (last) frames.push({ scene: sceneIndex, upTo: scene.pieces.length, part: 1, extra: true, hold: last.hold })
+})
+
+function show(index) {
+  const frame = frames[index]
+  const scene = scenes[frame.scene]
+  document.getElementById('where').textContent = t(`real trace · Aider Polyglot / Rust · ${T.model}`, `真实运行记录 · Aider Polyglot / Rust · ${T.model}`)
+  const tag = document.getElementById('tag')
+  tag.textContent = scene.tag
+  tag.className = `tag${scene.on ? ' on' : ''}`
+  const hide = pieceIndex => (pieceIndex > frame.upTo ? ' hidden' : '')
+  const body = scene.pieces.map((piece, pieceIndex) => {
+    if (piece.open) return piece.open.replace('class="', `class="${frame.upTo > pieceIndex ? '' : 'hidden '}`)
+    if (piece.close) return piece.close
+    if (piece.strip) {
+      const lit = pieceIndex < frame.upTo ? piece.cells.length : pieceIndex === frame.upTo ? Math.round(piece.cells.length * frame.part) : 0
+      const done = lit === piece.cells.length
+      return `<div class="strip ${piece.strip}${hide(pieceIndex)}"><span class="who">${piece.who}</span><span class="cells">${piece.cells.map((cell, cellIndex) => `<i class="${cellIndex < lit ? cell : ''}"></i>`).join('')}</span><span class="n${done ? '' : ' hidden'}">${piece.total}</span></div>`
+    }
+    return piece.html.replace('class="', `class="${hide(pieceIndex).trim()} `)
+  }).join('')
+  const wrapped = scene.wrap ? `<div class="${scene.wrap}">${body}</div>` : `<div class="rows">${body}</div>`
+  const foot = scene.foot ? `<div class="foot${frame.extra ? '' : ' hidden'}">${scene.foot.html}</div>` : ''
+  const pill = scene.pill ? `<div class="pill${frame.extra ? '' : ' hidden'}">${scene.pill.html}</div>` : ''
+  document.getElementById('scene').innerHTML = `${scene.title ? `<h1>${scene.title}</h1>` : ''}${wrapped}${foot}${pill}`
+  return frame.hold
+}
+window.frameCount = frames.length
+window.show = show
+show(Number(new URLSearchParams(location.search).get('frame') ?? frames.length - 1))
+</script>
+</body>
+</html>

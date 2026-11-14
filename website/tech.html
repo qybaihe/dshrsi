@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="zh-CN" data-lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>技术路线 · DSHRSI</title>
+<meta name="title-zh" content="技术路线 · DSHRSI">
+<meta name="title-en" content="How it works · DSHRSI">
+<meta name="description" content="The technical route of DSHRSI: detectors, trigger policy, model-written adaptations, a five-stage validation gate, an isolated runtime, a library per machine and a harness per project.">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/site.css">
+<script>document.documentElement.dataset.lang=(function(){try{return localStorage.getItem('dshrsi-lang')}catch(e){return null}})()||(/^zh\b/i.test(navigator.language||'')?'zh':'en')</script>
+</head>
+<body data-page="tech">
+<main>
+
+<div class="hero page">
+  <div class="wrap">
+    <div class="kicker"><span lang="zh">技术路线</span><span lang="en">Technical route</span></div>
+    <h1><span lang="zh">从一条会话事件，到<em>一段挂载的代码</em></span><span lang="en">From a session event to <em>a piece of mounted code</em></span></h1>
+    <p class="lede">
+      <span lang="zh">DSHRSI 是一个普通的 DeepSeek Harness 插件：纯 ESM，没有构建步骤，不改 DSH 一行源码。它只用 DSH 公开的扩展点，把五个阶段接成一个闭环。</span>
+      <span lang="en">DSHRSI is an ordinary DeepSeek Harness plugin: plain ESM, no build step, no change to DSH's source. It uses only DSH's public extension points to connect five stages into one loop.</span>
+    </p>
+  </div>
+</div>
+
+<div class="wrap doc">
+  <nav class="toc" aria-label="On this page">
+    <span class="t"><span lang="zh">本页</span><span lang="en">On this page</span></span>
+    <a href="#pipeline"><span lang="zh">总览</span><span lang="en">Overview</span></a>
+    <a href="#observe"><span lang="zh">一、观察</span><span lang="en">1. Observe</span></a>
+    <a href="#decide"><span lang="zh">二、决策</span><span lang="en">2. Decide</span></a>
+    <a href="#rewrite"><span lang="zh">三、改写</span><span lang="en">3. Rewrite</span></a>
+    <a href="#validate"><span lang="zh">四、校验与挂载</span><span lang="en">4. Validate and mount</span></a>
+    <a href="#keep"><span lang="zh">五、沉淀与共享</span><span lang="en">5. Keep and share</span></a>
+    <a href="#safety"><span lang="zh">安全模型</span><span lang="en">Safety model</span></a>
+    <a href="#hooks"><span lang="zh">接入 DSH 的位置</span><span lang="en">Where it plugs in</span></a>
+    <a href="#roadmap"><span lang="zh">路线图</span><span lang="en">Roadmap</span></a>
+  </nav>
+
+  <article class="prose">
+    <h2 id="pipeline" style="margin-top:0"><span lang="zh">总览</span><span lang="en">Overview</span></h2>
+    <figure class="figure">
+      <svg viewBox="0 0 860 420" role="img" aria-labelledby="pipe-title">
+        <title id="pipe-title">The DSHRSI pipeline: observe, decide, rewrite, validate and mount, keep and share, with the ledger and the library feeding back</title>
+        <defs>
+          <marker id="pipe-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 10 5 0 10z" fill="var(--text-3)"/></marker>
+          <linearGradient id="pipe-ink" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7c5cff"/><stop offset="1" stop-color="#12b5e5"/></linearGradient>
+        </defs>
+        <g font-family="var(--font-sans)" font-size="13" fill="var(--text-3)">
+          <g font-size="15" font-weight="600" fill="var(--text)">
+            <rect x="10" y="40" width="150" height="92" rx="16" fill="var(--surface)" stroke="var(--border)"/>
+            <text x="85" y="76" text-anchor="middle"><tspan lang="zh">观察</tspan><tspan lang="en">Observe</tspan></text>
+            <rect x="184" y="40" width="150" height="92" rx="16" fill="var(--surface)" stroke="var(--border)"/>
+            <text x="259" y="76" text-anchor="middle"><tspan lang="zh">决策</tspan><tspan lang="en">Decide</tspan></text>
+            <rect x="358" y="40" width="150" height="92" rx="16" fill="var(--surface)" stroke="var(--border)"/>
+            <text x="433" y="76" text-anchor="middle"><tspan lang="zh">改写</tspan><tspan lang="en">Rewrite</tspan></text>
+            <rect x="532" y="40" width="150" height="92" rx="16" fill="var(--surface)" stroke="var(--border)"/>
+            <text x="607" y="76" text-anchor="middle"><tspan lang="zh">校验</tspan><tspan lang="en">Validate</tspan></text>
+            <rect x="706" y="40" width="144" height="92" rx="16" fill="var(--bg)" stroke="url(#pipe-ink)" stroke-width="2"/>
+            <text x="778" y="76" text-anchor="middle"><tspan lang="zh">挂载</tspan><tspan lang="en">Mount</tspan></text>
+          </g>
+          <text x="85" y="102" text-anchor="middle"><tspan lang="zh">16 个判断点</tspan><tspan lang="en">16 detectors</tspan></text>
+          <text x="259" y="102" text-anchor="middle"><tspan lang="zh">签名 + 历史</tspan><tspan lang="en">signature + history</tspan></text>
+          <text x="433" y="102" text-anchor="middle"><tspan lang="zh">模型写适配</tspan><tspan lang="en">model writes code</tspan></text>
+          <text x="607" y="102" text-anchor="middle"><tspan lang="zh">五道关</tspan><tspan lang="en">five stages</tspan></text>
+          <text x="778" y="102" text-anchor="middle"><tspan lang="zh">当轮生效</tspan><tspan lang="en">live this turn</tspan></text>
+          <g stroke="var(--text-3)" stroke-width="1.5" fill="none">
+            <path d="M162 86h18" marker-end="url(#pipe-arrow)"/><path d="M336 86h18" marker-end="url(#pipe-arrow)"/><path d="M510 86h18" marker-end="url(#pipe-arrow)"/><path d="M684 86h18" marker-end="url(#pipe-arrow)"/>
+            <path d="M590 132C590 168 450 168 450 138" stroke-dasharray="4 5" marker-end="url(#pipe-arrow)"/>
+            <path d="M778 134v66" marker-end="url(#pipe-arrow)"/>
+            <path d="M600 262H468" marker-end="url(#pipe-arrow)"/>
+            <path d="M312 262H180" marker-end="url(#pipe-arrow)"/>
+            <path d="M85 220V138" marker-end="url(#pipe-arrow)"/>
+            <path d="M356 204C356 172 276 176 276 138" marker-end="url(#pipe-arrow)"/>
+          </g>
+          <text x="520" y="182" text-anchor="middle"><tspan lang="zh">打回，附原因</tspan><tspan lang="en">rejected, with reasons</tspan></text>
+          <g font-size="15" font-weight="600" fill="var(--text)">
+            <rect x="606" y="206" width="244" height="112" rx="16" fill="var(--surface)" stroke="var(--border)"/>
+            <text x="728" y="240" text-anchor="middle"><tspan lang="zh">运行中的会话</tspan><tspan lang="en">The running session</tspan></text>
+            <rect x="318" y="206" width="146" height="112" rx="16" fill="var(--surface)" stroke="var(--border)"/>
+            <text x="391" y="240" text-anchor="middle"><tspan lang="zh">适配库</tspan><tspan lang="en">Library</tspan></text>
+            <rect x="30" y="226" width="146" height="72" rx="16" fill="var(--surface)" stroke="var(--border)"/>
+            <text x="103" y="258" text-anchor="middle"><tspan lang="zh">账本</tspan><tspan lang="en">Ledger</tspan></text>
+          </g>
+          <text x="728" y="264" text-anchor="middle"><tspan lang="zh">node:vm 隔离上下文</tspan><tspan lang="en">isolated node:vm context</tspan></text>
+          <text x="728" y="286" text-anchor="middle"><tspan lang="zh">拒绝 · 询问 · 提示 · 要求验证</tspan><tspan lang="en">deny · ask · note · verify</tspan></text>
+          <text x="391" y="264" text-anchor="middle"><tspan lang="zh">转正 · 隔离</tspan><tspan lang="en">promote · quarantine</tspan></text>
+          <text x="391" y="286" text-anchor="middle"><tspan lang="zh">修订 · 扩大范围</tspan><tspan lang="en">revise · widen</tspan></text>
+          <text x="103" y="280" text-anchor="middle"><tspan lang="zh">摩擦 · 挂载 · 生效</tspan><tspan lang="en">friction · mounts · effects</tspan></text>
+          <path d="M391 320v40" stroke="var(--text-3)" stroke-width="1.5" fill="none" marker-end="url(#pipe-arrow)"/>
+          <rect x="262" y="366" width="258" height="44" rx="22" fill="var(--brand-soft)"/>
+          <text x="391" y="393" text-anchor="middle" font-family="var(--font-mono)" fill="var(--brand)"><tspan lang="zh">仓库里的 .dsh-rsi/  →  其他机器</tspan><tspan lang="en">.dsh-rsi/ in the repository  →  other machines</tspan></text>
+        </g>
+      </svg>
+      <figcaption><span lang="zh">上面一排是一次适配的诞生；下面一排是它留下来的东西，又回过头去影响下一次观察和决策。</span><span lang="en">The top row is how one adaptation comes to be. The bottom row is what it leaves behind, which feeds the next round of observing and deciding.</span></figcaption>
+    </figure>
+
+    <h2 id="observe"><span lang="zh">一、观察：把会话事件变成“摩擦”</span><span lang="en">1. Observe: from session events to friction</span></h2>
+    <p><span lang="zh">插件订阅 DSH 的会话事件，先归一化成与版本无关的“观察”（一次工具调用及其结果、一条用户消息、一轮的开始和结束），再交给 16 个判断点。因为判断点读的是归一化后的数据，同一套判断既能跑在实时会话上，也能跑在磁盘上存着的历史会话上。</span><span lang="en">The plugin subscribes to DSH's session events and first normalizes them into version-independent observations (a tool call with its result, a user message, the start and end of a turn), which 16 detectors then read. Because detectors read normalized data, the same detectors run on a live session and on a session stored on disk.</span></p>
+    <p><span lang="zh">每个发现带一个<strong>签名</strong>，它去掉路径、行号、时间戳，只留下能认出“这是同一个坑”的事实，比如 <code>bash:command-not-found:python</code>。签名让一个麻烦可以跨会话计数。</span><span lang="en">Every finding carries a <strong>signature</strong>. Paths, line numbers and timestamps are stripped, and what is left is the fact that identifies the same pothole, such as <code>bash:command-not-found:python</code>. A signature is what lets a trouble be counted across sessions.</span></p>
+
+    <h2 id="decide"><span lang="zh">二、决策：值不值得改，什么时候改</span><span lang="en">2. Decide: whether to change, and when</span></h2>
+    <p><span lang="zh">一个发现不等于一个决定。触发策略把它和适配库里已有的东西放在一起权衡：</span><span lang="en">A finding is not a decision. The trigger policy weighs it against what the library already knows:</span></p>
+    <div class="table"><table>
+      <thead><tr><th><span lang="zh">规则</span><span lang="en">Rule</span></th><th><span lang="zh">默认值</span><span lang="en">Default</span></th><th><span lang="zh">作用</span><span lang="en">Effect</span></th></tr></thead>
+      <tbody>
+        <tr><td><span lang="zh">动手门槛</span><span lang="en">Threshold to act</span></td><td class="n">0.6</td><td><span lang="zh">严重程度低于它的只记录</span><span lang="en">Anything less severe is only recorded</span></td></tr>
+        <tr><td><span lang="zh">历史加成</span><span lang="en">Boost from history</span></td><td class="n">+0.15 <span lang="zh">每次，至多</span><span lang="en">each, up to</span> +0.4</td><td><span lang="zh">以前的会话见过同一个签名，门槛相应降低</span><span lang="en">Earlier sessions with the same signature lower the bar</span></td></tr>
+        <tr><td><span lang="zh">每次会话上限</span><span lang="en">Per-session limit</span></td><td class="n">4</td><td><span lang="zh">一次嘈杂的会话不会把 Harness 改得面目全非</span><span lang="en">One noisy session cannot reshape the harness</span></td></tr>
+        <tr><td><span lang="zh">修订条件</span><span lang="en">Revision</span></td><td class="n">2</td><td><span lang="zh">装着适配的会话里又出现这么多次，就重写它</span><span lang="en">Recurrences, in sessions that had it mounted, before it is rewritten</span></td></tr>
+        <tr><td><span lang="zh">扩大范围</span><span lang="en">Widening</span></td><td class="n">2</td><td><span lang="zh">在这么多个工作区碰到，就从工作区升级为全机</span><span lang="en">Workspaces that met it before it applies machine-wide</span></td></tr>
+      </tbody>
+    </table></div>
+    <p><span lang="zh">大多数麻烦在下一步模型请求之前处理；“没验证就要收工”这一类在这一轮结束的边界上处理。</span><span lang="en">Most trouble is answered before the next model request. Ending a turn on unverified edits is answered at the boundary where the turn would stop.</span></p>
+
+    <h2 id="rewrite"><span lang="zh">三、改写：让会话里的模型写 Harness 代码</span><span lang="en">3. Rewrite: the session's model writes harness code</span></h2>
+    <p><span lang="zh">插件向会话当前的模型发一次单独的请求：一份适配 API 的说明，加上这次发现的证据（哪些调用、怎么失败的、用户说了什么）。模型回一段 JavaScript。这次请求不进入会话日志，记在适配库的审计记录里。</span><span lang="en">The plugin sends one separate request to the session's current model: a description of the adaptation API plus the evidence of this finding (which calls, how they failed, what the user said). The model replies with a piece of JavaScript. The request stays out of the session log and is recorded in the library's audit trail.</span></p>
+    <p><span lang="zh">被校验关打回的版本会连同原因一起发回去重写，默认最多两次。还是不行，就用内置模板生成一个保守的版本。</span><span lang="en">A version the gate rejects is sent back together with the reasons, twice at most by default. If that fails too, a built-in template produces a conservative version.</span></p>
+
+    <h2 id="validate"><span lang="zh">四、校验与挂载</span><span lang="en">4. Validate and mount</span></h2>
+    <ol class="steps">
+      <li><h3><span lang="zh">静态</span><span lang="en">Static</span></h3><p><span lang="zh">长度上限；不许出现 <code>require</code>、<code>import</code>、<code>process</code>、<code>eval</code>、网络访问。</span><span lang="en">A length limit; no <code>require</code>, <code>import</code>, <code>process</code>, <code>eval</code> or network access.</span></p></li>
+      <li><h3><span lang="zh">加载</span><span lang="en">Load</span></h3><p><span lang="zh">能编译，调用了 <code>define()</code>，确实注册了东西，声明的能力都用到了。</span><span lang="en">It compiles, calls <code>define()</code>, registers something, and uses every capability it declares.</span></p></li>
+      <li><h3><span lang="zh">重演</span><span lang="en">Replay</span></h3><p><span lang="zh">把触发它的那几次调用回放给它，它必须有所动作。什么都不做的代码过不了这一关。</span><span lang="en">The calls that triggered it are replayed to it, and it has to act. Code that does nothing stops here.</span></p></li>
+      <li><h3><span lang="zh">回归</span><span lang="en">Regression</span></h3><p><span lang="zh">把本次会话里成功的调用回放给它，它不许拒绝、拦截或改写其中任何一个，也不许拦 <code>command -v</code> 这类查看环境的命令。</span><span lang="en">The calls that succeeded in this session are replayed, and it must not refuse, block or rewrite any of them, nor commands that only inspect the environment, such as <code>command -v</code>.</span></p></li>
+      <li><h3><span lang="zh">权限</span><span lang="en">Permission</span></h3><p><span lang="zh">用到改写结果、新增工具、执行命令这三种能力的，默认搁置，等人批准。</span><span lang="en">An adaptation that rewrites results, adds a tool or runs commands is held for a person's approval by default.</span></p></li>
+    </ol>
+    <p><span lang="zh">通过之后，适配装进独立的 <code>node:vm</code> 上下文，和宿主之间只隔着一个传 JSON 字符串的桥，拿不到宿主对象。每次调用有同步和异步两重超时。它在下一次模型请求之前生效，同时告诉模型 Harness 刚刚改了什么。</span><span lang="en">After the gate, the adaptation is mounted in its own <code>node:vm</code> context. Only a bridge that passes JSON strings connects it to the host, so it cannot reach host objects. Every call has a synchronous and an asynchronous timeout. It takes effect before the next model request, and the model is told what the harness just changed.</span></p>
+
+    <h2 id="keep"><span lang="zh">五、沉淀与共享</span><span lang="en">5. Keep and share</span></h2>
+    <p><span lang="zh">每台机器有一个适配库（默认在 <code>$DSH_HOME/rsi</code>）：每个适配一个目录，带版本历史；<code>ledger.jsonl</code> 记每次摩擦、挂载、生效和出错，<code>audit.jsonl</code> 记系统做过的每个决定。</span><span lang="en">Every machine has one library (in <code>$DSH_HOME/rsi</code> by default): one directory per adaptation with its version history; <code>ledger.jsonl</code> records every friction, mount, effect and fault, and <code>audit.jsonl</code> every decision the system took.</span></p>
+    <ul>
+      <li><span lang="zh">新适配是 <code>candidate</code>，在后来的会话里起过作用且没出过错，转为 <code>active</code>。</span><span lang="en">A new adaptation is a <code>candidate</code>. Once it has acted in later sessions without faults it becomes <code>active</code>.</span></li>
+      <li><span lang="zh">处理函数抛错不影响它所挂的那次工具调用，累计三次就 <code>quarantined</code>。</span><span lang="en">A handler that throws never affects the tool call it is attached to. Three faults and it is <code>quarantined</code>.</span></li>
+      <li><span lang="zh">核心指标是<strong>二次命中率</strong>：装上之前和之后，有多大比例的会话还会遇到这个麻烦。</span><span lang="en">The central metric is the <strong>second-hit rate</strong>: the share of sessions that still meet the trouble, before and after the adaptation.</span></li>
+      <li><span lang="zh">项目层的适配转正后写进 <code>.dsh-rsi/adaptations/</code>。别的机器认的是文件内容的哈希：<code>dsh-rsi trust</code> 之前不运行，文件变了要重新接受。</span><span lang="en">A promoted project-layer adaptation is written to <code>.dsh-rsi/adaptations/</code>. Other machines go by the hash of a file's content: nothing runs before <code>dsh-rsi trust</code>, and a changed file has to be accepted again.</span></li>
+    </ul>
+
+    <h2 id="safety"><span lang="zh">安全模型</span><span lang="en">Safety model</span></h2>
+    <div class="table"><table>
+      <thead><tr><th><span lang="zh">能力</span><span lang="en">Capability</span></th><th><span lang="zh">做什么</span><span lang="en">What it does</span></th><th><span lang="zh">级别</span><span lang="en">Tier</span></th></tr></thead>
+      <tbody>
+        <tr><td><code>annotate</code> <code>steer</code> <code>prompt</code></td><td><span lang="zh">在工具结果后、下一步之前、系统提示词里补充信息</span><span lang="en">Add information after a tool result, before a step, or to the system prompt</span></td><td><span lang="zh">自动</span><span lang="en">automatic</span></td></tr>
+        <tr><td><code>deny</code> <code>ask</code> <code>block</code></td><td><span lang="zh">拒绝一次调用、要求先经批准、把结果改成带纠正意见的错误</span><span lang="en">Refuse a call, require approval first, turn a result into an error with a correction</span></td><td><span lang="zh">自动</span><span lang="en">automatic</span></td></tr>
+        <tr><td><code>verify</code></td><td><span lang="zh">条件不满足时不让这一轮结束</span><span lang="en">Keep a turn from ending while a condition is not met</span></td><td><span lang="zh">自动</span><span lang="en">automatic</span></td></tr>
+        <tr><td><code>rewrite</code> <code>tool</code> <code>exec</code></td><td><span lang="zh">替换结果文本、注册新工具、通过 Harness 的 shell 执行命令</span><span lang="en">Replace result text, register a tool, run commands through the harness's shell</span></td><td><span lang="zh">需批准</span><span lang="en">needs approval</span></td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout warn">
+      <span lang="zh"><strong>这不是安全沙箱。</strong>没有任何能力可以放行 Harness 会拒绝的操作，这一点是设计保证的。但 <code>node:vm</code> 的隔离防的是写错和随手滥用，不是对抗恶意代码的边界。接受别人仓库里的 <code>.dsh-rsi/</code> 之前，请先读一遍。</span>
+      <span lang="en"><strong>This is not a security sandbox.</strong> No capability can allow what the harness would refuse, and that is guaranteed by design. The <code>node:vm</code> isolation, however, guards against mistakes and casual misuse, not against malicious code. Read another repository's <code>.dsh-rsi/</code> before you accept it.</span>
+    </div>
+
+    <h2 id="hooks"><span lang="zh">接入 DSH 的位置</span><span lang="en">Where it plugs into DSH</span></h2>
+    <div class="table"><table>
+      <thead><tr><th><span lang="zh">DSH 扩展点</span><span lang="en">DSH extension point</span></th><th><span lang="zh">DSHRSI 用它做什么</span><span lang="en">What DSHRSI does there</span></th></tr></thead>
+      <tbody>
+        <tr><td><code>session/event</code></td><td><span lang="zh">观察；界面的只读视图也由它折叠而来</span><span lang="en">Observation; the UI's read model is folded from the same events</span></td></tr>
+        <tr><td><code>tools/pre-execute</code></td><td><span lang="zh">在工具调用执行前拒绝或要求批准</span><span lang="en">Refuse a tool call, or require approval, before it runs</span></td></tr>
+        <tr><td><code>tools/post-execute</code></td><td><span lang="zh">在结果后附说明、拦截、改写</span><span lang="en">Annotate, block or rewrite a result</span></td></tr>
+        <tr><td><code>agent/pre-step</code></td><td><span lang="zh">生成并挂载适配；在下一次请求前加说明</span><span lang="en">Generate and mount adaptations; add notes before the next request</span></td></tr>
+        <tr><td><code>agent/turn-stopping</code></td><td><span lang="zh">没验证时不让这一轮结束</span><span lang="en">Keep a turn open while nothing was verified</span></td></tr>
+        <tr><td><span lang="zh">系统提示词与工具注入</span><span lang="en">System prompt and tool injection</span></td><td><span lang="zh">常驻提示词段、新增工具</span><span lang="en">Standing prompt sections, new tools</span></td></tr>
+        <tr><td><span lang="zh">会话投影、斜杠命令、界面插槽</span><span lang="en">Session projections, commands, UI slots</span></td><td><span lang="zh">RSI 徽标、状态条、<code>/rsi</code></span><span lang="en">The RSI badge, the status pill, <code>/rsi</code></span></td></tr>
+      </tbody>
+    </table></div>
+    <p><span lang="zh">没有摩擦、没有挂载任何适配时，插件对模型完全不可见：系统提示词、工具列表和消息逐字节不变，有端到端用例守着。</span><span lang="en">With no friction and nothing mounted, the plugin is invisible to the model: system prompt, tool list and messages are unchanged byte for byte, and an end-to-end test guards that.</span></p>
+
+    <h2 id="roadmap"><span lang="zh">路线图</span><span lang="en">Roadmap</span></h2>
+    <p><span lang="zh">下面分成“已经有的”和“打算做的”。打算做的是计划，不是承诺，也没有日期。</span><span lang="en">Split into what exists and what is planned. Planned means intended, with no promise and no date.</span></p>
+    <div class="grid c2">
+      <div class="card">
+        <div class="num"><span lang="zh">现在 · v0.1</span><span lang="en">NOW · v0.1</span></div>
+        <ul>
+          <li><span lang="zh">完整闭环：观察、决策、改写、校验、挂载、沉淀、共享</span><span lang="en">The full loop: observe, decide, rewrite, validate, mount, keep, share</span></li>
+          <li><span lang="zh">三层，项目专属的 Harness，导出与导入</span><span lang="en">Three layers, a harness per project, export and import</span></li>
+          <li><span lang="zh">Web 界面里的徽标、状态条和 <code>/rsi</code></span><span lang="en">Badge, status pill and <code>/rsi</code> in the Web UI</span></li>
+          <li><span lang="zh">四个基准上和原版 DSH 的逐题对照评测</span><span lang="en">A task-by-task evaluation against stock DSH on four benchmarks</span></li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="num"><span lang="zh">打算做的</span><span lang="en">PLANNED</span></div>
+        <ul>
+          <li><span lang="zh">在每题自带环境、同仓库多题的基准上评测（SWE-bench Verified、Terminal-Bench），那里才有反复出现的麻烦</span><span lang="en">Evaluation on benchmarks with per-task environments and many tasks per repository (SWE-bench Verified, Terminal-Bench), where trouble does recur</span></li>
+          <li><span lang="zh">更多模型的实测</span><span lang="en">Live runs with more models</span></li>
+          <li><span lang="zh">在真实的桌面 App 里验证；自动化的浏览器测试</span><span lang="en">Verification in the real desktop app; automated browser tests</span></li>
+          <li><span lang="zh">让判断点的阈值也从账本里学，同时保持校验关不可被修改</span><span lang="en">Detector thresholds learned from the ledger, with the gate kept out of reach</span></li>
+        </ul>
+      </div>
+    </div>
+  </article>
+</div>
+
+</main>
+<script src="assets/site.js"></script>
+</body>
+</html>

@@ -1,27 +1,31 @@
 <div align="center">
 
-**English** · [简体中文](docs/readme/README_zh.md)
+**English** · [简体中文](docs/readme/README_zh.md) · [繁體中文](docs/readme/README_zh-TW.md) · [日本語](docs/readme/README_ja.md) · [한국어](docs/readme/README_ko.md) · [Türkçe](docs/readme/README_tr.md) · [Русский](docs/readme/README_ru.md) · [Tiếng Việt](docs/readme/README_vi.md) · [ไทย](docs/readme/README_th.md) · [Deutsch](docs/readme/README_de.md) · [Español](docs/readme/README_es.md) · [Français](docs/readme/README_fr.md) · [Українська](docs/readme/README_uk.md) · [Polski](docs/readme/README_pl.md) · [Português (Brasil)](docs/readme/README_pt-BR.md) · [العربية](docs/readme/README_ar.md) · [فارسی](docs/readme/README_fa.md) · [Bahasa Indonesia](docs/readme/README_id.md) · [Italiano](docs/readme/README_it.md) · [Ελληνικά](docs/readme/README_el.md) · [മലയാളം](docs/readme/README_ml.md) · [Roman Urdu](docs/readme/README_ur-Latn.md) · [Română](docs/readme/README_ro.md)
 
 <br />
 
 <img src="packages/dsh-rsi/icon.svg" alt="DSHRSI" width="88" />
 
-# DSHRSI: DeepSeek Harness RSI
+# DSHRSI: Recursive Self-Improvement for DeepSeek Harness
 
-### **Observe → Rewrite → Mount. The harness that rewrites itself mid-turn.**
+### **Observe → Improve → Build on It → Again. A harness that keeps getting better at being yours.**
 
-**The open-source DeepSeek Harness plugin that turns repeated trouble into harness code. The session's own model writes it, a 5-stage gate validates it, and it is mounted into the running session before the turn is over. What works is kept per machine, per user and per project.**
+<img src="assets/rsi-trace.gif" alt="Animated trace of a real run: on the stock harness, 12 of 30 sessions make the same failed call; with DSHRSI the harness improves itself the third time it happens, and the next 22 sessions hit it once" width="960" />
 
+**RSI means Recursive Self-Improvement, and DSHRSI is the open-source plugin that makes it real for DeepSeek Harness. The harness watches its own runs, has the session's own model write harness code for the trouble it finds, proves that code in a 5-stage gate, and mounts it before the turn is over. Then the improved harness runs the next session, and improves again. No fine-tuning. No pile of prompts. Code that is measured, kept, rewritten or thrown out.**
+
+[![RSI](https://img.shields.io/badge/RSI-Recursive_Self--Improvement-4d6bfe?style=for-the-badge)](#rsi)
 [![DeepSeek Harness](https://img.shields.io/badge/DeepSeek_Harness-0.2.2--rc.3_plugin-7c5cff?style=for-the-badge)](https://github.com/deepseek-ai/deepseek-harness)
 [![Detectors](https://img.shields.io/badge/Detectors-16-12b5e5?style=for-the-badge)](#coverage)
 [![Validation](https://img.shields.io/badge/Validation-5--Stage_Gate-0ea5e9?style=for-the-badge)](#how-it-works)
-[![Layers](https://img.shields.io/badge/Layers-Machine_%C2%B7_User_%C2%B7_Project-2563eb?style=for-the-badge)](#project-harness)
-[![Tests](https://img.shields.io/badge/Tests-129_unit_%C2%B7_29_e2e-1d4ed8?style=for-the-badge)](#contributing)
+[![Layers](https://img.shields.io/badge/Layers-Machine_%C2%B7_User_%C2%B7_Project-0284c7?style=for-the-badge)](#project-harness)
+[![Benchmarks](https://img.shields.io/badge/Benchmarks-4_Suites_%C2%B7_2_Models-2563eb?style=for-the-badge)](#benchmarks)
+[![Tests](https://img.shields.io/badge/Tests-130_unit_%C2%B7_29_e2e-1d4ed8?style=for-the-badge)](#contributing)
 [![MIT License](https://img.shields.io/badge/License-MIT-38bdf8?style=for-the-badge)](LICENSE)
 
 **[📖 Plugin Reference](packages/dsh-rsi/README.md) · [🧩 Project Harness](packages/dsh-rsi/README.md#layers-and-the-project-harness) · [🔬 Validation Gate](packages/dsh-rsi/README.md#the-validation-gate) · [⚠️ Known Limits](packages/dsh-rsi/README.md#known-limits) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
 
-[Quick Start](#quick-start) · [How It Works](#how-it-works) · [Measured Results](#measured) · [Detectors & Capabilities](#coverage) · [Project Harness](#project-harness) · [Safety Defaults](#security) · [FAQ](#faq)
+[What RSI Means](#rsi) · [Quick Start](#quick-start) · [How It Works](#how-it-works) · [Measured Results](#measured) · [Benchmarks](#benchmarks) · [Detectors & Capabilities](#coverage) · [Project Harness](#project-harness) · [Safety Defaults](#security) · [FAQ](#faq)
 
 </div>
 
@@ -32,7 +36,7 @@
 > An adaptation is code written by a model and run inside your harness. Its isolation guards against mistakes, **not against malicious code**. Read about [the validation gate](packages/dsh-rsi/README.md#the-validation-gate) before you run it.
 
 <div align="center">
-<img src="assets/ui-evolving.png" alt="A DeepSeek Harness session: two tool calls fail with exit code 127, then the RSI badge and the pill under the composer light up with 'The harness just rewrote itself'" width="1200" />
+<img src="assets/ui-evolving.png" alt="A DeepSeek Harness session: two tool calls fail with exit code 127, then the RSI badge and the pill under the composer light up as the harness improves itself" width="1200" />
 </div>
 
 <br />
@@ -48,7 +52,7 @@ Every session rediscovers the same facts: this machine has no `python`, this rep
 <td width="33%" valign="top">
 
 ### 🧬 With DSHRSI
-When the trouble comes back, the model writes a piece of harness code, it passes the gate, and it is live **in that same turn**. In 3 runs against a real model, **7 sessions out of 7** after the adaptation had no failed call.
+When the trouble comes back, the model writes a piece of harness code, it passes the gate, and it is live **in that same turn**. In 3 runs against a real model, **7 sessions out of 7** after the adaptation had no failed call. And the next improvement starts from there.
 
 </td>
 <td width="33%" valign="top">
@@ -59,6 +63,24 @@ An adaptation can add information, refuse a call, ask you first, or demand verif
 </td>
 </tr>
 </table>
+
+---
+
+<a id="rsi"></a>
+
+## 🔁 RSI = Recursive Self-Improvement
+
+Not "rewrite itself". **Recursive Self-Improvement**: a system uses its own abilities to improve itself, and the improved system carries out the next round. Three words, and DSHRSI has to earn each one:
+
+| | What It Takes | How DSHRSI Does It |
+| :--- | :--- | :--- |
+| **Self** | What acts and what is changed are the same system | The harness changes the harness. The adaptation is written by the model of the very session that hit the trouble. Nobody tunes it from outside |
+| **Improvement** | "Better" has to be checkable | Every adaptation passes a 5-stage gate before it is mounted, and later sessions are held against it: what works is promoted, what throws is quarantined |
+| **Recursive** | One round's output starts the next | The next session runs on the improved harness and is observed with it. An adaptation that did not hold is rewritten stricter from the evidence. One that is needed in a second workspace widens to the whole machine, and a project's rules travel to every teammate's harness |
+
+**Four loops, each inside the next:** inside a turn → from session to session → the improvement itself gets improved → from a project to a machine to a team.
+
+What is deliberately **not** recursive: the model's weights never change, and the detectors, the trigger policy and the validation gate are fixed code that no adaptation can touch. The part that modifies itself is checked by a part it cannot modify.
 
 ---
 
@@ -81,7 +103,7 @@ dsh web
 ```
 
 ### 2. Just Work
-There is nothing to configure. DSHRSI stays out of sight until the same trouble comes back. Then the **RSI** badge lights up, the pill under the composer reads *The harness just rewrote itself*, and the next session starts already adapted:
+There is nothing to configure. DSHRSI stays out of sight until the same trouble comes back. Then the **RSI** badge lights up, the pill under the composer tells you the harness has just changed itself, and the next session starts already improved:
 
 <div align="center">
 <img src="assets/ui-panel-dark.png" alt="The next session: the pill is open and lists the adaptation at work and the call it refused before it ran" width="1200" />
@@ -115,7 +137,7 @@ The `desktop` and `headless` profiles, plugin indexes, local tarballs and loadin
 
 <a id="how-it-works"></a>
 
-## 🧠 How DSHRSI Works: a Closed Loop Inside the Harness
+## 🧠 How DSHRSI Works: a Closed Loop Inside the Harness, Run Again and Again
 
 Skills, memory files and longer system prompts all work at the level of context: they add text and hope the model follows it. When it does not, the same failed call is made again in the next session.
 
@@ -141,6 +163,7 @@ flowchart LR
     F --> G["library: promote · quarantine · revise"]
     G --> H[".dsh-rsi/ in the repository"]
   end
+  G -. "the next session starts here" .-> A
 ```
 
 | Stage | Mechanism | Effect |
@@ -150,6 +173,7 @@ flowchart LR
 | **3. Validate** | Static → load → replay → regression → permission. The adaptation has to act on the calls that triggered it and must leave alone every call that succeeded in this session. | Code that does nothing, or that breaks what already worked, is never mounted. |
 | **4. Mount** | The adaptation runs in its own `node:vm` context behind a JSON bridge, with timeouts on every call, and takes effect before the next model request. | The turn that hit the trouble is the first to benefit. |
 | **5. Keep and Share** | A library per machine with a ledger and an audit log. What works is promoted, what throws is quarantined, what did not hold is rewritten stricter, and project rules are written to `.dsh-rsi/`. | The next session starts adapted, and teammates get the project's rules after `dsh-rsi trust`. |
+| **↻ Again** | The next session runs on the harness that stage 5 left behind, and stage 1 observes it with every adaptation in place. | Improvement is built on improvement. That is the recursion. |
 
 ---
 
@@ -159,7 +183,7 @@ flowchart LR
 
 These numbers come from running a real model, `mimo-v2.6-pro`, through real `dsh` sessions (`npm run test:live`). Nothing in this table is simulated.
 
-> **How to read this:** the sample is small. One model, three scenarios, a handful of sessions each. It shows that the loop works end to end. It is **not** a statistical statement about success rates, and nothing got faster: writing an adaptation waits 30–60 seconds for the model.
+> **How to read this:** the sample is small. One model, three scenarios, a handful of sessions each. It shows that the loop works end to end. It is **not** a statistical statement about success rates, and nothing got faster: writing an adaptation waits 30–60 seconds for the model. The larger runs are in [Benchmarks](#benchmarks).
 
 | Scenario | Without DSHRSI | With DSHRSI | What the Harness Wrote |
 | :--- | :--- | :--- | :--- |
@@ -200,9 +224,57 @@ These paths exist in-tree and are covered by unit or end-to-end tests with a sim
 | `negative-feedback`, `approval-denied`, `context-pressure`, `model-instability` | Tested with constructed events only, never triggered in a real session |
 | Automated browser tests | None. The UI was walked through by hand in the real `dsh web` page, in light and dark mode |
 | ACP and SDK profiles | No UI there, and not verified |
-| Models other than `mimo-v2.6-pro` | No live runs yet |
+| Models outside the MiMo v2.6 family | No runs yet. The benchmarks used `mimo-v2.6-pro` and `mimo-v2.6-flash`; the three scenarios above used `mimo-v2.6-pro` |
 
 </details>
+
+---
+
+<a id="benchmarks"></a>
+
+## 📊 Benchmarks: Four Suites, Two Models, Task by Task
+
+Stock DeepSeek Harness against DeepSeek Harness + DSHRSI, in 3,390 real `dsh` sessions: the same model, the same prompts, the same sandbox, the same tasks. The plugin runs at its default settings and starts every suite with an empty library. Tasks solved on the three suites that ran to the end:
+
+<!-- bench:table:start -->
+| Benchmark | Tasks | `mimo-v2.6-pro` Stock | `mimo-v2.6-pro` + DSHRSI | `mimo-v2.6-flash` Stock | `mimo-v2.6-flash` + DSHRSI |
+| :--- | ---: | ---: | ---: | ---: | ---: |
+| **Aider Polyglot**, first try | 225 | 224 (99.6%) | 224 (99.6%) | 220 (97.8%) | 223 (99.1%) |
+| **Aider Polyglot**, within two tries | 225 | 225 (100.0%) | 225 (100.0%) | 225 (100.0%) | 225 (100.0%) |
+| **HumanEval** | 164 | 163 (99.4%) | 162 (98.8%) | 162 (98.8%) | 162 (98.8%) |
+| **HumanEval+** | 164 | 156 (95.1%) | 157 (95.7%) | 153 (93.3%) | 153 (93.3%) |
+| **MBPP** | 378 | 374 (98.9%) | 371 (98.1%) | 368 (97.4%) | 369 (97.6%) |
+| **MBPP+** | 378 | 320 (84.7%) | 319 (84.4%) | 308 (81.5%) | 315 (83.3%) |
+<!-- bench:table:end -->
+
+<div align="center">
+<img src="assets/bench-flash.png" alt="mimo-v2.6-flash, DSH → DSH + DSHRSI: Aider Polyglot 220 → 223 / 225 (+3), HumanEval 162 → 162 / 164, HumanEval+ 153 → 153 / 164, MBPP 368 → 369 / 378 (+1), MBPP+ 308 → 315 / 378 (+7). Rust lib.rs: 12 / 30 → 5 / 30, 7 / 22 → 1 / 22" width="960" />
+</div>
+
+> **How to read this:** on tasks solved, the two harnesses **cannot be told apart**. The largest gain is +7 (MBPP+ with `mimo-v2.6-flash`), the largest loss is −3 (MBPP with `mimo-v2.6-pro`), and no difference holds up in an exact McNemar test on the same tasks (smallest p = 0.17). When the agent can run its own code, these suites are close to their ceiling for both models, and every task is a fresh, clean directory: very little comes back for a harness to learn from.
+
+**What DSHRSI did do, without a single hint, was change itself.** Across the eight runs the models wrote **56 adaptations**; 15 of them acted, and 10 of those had been widened to the whole machine. For each of the 10 we took the tasks that started after it and compared them with the very same tasks under stock DSH:
+
+| Adaptation the Model Wrote | Failure It Answers | Stock DSH | DSH + DSHRSI | p |
+| :--- | :--- | ---: | ---: | ---: |
+| *Stop inline python checks that abort on first mismatch* (MBPP, `mimo-v2.6-pro`) | A test run that dies on its first failed assertion | 16 of 310 tasks | **3 of 310** | 0.002 |
+| *Redirect missing lib.rs reads to a glob lookup* (Polyglot, `mimo-v2.6-flash`) | Reading `lib.rs` at a path that does not exist | 7 of 151 tasks | **1 of 151** | 0.07 |
+| The other 8 | | no measurable change | | |
+
+Neither of the two made more tasks pass, and the plugin cost about 8–9% more agent time and input tokens. All ten are listed in [`bench/README.md`](bench/README.md#did-those-adaptations-work).
+
+**LiveCodeBench v6 was cut short:** the model account ran out of balance part-way through. On the tasks both sides had finished by then, stock DSH solved 94 and DSHRSI 96 of 105 with `mimo-v2.6-pro`, and 42 against 42 of 51 with `mimo-v2.6-flash`. For the same reason the second pass, the same tasks again on the library the first pass left behind, has not been run yet.
+
+Reproduce locally:
+
+```bash
+bench/setup.sh                                                        # toolchains, datasets, scoring code
+MIMO_API_KEY=... node bench/run.mjs polyglot --arm dsh --run dsh-p1   # stock DeepSeek Harness
+MIMO_API_KEY=... node bench/run.mjs polyglot --arm rsi --run rsi-p1   # with the plugin
+node bench/report.mjs --write                                         # tables and bench/results/*.json
+```
+
+The protocol, the cost and failure tables and the limits are in [`bench/README.md`](bench/README.md); per-task results are in [`bench/results/`](bench/results).
 
 ---
 
@@ -312,7 +384,13 @@ Every adaptation belongs to one of three layers. Each layer can be switched off 
 <details>
 <summary><strong>Does DSHRSI fine-tune or change the model?</strong></summary>
 
-No. The model's weights are untouched and nothing is trained. What changes is the harness: the code that runs around the model's prompts and tool calls. RSI here means the harness improving itself from its own runs.
+No. The model's weights are untouched and nothing is trained. What changes is the harness: the code that runs around the model's prompts and tool calls. RSI here is Recursive Self-Improvement at the level of the harness: it improves itself from its own runs, and every round starts from the harness the last round left behind.
+</details>
+
+<details>
+<summary><strong>Is this really "recursive", or just a harness that learns rules?</strong></summary>
+
+The recursion is concrete and it is in the code. A new session mounts everything the library holds, so the detectors observe a harness that has already changed. When the same trouble occurs twice in sessions that had an adaptation mounted, the model gets the current source and the evidence, and writes a stricter version; the old one is kept for rollback. Trouble met in a second workspace widens an adaptation to the whole machine. What does not recurse is the judge: detectors, trigger policy and validation gate cannot be changed by any adaptation.
 </details>
 
 <details>
@@ -336,7 +414,7 @@ The automatic tier cannot allow anything the harness would refuse, and the power
 <details>
 <summary><strong>Which models does it work with?</strong></summary>
 
-Adaptations are written by the session's current model, or by the one you set with `provider` and `model`. If the model cannot produce code that passes the gate, built-in templates take over. Live runs so far used one model, `mimo-v2.6-pro`.
+Adaptations are written by the session's current model, or by the one you set with `provider` and `model`. If the model cannot produce code that passes the gate, built-in templates take over. Runs so far used two models of one family, `mimo-v2.6-pro` and `mimo-v2.6-flash`.
 </details>
 
 <details>
@@ -363,6 +441,8 @@ It ships as an ordinary third-party plugin with the metadata the plugin pages re
 - [🔬 The Validation Gate](packages/dsh-rsi/README.md#the-validation-gate)
 - [🛠️ `dsh-rsi` Command Line](packages/dsh-rsi/README.md#command-line) · [⚙️ Configuration](packages/dsh-rsi/README.md#configuration)
 - [⚠️ Known Limits](packages/dsh-rsi/README.md#known-limits)
+- [📊 Benchmark Protocol & Results](bench/README.md)
+- [🌐 Website source](website) — recursive self-improvement, how it works, writing adaptations, evaluation; open `website/index.html` in a browser
 - [🧱 DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) — the harness this plugs into
 
 <a id="contributing"></a>
@@ -372,7 +452,7 @@ It ships as an ordinary third-party plugin with the metadata the plugin pages re
 Issues and PRs are welcome at [qybaihe/dshrsi](https://github.com/qybaihe/dshrsi). Before submitting a PR:
 
 ```bash
-npm install && npm test    # 129 unit tests, then 29 end-to-end tests; no key needed
+npm install && npm test    # 130 unit tests, then 29 end-to-end tests; no key needed
 ```
 
 The end-to-end tests replace the model endpoint with a simulated one. Everything else is real: the `dsh` process, tool execution, the session log and plugin installation.
@@ -390,6 +470,8 @@ packages/dsh-rsi/        the plugin bundle (plain ESM, no build step)
 market/index.json        a plugin index that can be added to DSH
 test/unit/  test/e2e/    unit tests, and end-to-end tests on a real dsh process
 test/live/               runs against a real model (need MIMO_API_KEY)
+bench/                   benchmarks: stock DSH against DSH + dsh-rsi
+website/                 the website (static pages, no build step)
 ```
 
 ## 📄 License

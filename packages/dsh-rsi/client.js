@@ -4,7 +4,7 @@
 //   - a badge in the session header, and
 //   - a pill in the row under the composer that opens the list of adaptations at work.
 // Both stay out of the page until there is something to show, and both light up
-// at the moment the harness rewrites itself.
+// at the moment the harness improves itself.
 //
 // Everything displayed comes from the "dshRsi" session projection, which the
 // host half folds from the session log (src/surface.js). This file folds nothing
@@ -21,14 +21,14 @@ window.__ModuleLoader__.load({
 
     const NS = 'dsh-rsi'
     const KEY = 'dshRsi'
-    /** How long the "just rewrote itself" state stays lit. */
+    /** How long the "just improved itself" state stays lit. */
     const FRESH_MS = 9000
 
     const DICT = {
       en: {
         'badge.title': 'Harness adaptations at work in this session: {count}',
         'strip.summary': 'Harness adapted to you',
-        'strip.evolved': 'The harness just rewrote itself',
+        'strip.evolved': 'The harness just improved itself',
         'strip.count': '{count} at work',
         'strip.learned': '{count} learned here',
         'strip.refused': '{count} stopped',
@@ -45,13 +45,13 @@ window.__ModuleLoader__.load({
       zh: {
         'badge.title': '本会话中有 {count} 个 Harness 自己写的适配在生效',
         'strip.summary': 'Harness 已为你适配',
-        'strip.evolved': 'Harness 刚刚改写了自己',
+        'strip.evolved': 'Harness 刚刚改进了自己',
         'strip.count': '{count} 个在生效',
         'strip.learned': '本会话学到 {count} 个',
         'strip.refused': '拦下 {count} 次调用',
         'strip.show': '展开适配列表',
         'strip.hide': '收起适配列表',
-        'panel.title': 'Harness 是怎样改造自己的',
+        'panel.title': 'Harness 是怎样改进自己的',
         'panel.lead': '这些是 Harness 观察这台机器、这个项目和你之后，给自己写的代码，正在本会话中运行。',
         'chip.standing': '已写入提示词',
         'chip.evolved': '本会话中学到',

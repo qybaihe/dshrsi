@@ -1,5 +1,6 @@
-// DSHRSI: a DeepSeek Harness plugin through which the harness rewrites itself
-// around its user.
+// DSHRSI: Recursive Self-Improvement for DeepSeek Harness. A plugin through
+// which the harness improves itself from its own runs, each improvement being
+// where the next one starts.
 //
 // This file is the host binding only. It turns harness extension points into
 // calls on the engine (src/engine.js) and turns the engine's answers back

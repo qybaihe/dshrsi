@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="zh-CN" data-lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>怎么写适配 · DSHRSI</title>
+<meta name="title-zh" content="怎么写适配 · DSHRSI">
+<meta name="title-en" content="Writing adaptations · DSHRSI">
+<meta name="description" content="How to write a DSHRSI adaptation by hand: the file format, the API, six worked examples, and how to put it into a repository so a team shares it.">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/site.css">
+<script>document.documentElement.dataset.lang=(function(){try{return localStorage.getItem('dshrsi-lang')}catch(e){return null}})()||(/^zh\b/i.test(navigator.language||'')?'zh':'en')</script>
+</head>
+<body data-page="guide">
+<main>
+
+<div class="hero page">
+  <div class="wrap">
+    <div class="kicker"><span lang="zh">怎么写</span><span lang="en">Writing guide</span></div>
+    <h1><span lang="zh">Harness 自己会写，<em>你也可以亲手写</em></span><span lang="en">The harness writes them. <em>So can you</em></span></h1>
+    <p class="lede">
+      <span lang="zh">一个适配就是一个 JavaScript 文件。模型写的和你写的是同一种格式，过同一道校验关。把团队的规矩写成适配放进仓库，每个人的 Harness 都会照着执行。</span>
+      <span lang="en">An adaptation is one JavaScript file. What the model writes and what you write share one format and pass the same gate. Put your team's rules into the repository as adaptations, and everyone's harness enforces them.</span>
+    </p>
+  </div>
+</div>
+
+<div class="wrap doc">
+  <nav class="toc" aria-label="On this page">
+    <span class="t"><span lang="zh">本页</span><span lang="en">On this page</span></span>
+    <a href="#anatomy"><span lang="zh">一个适配长什么样</span><span lang="en">Anatomy</span></a>
+    <a href="#api"><span lang="zh">API 一览</span><span lang="en">The API</span></a>
+    <a href="#recipes"><span lang="zh">六个例子</span><span lang="en">Six examples</span></a>
+    <a href="#project"><span lang="zh">放进仓库</span><span lang="en">Into the repository</span></a>
+    <a href="#rules"><span lang="zh">写的时候的规矩</span><span lang="en">Rules of thumb</span></a>
+    <a href="#mine"><span lang="zh">让 Harness 来写</span><span lang="en">Let the harness write</span></a>
+  </nav>
+
+  <article class="prose">
+    <h2 id="anatomy" style="margin-top:0"><span lang="zh">一个适配长什么样</span><span lang="en">Anatomy of an adaptation</span></h2>
+    <p><span lang="zh">一个文件，调用一次 <code>define()</code>。下面这段是实测里模型自己写出来的：这台机器没有 <code>python</code>，它把这个事实写进提示词，并在命令执行之前把它拦下。</span><span lang="en">One file, one call to <code>define()</code>. The model wrote this one itself in a measured run: the machine has no <code>python</code>, so it states the fact in the prompt and refuses the command before it runs.</span></p>
+<pre><code>define({
+  title: 'Route python invocations to python3',
+  description: 'This machine has python3 and no python: refuses python and says what to run instead.',
+  capabilities: ['deny', 'prompt'],
+  setup(h) {
+    h.promptSection('On this machine there is no `python` executable; use `python3`.')
+    h.beforeTool({ tool: 'bash', command: /(^|[;&amp;|(]\s*)python(\s|$)/ },
+      () =&gt; h.deny('`python` is not installed on this machine. Use `python3` instead.'))
+  },
+})</code></pre>
+    <div class="table"><table>
+      <thead><tr><th><span lang="zh">字段</span><span lang="en">Field</span></th><th><span lang="zh">含义</span><span lang="en">Meaning</span></th></tr></thead>
+      <tbody>
+        <tr><td><code>title</code></td><td><span lang="zh">简短的祈使句。界面、<code>/rsi</code> 和给模型的通知里都显示它。</span><span lang="en">A short imperative. The UI, <code>/rsi</code> and the notices to the model show it.</span></td></tr>
+        <tr><td><code>description</code></td><td><span lang="zh">一句话：它消除什么麻烦，怎么消除。</span><span lang="en">One sentence: which trouble it removes, and how.</span></td></tr>
+        <tr><td><code>capabilities</code></td><td><span lang="zh">代码用到的每一种能力。声明了没用、用了没声明，都过不了校验。</span><span lang="en">Every capability the code uses. Declared but unused, or used but undeclared, both fail validation.</span></td></tr>
+        <tr><td><code>setup(h)</code></td><td><span lang="zh">在 <code>h</code> 上注册处理函数。<code>h</code> 是适配接触 Harness 的唯一通道。</span><span lang="en">Registers handlers on <code>h</code>, the only way an adaptation reaches the harness.</span></td></tr>
+      </tbody>
+    </table></div>
+    <p><span lang="zh">不能 <code>import</code>，不能 <code>require</code>，没有 <code>process</code>，没有网络，没有文件访问。</span><span lang="en">No <code>import</code>, no <code>require</code>, no <code>process</code>, no network, no file access.</span></p>
+
+    <h2 id="api"><span lang="zh">API 一览</span><span lang="en">The API</span></h2>
+    <div class="table"><table>
+      <thead><tr><th><span lang="zh">注册</span><span lang="en">Registration</span></th><th><span lang="zh">什么时候运行</span><span lang="en">When it runs</span></th><th><span lang="zh">可以返回</span><span lang="en">May return</span></th></tr></thead>
+      <tbody>
+        <tr><td><code>h.beforeTool(filter, call =&gt; …)</code></td><td><span lang="zh">工具调用执行之前</span><span lang="en">Before a tool call runs</span></td><td><code>h.deny(reason)</code> · <code>h.ask(reason)</code></td></tr>
+        <tr><td><code>h.onToolResult(filter, (call, result) =&gt; …)</code></td><td><span lang="zh">工具结果返回之后</span><span lang="en">After a tool result comes back</span></td><td><code>h.annotate(text)</code> · <code>h.block(feedback)</code> · <code>h.replace(text)</code></td></tr>
+        <tr><td><code>h.beforeStep(state =&gt; …)</code></td><td><span lang="zh">每次模型请求之前</span><span lang="en">Before every model request</span></td><td><code>h.note(text)</code></td></tr>
+        <tr><td><code>h.beforeStop(async turn =&gt; …)</code></td><td><span lang="zh">这一轮即将结束时</span><span lang="en">When a turn is about to end</span></td><td><code>h.continueWith(text)</code></td></tr>
+        <tr><td><code>h.promptSection(text)</code></td><td><span lang="zh">一直生效</span><span lang="en">Always in effect</span></td><td><span lang="zh">系统提示词里的一段常驻内容</span><span lang="en">A standing section of the system prompt</span></td></tr>
+        <tr><td><code>h.addTool({ name, description, parameters, run })</code></td><td><span lang="zh">模型调用这个工具时</span><span lang="en">When the model calls the tool</span></td><td><span lang="zh">字符串（需批准）</span><span lang="en">A string (needs approval)</span></td></tr>
+        <tr><td><code>await h.exec(command, { timeoutMs })</code></td><td><span lang="zh">在 <code>beforeStop</code> 和 <code>addTool.run</code> 里</span><span lang="en">Inside <code>beforeStop</code> and <code>addTool.run</code></span></td><td><code>{ ok, exitCode, text }</code><span lang="zh">（需批准）</span><span lang="en"> (needs approval)</span></td></tr>
+      </tbody>
+    </table></div>
+    <h3><span lang="zh">过滤器和传进来的数据</span><span lang="en">Filters and the data handlers get</span></h3>
+<pre><code><span class="c">// filter: omit it to see every call</span>
+{ tool: 'bash' }                          <span class="c">// or ['read', 'edit']</span>
+{ tool: 'bash', command: /regex/ }        <span class="c">// or a 'prefix'; tested against the full command line</span>
+{ tool: ['edit', 'write'], path: /regex/ }
+
+<span class="c">// call</span>
+{ tool, args, command, commandHead, commandFamily, path }
+
+<span class="c">// result: shell commands report failure through exitCode and text, not isError</span>
+{ ok, isError, exitCode, text, bytes }
+
+<span class="c">// turn, in beforeStop</span>
+{ calls: [{ tool, command, path, ok, exitCode, mutating, verifying, text }], edits: [paths], verifiedAfterEdits }</code></pre>
+    <p><span lang="zh">处理函数在不适用时返回 <code>undefined</code>。它必须快，不能抛错：抛错不会影响那次工具调用，但累计三次，这个适配就被隔离。</span><span lang="en">A handler returns <code>undefined</code> when the case does not apply. It has to be fast and must not throw: a throw never affects the tool call, but after three the adaptation is quarantined.</span></p>
+
+    <h2 id="recipes"><span lang="zh">六个例子</span><span lang="en">Six examples</span></h2>
+    <p><span lang="zh">下面每一段都用插件自己的校验代码检查过，可以直接复制。</span><span lang="en">Each of these was checked with the plugin's own validation code and can be copied as it is.</span></p>
+
+    <h3><span lang="zh">1. 拒绝：仓库里不许强推</span><span lang="en">1. Refuse: no force-push in this repository</span></h3>
+<pre><code>define({
+  title: 'Never force-push in this repository',
+  description: 'Refuses git push --force and states the rule, so shared history is not rewritten.',
+  capabilities: ['deny', 'prompt'],
+  setup(h) {
+    h.promptSection('In this repository, never force-push. Add a new commit instead.')
+    h.beforeTool({ tool: 'bash', command: /(^|[;&amp;|(]\s*)git\s+push\b[^;&amp;|]*\s(--force(-with-lease)?|-f)(\s|$)/ },
+      () =&gt; h.deny('Force-pushing is not allowed in this repository. Add a new commit and push that.'))
+  },
+})</code></pre>
+
+    <h3><span lang="zh">2. 询问：改数据库迁移之前先问人</span><span lang="en">2. Ask: check with a person before editing migrations</span></h3>
+<pre><code>define({
+  title: 'Ask before editing database migrations',
+  description: 'Edits under migrations/ need the user to approve them first.',
+  capabilities: ['ask'],
+  setup(h) {
+    h.beforeTool({ tool: ['edit', 'write'], path: /(^|\/)migrations\// },
+      call =&gt; h.ask(`This changes a database migration (${call.path}). Migrations that have shipped must not be edited.`))
+  },
+})</code></pre>
+
+    <h3><span lang="zh">3. 要求验证：没跑测试不许收工</span><span lang="en">3. Demand verification: no finishing without running the tests</span></h3>
+<pre><code>define({
+  title: 'Run the tests before finishing',
+  description: 'Keeps a turn open when files were edited and nothing was run to check them.',
+  capabilities: ['verify'],
+  setup(h) {
+    h.beforeStop((turn) =&gt; {
+      if (turn.edits.length === 0 || turn.verifiedAfterEdits) return undefined
+      return h.continueWith(`You edited ${turn.edits.length} file(s) and have not run anything since. Run \`npm test\` and fix what fails before you finish.`)
+    })
+  },
+})</code></pre>
+
+    <h3><span lang="zh">4. 补充说明：一个常见报错该怎么处理</span><span lang="en">4. Annotate: what to do about a familiar error</span></h3>
+<pre><code>define({
+  title: 'Explain the stale lockfile error',
+  description: 'When pnpm reports an outdated lockfile, says which command fixes it.',
+  capabilities: ['annotate'],
+  setup(h) {
+    h.onToolResult({ tool: 'bash', command: /(^|[;&amp;|(]\s*)pnpm\s/ }, (call, result) =&gt; {
+      if (result.exitCode === 0 || !/ERR_PNPM_OUTDATED_LOCKFILE/.test(result.text)) return undefined
+      return h.annotate('The lockfile is behind package.json. Run `pnpm install --no-frozen-lockfile` once, then repeat the command.')
+    })
+  },
+})</code></pre>
+
+    <h3><span lang="zh">5. 机器事实：缺一个命令</span><span lang="en">5. A fact about the machine: a missing command</span></h3>
+    <p><span lang="zh">就是本页开头那一段。注意它的正则只匹配“在命令位置上运行 <code>python</code>”，不会拦 <code>command -v python</code>：模型要靠这类命令去找替代品。</span><span lang="en">The one at the top of this page. Note that its pattern matches <code>python</code> only where a command is run, so <code>command -v python</code> still works: that is how the model looks for an alternative.</span></p>
+
+    <h3><span lang="zh">6. 新增工具（需批准）</span><span lang="en">6. A new tool (needs approval)</span></h3>
+<pre><code>define({
+  title: 'Add a tool that reports the service ports',
+  description: 'Gives the model one call for the ports this project uses, instead of searching for them.',
+  capabilities: ['tool'],
+  setup(h) {
+    h.addTool({
+      name: 'project_ports',
+      description: 'Ports used by the services of this project.',
+      parameters: {},
+      run: async () =&gt; 'api 8787, web 5173, postgres 55432',
+    })
+  },
+})</code></pre>
+    <p><span lang="zh">用到 <code>tool</code>、<code>rewrite</code>、<code>exec</code> 的适配以 <code>proposed</code> 状态等着，直到你运行 <code>dsh-rsi approve &lt;id&gt;</code>，或者对项目里的文件运行 <code>dsh-rsi trust</code>。</span><span lang="en">An adaptation that uses <code>tool</code>, <code>rewrite</code> or <code>exec</code> waits as <code>proposed</code> until you run <code>dsh-rsi approve &lt;id&gt;</code>, or <code>dsh-rsi trust</code> for a file in a project.</span></p>
+
+    <h2 id="project"><span lang="zh">放进仓库，让全组用上</span><span lang="en">Into the repository, for the whole team</span></h2>
+    <ol class="steps">
+      <li><h3><span lang="zh">建立项目 Harness</span><span lang="en">Start a project harness</span></h3><p><span lang="zh">在仓库里运行一次，然后把 <code>.dsh-rsi/</code> 提交进去。</span><span lang="en">Run this once in the repository, then commit <code>.dsh-rsi/</code>.</span></p>
+<pre><code>dsh-rsi project init</code></pre></li>
+      <li><h3><span lang="zh">把文件放进去</span><span lang="en">Add your file</span></h3><p><span lang="zh">一个文件一个适配，文件名随意。Harness 自己学到的项目层适配，转正后也会写到这里。</span><span lang="en">One file per adaptation, named as you like. Project-layer adaptations the harness learns itself are written here too, once promoted.</span></p>
+<pre><code>.dsh-rsi/
+  harness.json
+  adaptations/
+    no-force-push.js
+    ask-before-migrations.js</code></pre></li>
+      <li><h3><span lang="zh">检查，然后接受</span><span lang="en">Check, then accept</span></h3><p><span lang="zh"><code>dsh-rsi project</code> 列出每个文件能不能通过检查、本机接受了哪些。仓库里的代码不会因为被克隆下来就运行：每台机器都要读过之后自己 <code>trust</code>，文件变了要重新接受。</span><span lang="en"><code>dsh-rsi project</code> lists whether each file passes the checks and which ones this machine has accepted. Code does not run because it was cloned: each machine runs <code>trust</code> after reading the files, and again when they change.</span></p>
+<pre><code>dsh-rsi project     <span class="c"># what is there, what passes, what this machine accepted</span>
+dsh-rsi trust       <span class="c"># accept the files as they are on disk now</span></code></pre></li>
+      <li><h3><span lang="zh">在会话里确认</span><span lang="en">Confirm it in a session</span></h3><p><span lang="zh">开一个新会话，输入 <code>/rsi</code>：能看到挂载了哪些适配、各属于哪一层、是不是来自项目 Harness。</span><span lang="en">Open a new session and type <code>/rsi</code>: it shows which adaptations are mounted, their layer, and whether they come from the project harness.</span></p></li>
+    </ol>
+    <p><span lang="zh"><code>dsh-rsi</code> 命令随插件一起装在 profile 里，不在 <code>PATH</code> 上。可以起个别名：</span><span lang="en">The <code>dsh-rsi</code> command is installed with the plugin inside the profile, not on <code>PATH</code>. An alias helps:</span></p>
+<pre><code>alias dsh-rsi="$HOME/.dsh/profiles/web/node_modules/.bin/dsh-rsi"</code></pre>
+    <div class="callout">
+      <span lang="zh"><strong>项目只能让 Harness 更保守。</strong><code>harness.json</code> 里的项目级设置可以把模式调成只记录、关掉某些判断点、调高阈值，但碰不到 <code>autonomy</code> 这类会放宽权限的设置。</span>
+      <span lang="en"><strong>A project can only make the harness more conservative.</strong> Project-level settings in <code>harness.json</code> can switch the mode to record-only, turn detectors off or raise thresholds, but cannot reach settings such as <code>autonomy</code> that would loosen anything.</span>
+    </div>
+
+    <h2 id="rules"><span lang="zh">写的时候的规矩</span><span lang="en">Rules of thumb</span></h2>
+    <ul>
+      <li><span lang="zh"><strong>匹配要窄。</strong>用具体的命令、报错文字或路径。一个什么都拦的适配过不了回归这一关。</span><span lang="en"><strong>Match narrowly.</strong> Use the specific command, error text or path. An adaptation that catches everything does not pass the regression stage.</span></li>
+      <li><span lang="zh"><strong>能强制就别只提醒。</strong>已知是错的操作，直接 <code>deny</code> 或 <code>block</code>，比在提示词里劝一句可靠。</span><span lang="en"><strong>Enforce where you can.</strong> For an action known to be wrong, <code>deny</code> or <code>block</code> is more reliable than a line of advice in the prompt.</span></li>
+      <li><span lang="zh"><strong>事实同时写进提示词。</strong>关于这台机器或这个项目的事实，再加一句 <code>h.promptSection</code>，后面的会话根本不会去犯这个错。</span><span lang="en"><strong>State facts in the prompt too.</strong> For a fact about the machine or the project, add <code>h.promptSection</code>, so later sessions do not make the mistake at all.</span></li>
+      <li><span lang="zh"><strong>在命令位置上匹配。</strong>行首，或者 <code>; &amp; | (</code> 之后。别把只是查看环境的命令也拦了。</span><span lang="en"><strong>Match at command position.</strong> The start of the line, or after <code>; &amp; | (</code>. Do not catch commands that only inspect the environment.</span></li>
+      <li><span lang="zh"><strong>要求的检查得是真检查。</strong>让它跑项目的测试或者跑改过的代码，而不是只做语法解析。</span><span lang="en"><strong>Ask for a real check.</strong> The project's tests, or running the changed code, not something that only parses the file.</span></li>
+      <li><span lang="zh"><strong>给模型看的话要短。</strong>一两句：事实是什么，该怎么做。</span><span lang="en"><strong>Keep what the model reads short.</strong> One or two sentences: the fact, and the action to take.</span></li>
+    </ul>
+
+    <h2 id="mine"><span lang="zh">不想手写：让 Harness 从历史里写</span><span lang="en">Rather not write by hand: let the harness mine the past</span></h2>
+    <p><span lang="zh">判断点也能跑在磁盘上存着的历史会话上。加上 <code>--adapt</code>，它会把发现写成待批准的适配，你逐个看过再放行。</span><span lang="en">The detectors also run over sessions stored on disk. With <code>--adapt</code> the findings become adaptations that wait for approval, and you let them through one by one after reading them.</span></p>
+<pre><code>dsh-rsi mine path/to/session.jsonl            <span class="c"># what the detectors find in a stored session</span>
+dsh-rsi mine path/to/session.jsonl --adapt    <span class="c"># propose adaptations for it</span>
+dsh-rsi show &lt;id&gt;                             <span class="c"># source, validation report, counters</span>
+dsh-rsi approve &lt;id&gt;</code></pre>
+    <p><span lang="zh">完整的命令、配置项和已知限制在<a lang="zh" href="https://github.com/qybaihe/dshrsi/blob/main/packages/dsh-rsi/README.zh.md">插件参考文档</a>里。</span><span lang="en">Every command, every setting and the known limits are in the <a lang="en" href="https://github.com/qybaihe/dshrsi/blob/main/packages/dsh-rsi/README.md">plugin reference</a>.</span></p>
+  </article>
+</div>
+
+</main>
+<script src="assets/site.js"></script>
+</body>
+</html>

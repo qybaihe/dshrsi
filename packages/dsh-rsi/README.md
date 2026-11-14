@@ -4,11 +4,11 @@
 
 **English** · [简体中文](README.zh.md)
 
-`dsh-rsi` is a plugin bundle for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (DSH) through which the harness rewrites itself.
+`dsh-rsi` brings **RSI, Recursive Self-Improvement,** to [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (DSH): a plugin bundle through which the harness improves itself from its own runs, and each improvement becomes the ground the next one is built on.
 
 Once installed, the harness watches every run: where calls keep failing, where the user corrects the model, where a turn ends without any check being run. When it finds such a spot, it has the session's model **write a piece of harness code on the spot** (an _adaptation_), passes that code through a validation gate, and mounts it into the running session **before the turn is over**. Adaptations that work are kept in a library on the machine, and the next session starts with them.
 
-The longer it runs, the closer the harness fits this machine, this person and this project. Which commands the machine lacks, what the project's rules are, what you corrected: these become part of the harness instead of a prompt that is read again every time. Rules learned in a project can also be written into the repository, and travel with the code to everyone's machine.
+That is the recursion: the improved harness runs the next session, observes it with what it already learned in place, and improves again. Adaptations that did not hold are rewritten stricter, the ones that hold are promoted, and one whose trouble turns up in a second workspace is widened to the whole machine. The longer it runs, the closer the harness fits this machine, this person and this project. Which commands the machine lacks, what the project's rules are, what you corrected: these become part of the harness instead of a prompt that is read again every time. Rules learned in a project can also be written into the repository, and travel with the code to everyone's machine.
 
 It is an ordinary plugin and changes no line of DSH's source.
 
@@ -81,12 +81,12 @@ The adaptation library is stored in `$DSH_HOME/rsi` (`~/.dsh/rsi` when `DSH_HOME
 The Web UI (the desktop app uses the same pages) shows the plugin in three places:
 
 - The **RSI** badge at the right of the session header: how many adaptations are at work in this session.
-- The **Harness adapted to you** pill under the composer: how many are at work, how many were learned in this session, how many calls were refused. Selecting it opens a list that says what each adaptation does. At the moment the harness rewrites itself, the badge and the pill light up and read "The harness just rewrote itself · <adaptation title>".
+- The **Harness adapted to you** pill under the composer: how many are at work, how many were learned in this session, how many calls were refused. Selecting it opens a list that says what each adaptation does. At the moment the harness improves itself, the badge and the pill light up and read "The harness just improved itself · <adaptation title>".
 - The slash command **/rsi**: which adaptations are mounted in this session, which layer each belongs to, and what in the library is waiting for approval.
 
 When no adaptation is at work, none of the three appears on the page. The UI reads only what is already in the session log (the harness's notices, refused tool results, the adaptation sections of the system prompt) and logs nothing of its own.
 
-![The moment the harness rewrites itself](../../assets/ui-evolving.png)
+![The moment the harness improves itself](../../assets/ui-evolving.png)
 
 ## Detectors
 

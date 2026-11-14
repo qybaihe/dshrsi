@@ -1,27 +1,31 @@
 <div align="center">
 
-[English](../../README.md) · **简体中文**
+[English](../../README.md) · **简体中文** · [繁體中文](README_zh-TW.md) · [日本語](README_ja.md) · [한국어](README_ko.md) · [Türkçe](README_tr.md) · [Русский](README_ru.md) · [Tiếng Việt](README_vi.md) · [ไทย](README_th.md) · [Deutsch](README_de.md) · [Español](README_es.md) · [Français](README_fr.md) · [Українська](README_uk.md) · [Polski](README_pl.md) · [Português (Brasil)](README_pt-BR.md) · [العربية](README_ar.md) · [فارسی](README_fa.md) · [Bahasa Indonesia](README_id.md) · [Italiano](README_it.md) · [Ελληνικά](README_el.md) · [മലയാളം](README_ml.md) · [Roman Urdu](README_ur-Latn.md) · [Română](README_ro.md)
 
 <br />
 
 <img src="../../packages/dsh-rsi/icon.svg" alt="DSHRSI" width="88" />
 
-# DSHRSI：DeepSeek Harness RSI
+# DSHRSI：DeepSeek Harness 上的递归自我改进
 
-### **观察 → 改写 → 挂载。一轮任务还没结束，Harness 已经把自己改好了。**
+### **观察 → 改进 → 在改进之上再改进。一份越用越懂你的 Harness。**
 
-**一个开源的 DeepSeek Harness 插件，把反复出现的麻烦变成 Harness 代码。代码由会话里的模型自己写，过五道校验，在这一轮结束之前挂进运行中的会话。有效的留下来，按机器、按人、按项目各存一份。**
+<img src="../../assets/rsi-trace.zh.gif" alt="一次真实运行的动画记录：原版 Harness 的 30 次会话里有 12 次发出同一个失败调用；装上 DSHRSI 后，第三次撞上时 Harness 改进了自己，之后的 22 次会话只再出现 1 次" width="960" />
 
+**RSI 是 Recursive Self-Improvement，递归自我改进。DSHRSI 是把它在 DeepSeek Harness 上做成现实的开源插件：Harness 盯着自己的每一次运行，让会话里的模型为发现的麻烦写一段 Harness 代码，过五道校验，在这一轮结束之前挂上去。然后，改进过的 Harness 去跑下一次会话，再改进一次。不微调模型，不堆提示词。是代码，会被度量，留下、改写或者扔掉。**
+
+[![RSI](https://img.shields.io/badge/RSI-Recursive_Self--Improvement-4d6bfe?style=for-the-badge)](#rsi)
 [![DeepSeek Harness](https://img.shields.io/badge/DeepSeek_Harness-0.2.2--rc.3_plugin-7c5cff?style=for-the-badge)](https://github.com/deepseek-ai/deepseek-harness)
 [![Detectors](https://img.shields.io/badge/Detectors-16-12b5e5?style=for-the-badge)](#coverage)
 [![Validation](https://img.shields.io/badge/Validation-5--Stage_Gate-0ea5e9?style=for-the-badge)](#how-it-works)
-[![Layers](https://img.shields.io/badge/Layers-Machine_%C2%B7_User_%C2%B7_Project-2563eb?style=for-the-badge)](#project-harness)
-[![Tests](https://img.shields.io/badge/Tests-129_unit_%C2%B7_29_e2e-1d4ed8?style=for-the-badge)](#contributing)
+[![Layers](https://img.shields.io/badge/Layers-Machine_%C2%B7_User_%C2%B7_Project-0284c7?style=for-the-badge)](#project-harness)
+[![Benchmarks](https://img.shields.io/badge/Benchmarks-4_Suites_%C2%B7_2_Models-2563eb?style=for-the-badge)](#benchmarks)
+[![Tests](https://img.shields.io/badge/Tests-130_unit_%C2%B7_29_e2e-1d4ed8?style=for-the-badge)](#contributing)
 [![MIT License](https://img.shields.io/badge/License-MIT-38bdf8?style=for-the-badge)](../../LICENSE)
 
 **[📖 插件参考文档](../../packages/dsh-rsi/README.zh.md) · [🧩 项目 Harness](../../packages/dsh-rsi/README.zh.md#layers-and-the-project-harness) · [🔬 校验关](../../packages/dsh-rsi/README.zh.md#the-validation-gate) · [⚠️ 已知限制](../../packages/dsh-rsi/README.zh.md#known-limits) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
 
-[快速开始](#quick-start) · [工作原理](#how-it-works) · [实测结果](#measured) · [判断点与能力](#coverage) · [项目 Harness](#project-harness) · [安全默认值](#security) · [常见问题](#faq)
+[RSI 是什么](#rsi) · [快速开始](#quick-start) · [工作原理](#how-it-works) · [实测结果](#measured) · [基准评测](#benchmarks) · [判断点与能力](#coverage) · [项目 Harness](#project-harness) · [安全默认值](#security) · [常见问题](#faq)
 
 </div>
 
@@ -32,7 +36,7 @@
 > 适配是模型写的代码，运行在你的 Harness 内部。它的隔离防的是写错，**防不了恶意代码**。运行之前请先读[校验关](../../packages/dsh-rsi/README.zh.md#the-validation-gate)。
 
 <div align="center">
-<img src="../../assets/ui-evolving.png" alt="一次 DeepSeek Harness 会话：两次工具调用以 exit code 127 失败，随后 RSI 徽标和输入框下方的状态条亮起，显示 The harness just rewrote itself" width="1200" />
+<img src="../../assets/ui-evolving.png" alt="一次 DeepSeek Harness 会话：两次工具调用以 exit code 127 失败，随后 RSI 徽标和输入框下方的状态条亮起，Harness 正在改进自己" width="1200" />
 </div>
 
 <br />
@@ -48,7 +52,7 @@
 <td width="33%" valign="top">
 
 ### 🧬 有了 DSHRSI
-麻烦再次出现时，模型写一段 Harness 代码，过校验关，**当轮生效**。对真实模型跑的 3 轮里，适配写出之后的 **7 次会话 7 次**都没有失败调用。
+麻烦再次出现时，模型写一段 Harness 代码，过校验关，**当轮生效**。对真实模型跑的 3 轮里，适配写出之后的 **7 次会话 7 次**都没有失败调用。下一次改进就从这里开始。
 
 </td>
 <td width="33%" valign="top">
@@ -59,6 +63,24 @@
 </td>
 </tr>
 </table>
+
+---
+
+<a id="rsi"></a>
+
+## 🔁 RSI = Recursive Self-Improvement，递归自我改进
+
+不是 “rewrite itself”。**递归自我改进**：一个系统用自己的能力改进自己，改进后的系统再去做下一轮。三个词，DSHRSI 每一个都得做到：
+
+| | 要满足什么 | DSHRSI 怎么做到 |
+| :--- | :--- | :--- |
+| **自我（Self）** | 动手的和被改的是同一个系统 | Harness 改的是 Harness。适配由踩到坑的那次会话里的模型来写，没有人在外面调它 |
+| **改进（Improvement）** | “更好”必须能检验 | 每个适配挂载之前先过五道校验，之后的会话还要再考它：管用的转正，出错的隔离 |
+| **递归（Recursive）** | 这一轮的产出是下一轮的起点 | 下一次会话跑在改进过的 Harness 上，也在它上面被观察。没管住的适配会根据证据被改写得更严；第二个工作目录里也用得上的，扩大到整台机器；项目的规矩跟着仓库走到每个同事的 Harness 里 |
+
+**四个环，一环套一环**：一轮任务之内 → 会话与会话之间 → 改进本身被改进 → 从项目到机器再到团队。
+
+有意**不**递归的部分：模型权重永远不变；判断点、触发策略和校验关是固定的代码，任何适配都碰不到。会改自己的那部分，由它改不了的那部分来检查。
 
 ---
 
@@ -81,7 +103,7 @@ dsh web
 ```
 
 ### 2. 照常干活
-不需要任何配置。同样的麻烦再次出现之前，DSHRSI 不露面。出现之后，**RSI** 徽标亮起，输入框下方的状态条显示 *The harness just rewrote itself*，下一次会话一开始就带着这次学到的东西：
+不需要任何配置。同样的麻烦再次出现之前，DSHRSI 不露面。出现之后，**RSI** 徽标亮起，输入框下方的状态条告诉你 Harness 刚刚改了自己，下一次会话一开始就带着这次学到的东西：
 
 <div align="center">
 <img src="../../assets/ui-panel-dark.png" alt="下一次会话：状态条展开，列出正在生效的适配和它在执行前拦下的调用" width="1200" />
@@ -115,7 +137,7 @@ npx dsh web
 
 <a id="how-it-works"></a>
 
-## 🧠 DSHRSI 的工作原理：Harness 内部的闭环
+## 🧠 DSHRSI 的工作原理：Harness 内部的闭环，一遍又一遍
 
 Skill、记忆文件、更长的系统提示词，都是上下文层面的做法：加一段文字，指望模型照做。它不照做的时候，同一个失败调用下一次会话还会再来一遍。
 
@@ -141,6 +163,7 @@ flowchart LR
     F --> G["适配库：转正 · 隔离 · 修订"]
     G --> H["仓库里的 .dsh-rsi/"]
   end
+  G -. "下一次会话从这里开始" .-> A
 ```
 
 | 阶段 | 机制 | 效果 |
@@ -150,6 +173,7 @@ flowchart LR
 | **3. 校验** | 静态 → 加载 → 重演 → 回归 → 权限。适配必须对触发它的调用有所动作，并且不能碰本次会话里任何一个成功的调用。 | 什么都不做的代码、把本来好好的东西弄坏的代码，永远挂不上去。 |
 | **4. 挂载** | 适配运行在独立的 `node:vm` 上下文里，和宿主之间只有一个 JSON 桥，每次调用都有超时；下一次模型请求之前生效。 | 踩坑的那一轮自己就先受益。 |
 | **5. 沉淀与共享** | 每台机器一个适配库，带账本和审计记录。有效的转正，出错的隔离，没拦住的改写成更严的版本，项目规矩写进 `.dsh-rsi/`。 | 下一次会话一开始就是适配过的；同事 `dsh-rsi trust` 之后拿到项目的规矩。 |
+| **↻ 再来一遍** | 下一次会话跑在第 5 步留下的 Harness 上，第 1 步带着所有已挂载的适配去观察它。 | 改进建立在改进之上。这就是递归。 |
 
 ---
 
@@ -159,7 +183,7 @@ flowchart LR
 
 这些数字来自真实模型 `mimo-v2.6-pro` 跑真实的 `dsh` 会话（`npm run test:live`）。表里没有任何模拟的数据。
 
-> **怎么读这张表：** 样本很小。一个模型、三个场景、每个场景几次会话。它说明这条链路是通的，**不是**成功率的统计结论。速度也没有变快：写一次适配要等模型 30–60 秒。
+> **怎么读这张表：** 样本很小。一个模型、三个场景、每个场景几次会话。它说明这条链路是通的，**不是**成功率的统计结论。速度也没有变快：写一次适配要等模型 30–60 秒。规模更大的对照在[基准评测](#benchmarks)里。
 
 | 场景 | 没有 DSHRSI | 有 DSHRSI | Harness 写了什么 |
 | :--- | :--- | :--- | :--- |
@@ -200,9 +224,57 @@ MIMO_API_KEY=... npm run test:live -- python --sessions 5 --off    # 对照组�
 | `negative-feedback`、`approval-denied`、`context-pressure`、`model-instability` | 只用构造的事件测过，没有在真实会话里触发过 |
 | 自动化的浏览器测试 | 没有。界面是在真实的 `dsh web` 页面里手工走查的，亮色和暗色都看过 |
 | ACP 和 SDK profile | 没有界面，也没有验证 |
-| `mimo-v2.6-pro` 以外的模型 | 还没有实测 |
+| MiMo v2.6 系列以外的模型 | 还没有跑过。基准评测用了 `mimo-v2.6-pro` 和 `mimo-v2.6-flash`，上面三个场景用的是 `mimo-v2.6-pro` |
 
 </details>
+
+---
+
+<a id="benchmarks"></a>
+
+## 📊 基准评测：四个基准，两个模型，逐题对照
+
+原版 DeepSeek Harness 对装上 DSHRSI 的 DeepSeek Harness，跑了 3,390 个真实的 `dsh` 会话：同一个模型、同样的提示词、同样的沙箱、同样的题。插件用默认配置，每个基准都从空的适配库开始。跑完了的三个基准上解出的题数：
+
+<!-- bench:table:start -->
+| 基准 | 题数 | `mimo-v2.6-pro` 原版 | `mimo-v2.6-pro` + DSHRSI | `mimo-v2.6-flash` 原版 | `mimo-v2.6-flash` + DSHRSI |
+| :--- | ---: | ---: | ---: | ---: | ---: |
+| **Aider Polyglot**，一次通过 | 225 | 224 (99.6%) | 224 (99.6%) | 220 (97.8%) | 223 (99.1%) |
+| **Aider Polyglot**，两次以内 | 225 | 225 (100.0%) | 225 (100.0%) | 225 (100.0%) | 225 (100.0%) |
+| **HumanEval** | 164 | 163 (99.4%) | 162 (98.8%) | 162 (98.8%) | 162 (98.8%) |
+| **HumanEval+** | 164 | 156 (95.1%) | 157 (95.7%) | 153 (93.3%) | 153 (93.3%) |
+| **MBPP** | 378 | 374 (98.9%) | 371 (98.1%) | 368 (97.4%) | 369 (97.6%) |
+| **MBPP+** | 378 | 320 (84.7%) | 319 (84.4%) | 308 (81.5%) | 315 (83.3%) |
+<!-- bench:table:end -->
+
+<div align="center">
+<img src="../../assets/bench-flash.zh.png" alt="mimo-v2.6-flash, DSH → DSH + DSHRSI: Aider Polyglot 220 → 223 / 225 (+3), HumanEval 162 → 162 / 164, HumanEval+ 153 → 153 / 164, MBPP 368 → 369 / 378 (+1), MBPP+ 308 → 315 / 378 (+7). Rust lib.rs: 12 / 30 → 5 / 30, 7 / 22 → 1 / 22" width="960" />
+</div>
+
+> **怎么读这张表：** 论解出的题数，两套 Harness **分不出高下**。最大的正差是 +7（`mimo-v2.6-flash` 的 MBPP+），最大的负差是 −3（`mimo-v2.6-pro` 的 MBPP），在同一批题上做精确 McNemar 检验，没有一项差别站得住（最小的 p = 0.17）。智能体可以自己跑代码时，这几个基准对两个模型都已接近到顶；而且每道题都是一个全新的干净目录，很少有麻烦会重复出现，Harness 没有多少可学的。
+
+**DSHRSI 确实做了的事，是在没有任何提示的情况下改自己。** 八轮运行里，模型一共写出 **56 个适配**，其中 15 个起过作用，这当中又有 10 个扩大到了整台机器。对这 10 个，我们逐个取它生效之后才开始的题，和原版 DSH 在同样这些题上比：
+
+| 模型写出的适配 | 它针对的失败 | 原版 DSH | DSH + DSHRSI | p |
+| :--- | :--- | ---: | ---: | ---: |
+| *Stop inline python checks that abort on first mismatch*（MBPP，`mimo-v2.6-pro`） | 测试脚本在第一个断言不符时就中断 | 310 题里 16 题 | **310 题里 3 题** | 0.002 |
+| *Redirect missing lib.rs reads to a glob lookup*（Polyglot，`mimo-v2.6-flash`） | 去一个不存在的路径读 `lib.rs` | 151 题里 7 题 | **151 题里 1 题** | 0.07 |
+| 另外 8 个 | | 量不出变化 | | |
+
+这两个都没有让更多的题通过；装上插件多花大约 8–9% 的用时和输入 token。十个都列在 [`bench/README.md`](../../bench/README.md#did-those-adaptations-work) 里。
+
+**LiveCodeBench v6 没有跑完**：模型账户的余额在中途用尽。只看两边都在那之前完成的题：`mimo-v2.6-pro` 是 105 题里原版解出 94、DSHRSI 解出 96，`mimo-v2.6-flash` 是 51 题里 42 对 42。第 2 轮（带着第 1 轮留下的适配库把同样的题再跑一遍）也因为同样的原因还没有跑。
+
+在本地复现：
+
+```bash
+bench/setup.sh                                                        # 工具链、数据集、评分代码
+MIMO_API_KEY=... node bench/run.mjs polyglot --arm dsh --run dsh-p1   # 原版 DeepSeek Harness
+MIMO_API_KEY=... node bench/run.mjs polyglot --arm rsi --run rsi-p1   # 装上插件
+node bench/report.mjs --write                                         # 表格和 bench/results/*.json
+```
+
+评测方法、开销和失败调用的表格、已知限制都在 [`bench/README.md`](../../bench/README.md) 里；每道题的结果在 [`bench/results/`](../../bench/results) 里。
 
 ---
 
@@ -312,7 +384,13 @@ define({
 <details>
 <summary><strong>DSHRSI 会微调或改动模型吗？</strong></summary>
 
-不会。模型权重不动，也没有任何训练。变的是 Harness：围绕模型的提示词和工具调用运行的那层代码。这里的 RSI 指的是 Harness 从自己的执行过程里改进自己。
+不会。模型权重不动，也没有任何训练。变的是 Harness：围绕模型的提示词和工具调用运行的那层代码。这里的 RSI 是 Harness 这一层的递归自我改进：它从自己的运行里改进自己，每一轮都从上一轮留下的 Harness 出发。
+</details>
+
+<details>
+<summary><strong>这真的是“递归”吗，还是只是一个会记规矩的 Harness？</strong></summary>
+
+递归是具体的，就在代码里。新会话会挂载适配库里的全部适配，所以判断点观察的是一份已经变过的 Harness。同一个麻烦在挂着适配的会话里又出现两次，模型会拿到当前的源码和“没管住”的证据，写一个更严的版本，旧版本留着以便回滚。同一个麻烦在第二个工作目录里出现，适配就扩大到整台机器。不递归的是裁判：判断点、触发策略和校验关，任何适配都改不了。
 </details>
 
 <details>
@@ -336,7 +414,7 @@ define({
 <details>
 <summary><strong>支持哪些模型？</strong></summary>
 
-适配由会话当前的模型来写，也可以用 `provider` 和 `model` 指定另一个。模型写不出能过校验关的代码时，由内置模板接手。目前的实测只用过一个模型：`mimo-v2.6-pro`。
+适配由会话当前的模型来写，也可以用 `provider` 和 `model` 指定另一个。模型写不出能过校验关的代码时，由内置模板接手。目前跑过同一个系列的两个模型：`mimo-v2.6-pro` 和 `mimo-v2.6-flash`。
 </details>
 
 <details>
@@ -363,6 +441,8 @@ define({
 - [🔬 校验关](../../packages/dsh-rsi/README.zh.md#the-validation-gate)
 - [🛠️ `dsh-rsi` 命令行](../../packages/dsh-rsi/README.zh.md#command-line) · [⚙️ 配置](../../packages/dsh-rsi/README.zh.md#configuration)
 - [⚠️ 已知限制](../../packages/dsh-rsi/README.zh.md#known-limits)
+- [📊 评测方法与结果](../../bench/README.md)
+- [🌐 官网源码](../../website) — 递归自我改进、技术路线、怎么写适配、评测；用浏览器打开 `website/index.html`
 - [🧱 DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) — 这个插件所接入的 Harness
 
 <a id="contributing"></a>
@@ -372,7 +452,7 @@ define({
 欢迎在 [qybaihe/dshrsi](https://github.com/qybaihe/dshrsi) 提 Issue 和 PR。提交 PR 之前：
 
 ```bash
-npm install && npm test    # 先跑 129 个单元测试，再跑 29 个端到端测试，不需要任何密钥
+npm install && npm test    # 先跑 130 个单元测试，再跑 29 个端到端测试，不需要任何密钥
 ```
 
 端到端测试用一个模拟的模型服务顶替模型接口，其余都是真的：真实的 `dsh` 进程、工具执行、会话日志和插件安装。
@@ -390,6 +470,8 @@ packages/dsh-rsi/        插件包本体（纯 ESM，无构建步骤）
 market/index.json        可以加进 DSH 的插件源索引
 test/unit/  test/e2e/    单元测试，和跑在真实 dsh 进程上的端到端测试
 test/live/               真实模型实测（需要 MIMO_API_KEY）
+bench/                   基准评测：原版 DSH 对 DSH + dsh-rsi
+website/                 官网（静态页面，无构建步骤）
 ```
 
 ## 📄 许可证

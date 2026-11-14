@@ -28,7 +28,7 @@ const web = manifest.repository.url.replace(/^git\+/, '').replace(/\.git$/, '')
 const index = {
   format: 1,
   title: { en: 'DSHRSI', zh: 'DSHRSI' },
-  description: { en: 'The DeepSeek Harness that rewrites itself.', zh: '会自己改造自己的 DeepSeek Harness。' },
+  description: { en: 'Recursive Self-Improvement for DeepSeek Harness.', zh: 'DeepSeek Harness 上的递归自我改进。' },
   plugins: [{
     name: manifest.name,
     title: { en: en.title, zh: zh.title },

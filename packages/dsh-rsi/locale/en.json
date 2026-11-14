@@ -1,6 +1,6 @@
 {
   "meta": {
-    "title": "DSHRSI: the harness that rewrites itself",
+    "title": "DSHRSI: Recursive Self-Improvement for the harness",
     "description": "Watches every session for trouble that repeats: a command this machine does not have, a correction you had to give, a turn that ends without checking its work. When it finds one, it has the session model write a small piece of harness code for it, checks that code, and mounts it into the running session; what works is kept for later sessions. Adaptations belong to one of three layers (this machine, you, this project), and project ones can be written into the repository under .dsh-rsi and shared. In the Web UI, a \"RSI\" badge in the session header and a \"Harness adapted to you\" pill under the message box show what is at work; type /rsi for the full account. Writing an adaptation costs one extra model request on the session's own model. Nothing leaves the machine. Adaptations can refuse or question a tool call and add text for the model; they cannot allow what the harness would refuse. Switching the plugin off unmounts every adaptation and leaves the library on disk.",
     "detail": "docs/DETAIL.md"
   }

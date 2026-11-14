@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="zh-CN" data-lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>递归自我改进 · DSHRSI</title>
+<meta name="title-zh" content="递归自我改进 · DSHRSI">
+<meta name="title-en" content="Recursive self-improvement · DSHRSI">
+<meta name="description" content="What recursive self-improvement means in DSHRSI: four loops in which the harness improves itself, and the parts that are deliberately not recursive.">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/site.css">
+<script>document.documentElement.dataset.lang=(function(){try{return localStorage.getItem('dshrsi-lang')}catch(e){return null}})()||(/^zh\b/i.test(navigator.language||'')?'zh':'en')</script>
+</head>
+<body data-page="rsi">
+<main>
+
+<div class="hero page">
+  <div class="wrap">
+    <div class="kicker">RSI · Recursive Self-Improvement</div>
+    <h1><span lang="zh">递归自我改进，<em>落在 Harness 这一层</em></span><span lang="en">Recursive self-improvement, <em>at the level of the harness</em></span></h1>
+    <p class="lede">
+      <span lang="zh">递归自我改进说的是：一个系统用自己的能力改进自己，改进之后的系统再去做下一轮改进。DSHRSI 把这个闭环接在智能体真正干活的地方，也就是 Harness 上。</span>
+      <span lang="en">Recursive self-improvement means a system uses its own abilities to improve itself, and the improved system carries out the next round. DSHRSI closes that loop where an agent does its work: in the harness.</span>
+    </p>
+  </div>
+</div>
+
+<section>
+  <div class="wrap">
+    <div class="head">
+      <div class="kicker"><span lang="zh">先把词说清楚</span><span lang="en">The term, first</span></div>
+      <h2><span lang="zh">要同时满足三件事，才配叫 RSI</span><span lang="en">Three things have to hold at once</span></h2>
+    </div>
+    <div class="grid c3">
+      <div class="card"><div class="num">01 · SELF</div><h3><span lang="zh">改的是自己</span><span lang="en">It changes itself</span></h3><p><span lang="zh">不是人在外面调参数，也不是另一个系统来训练它。动手的和被改的是同一个系统。</span><span lang="en">No one tunes it from outside and no other system trains it. What acts and what is changed are the same system.</span></p></div>
+      <div class="card"><div class="num">02 · IMPROVEMENT</div><h3><span lang="zh">改完确实更好</span><span lang="en">The change is an improvement</span></h3><p><span lang="zh">“更好”要能检验。改动先过关，装上之后还要拿后来的运行来对账。</span><span lang="en">Better has to be checkable. A change passes a gate first, and later runs are held against it afterwards.</span></p></div>
+      <div class="card"><div class="num">03 · RECURSIVE</div><h3><span lang="zh">这一轮的产出是下一轮的起点</span><span lang="en">One round's output starts the next</span></h3><p><span lang="zh">改进不是做一次就停。改过的系统继续运行，继续发现问题，继续改，改进叠在改进上。</span><span lang="en">It does not stop after one change. The changed system keeps running, keeps finding trouble and keeps changing, improvement on top of improvement.</span></p></div>
+    </div>
+  </div>
+</section>
+
+<section class="soft">
+  <div class="wrap">
+    <div class="head">
+      <div class="kicker"><span lang="zh">递归在哪</span><span lang="en">Where the recursion is</span></div>
+      <h2><span lang="zh">四个环，一个套一个</span><span lang="en">Four loops, each inside the next</span></h2>
+      <p><span lang="zh">每个环的产出，都是外面那个环的输入。</span><span lang="en">What one loop produces is what the loop around it works with.</span></p>
+    </div>
+
+    <figure class="figure">
+      <svg viewBox="0 0 1040 330" role="img" aria-labelledby="gen-title">
+        <title id="gen-title">Generations of the harness: each session runs on the harness the sessions before it left behind</title>
+        <defs>
+          <linearGradient id="gen-ink" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7c5cff"/><stop offset="1" stop-color="#12b5e5"/></linearGradient>
+          <marker id="gen-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 10 5 0 10z" fill="var(--text-3)"/></marker>
+        </defs>
+        <g font-family="var(--font-sans)" font-size="14" fill="var(--text-2)">
+          <g>
+            <rect x="12" y="92" width="196" height="150" rx="16" fill="var(--surface)" stroke="var(--border)"/>
+            <text x="30" y="122" font-family="var(--font-mono)" font-size="12" fill="var(--text-3)">G0</text>
+            <text x="30" y="150" font-size="16" font-weight="600" fill="var(--text)"><tspan lang="zh">原版 DSH</tspan><tspan lang="en">Stock DSH</tspan></text>
+            <text x="30" y="178"><tspan lang="zh">什么都还没学</tspan><tspan lang="en">Nothing learned yet</tspan></text>
+          </g>
+          <path d="M214 167h56" stroke="var(--text-3)" stroke-width="1.5" marker-end="url(#gen-arrow)"/>
+          <g>
+            <rect x="278" y="92" width="196" height="150" rx="16" fill="var(--surface)" stroke="var(--border)"/>
+            <text x="296" y="122" font-family="var(--font-mono)" font-size="12" fill="var(--text-3)">G1</text>
+            <text x="296" y="150" font-size="16" font-weight="600" fill="var(--text)"><tspan lang="zh">+ 适配 A</tspan><tspan lang="en">+ adaptation A</tspan></text>
+            <text x="296" y="178"><tspan lang="zh">会话 3 当轮写出并挂载</tspan><tspan lang="en">Written and mounted in session 3</tspan></text>
+            <rect x="296" y="196" width="72" height="24" rx="12" fill="var(--brand-soft)"/><text x="332" y="213" text-anchor="middle" font-family="var(--font-mono)" font-size="12" fill="var(--brand)">A v1</text>
+          </g>
+          <path d="M480 167h56" stroke="var(--text-3)" stroke-width="1.5" marker-end="url(#gen-arrow)"/>
+          <g>
+            <rect x="544" y="92" width="196" height="150" rx="16" fill="var(--surface)" stroke="var(--border)"/>
+            <text x="562" y="122" font-family="var(--font-mono)" font-size="12" fill="var(--text-3)">G2</text>
+            <text x="562" y="150" font-size="16" font-weight="600" fill="var(--text)"><tspan lang="zh">A 被重写，+ B</tspan><tspan lang="en">A rewritten, + B</tspan></text>
+            <text x="562" y="178"><tspan lang="zh">A 没拦住两次，改严了</tspan><tspan lang="en">A did not hold twice: stricter now</tspan></text>
+            <rect x="562" y="196" width="72" height="24" rx="12" fill="var(--brand-soft)"/><text x="598" y="213" text-anchor="middle" font-family="var(--font-mono)" font-size="12" fill="var(--brand)">A v2</text>
+            <rect x="642" y="196" width="72" height="24" rx="12" fill="var(--brand-soft)"/><text x="678" y="213" text-anchor="middle" font-family="var(--font-mono)" font-size="12" fill="var(--brand)">B v1</text>
+          </g>
+          <path d="M746 167h56" stroke="var(--text-3)" stroke-width="1.5" marker-end="url(#gen-arrow)"/>
+          <g>
+            <rect x="810" y="92" width="218" height="150" rx="16" fill="var(--bg)" stroke="url(#gen-ink)" stroke-width="2"/>
+            <text x="828" y="122" font-family="var(--font-mono)" font-size="12" fill="var(--text-3)">G3 …</text>
+            <text x="828" y="150" font-size="16" font-weight="600" fill="var(--text)"><tspan lang="zh">写进仓库，传给别人</tspan><tspan lang="en">In the repository, for others</tspan></text>
+            <text x="828" y="178"><tspan lang="zh">别的机器从 G3 接着往下改</tspan><tspan lang="en">Other machines continue from G3</tspan></text>
+            <rect x="828" y="196" width="118" height="24" rx="12" fill="var(--brand-soft)"/><text x="887" y="213" text-anchor="middle" font-family="var(--font-mono)" font-size="12" fill="var(--brand)">.dsh-rsi/</text>
+          </g>
+          <path d="M919 92C919 20 376 20 376 86" fill="none" stroke="url(#gen-ink)" stroke-width="2" stroke-dasharray="5 6" marker-end="url(#gen-arrow)"/>
+          <text x="648" y="30" text-anchor="middle" fill="var(--text-3)"><tspan lang="zh">每一代 Harness 跑出来的记录，决定下一代怎么改</tspan><tspan lang="en">The record each generation leaves decides how the next one changes</tspan></text>
+          <text x="520" y="292" text-anchor="middle" fill="var(--text-3)"><tspan lang="zh">会话 1, 2, 3 … 都跑在前面的会话留下的那一版 Harness 上</tspan><tspan lang="en">Sessions 1, 2, 3 … each run on the harness the sessions before them left behind</tspan></text>
+        </g>
+      </svg>
+    </figure>
+
+    <ol class="steps" style="margin-top:32px">
+      <li>
+        <h3><span lang="zh">环一：一轮任务之内</span><span lang="en">Loop one: inside a turn</span></h3>
+        <p><span lang="zh">同一个调用失败两次，Harness 当场让模型写一段适配，过校验关，下一次模型请求之前就挂上。这一轮剩下的部分，已经跑在改过的 Harness 上。</span><span lang="en">The same call fails twice. The harness has the model write an adaptation on the spot, passes it through the gate, and mounts it before the next model request. The rest of the turn already runs on the changed harness.</span></p>
+      </li>
+      <li>
+        <h3><span lang="zh">环二：会话与会话之间</span><span lang="en">Loop two: from session to session</span></h3>
+        <p><span lang="zh">下一次会话一开始就带着适配库里的全部内容。它遇到的新麻烦，是在已经改过的 Harness 上遇到的；它学到的东西，又成为再下一次会话的起点。以前的会话见过同一个麻烦，这次动手的门槛就更低。</span><span lang="en">The next session starts with everything in the library. The new trouble it meets, it meets on a harness that has already changed, and what it learns is where the session after it starts. Trouble that earlier sessions met lowers the threshold for acting on it.</span></p>
+      </li>
+      <li>
+        <h3><span lang="zh">环三：改进本身被改进</span><span lang="en">Loop three: the improvement gets improved</span></h3>
+        <p><span lang="zh">适配装上之后，同一个麻烦在装着它的会话里又出现两次，就触发修订。模型拿到现有源码和“它没拦住”的证据，写出更严的一版，旧版留着可以回滚。起过作用、没出过错的转正；出错三次的隔离。</span><span lang="en">When the same trouble occurs twice in sessions that had the adaptation mounted, a revision starts. The model gets the current source and the evidence that it did not hold, and writes a stricter version; the old one is kept for rollback. What acts without faults is promoted, and what throws three times is quarantined.</span></p>
+      </li>
+      <li>
+        <h3><span lang="zh">环四：从一个项目到一台机器，再到一个团队</span><span lang="en">Loop four: from a project to a machine to a team</span></h3>
+        <p><span lang="zh">在第二个工作区碰到同一个麻烦，适配的作用范围从工作区扩大到全机。项目层的适配转正后写进仓库的 <code>.dsh-rsi/</code>，同事接受之后，他们的 Harness 从这一版继续往下改。</span><span lang="en">Met in a second workspace, an adaptation widens from the workspace to the whole machine. A promoted project-layer adaptation is written to <code>.dsh-rsi/</code> in the repository; once colleagues accept it, their harness continues from that version.</span></p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="head">
+      <div class="kicker"><span lang="zh">为什么是 Harness 层</span><span lang="en">Why the harness</span></div>
+      <h2><span lang="zh">同样是“让智能体变好”，改的地方不一样</span><span lang="en">Three places to make an agent better</span></h2>
+    </div>
+    <div class="table">
+      <table>
+        <thead><tr>
+          <th></th>
+          <th><span lang="zh">上下文层：提示词、记忆、Skill</span><span lang="en">Context: prompts, memory, skills</span></th>
+          <th><span lang="zh">权重层：微调</span><span lang="en">Weights: fine-tuning</span></th>
+          <th><span lang="zh">Harness 层：DSHRSI</span><span lang="en">Harness: DSHRSI</span></th>
+        </tr></thead>
+        <tbody>
+          <tr><td><strong><span lang="zh">改的是什么</span><span lang="en">What changes</span></strong></td><td><span lang="zh">模型读到的文字</span><span lang="en">Text the model reads</span></td><td><span lang="zh">模型参数</span><span lang="en">Model parameters</span></td><td><span lang="zh">围绕模型运行的代码</span><span lang="en">Code that runs around the model</span></td></tr>
+          <tr><td><strong><span lang="zh">多久生效</span><span lang="en">Takes effect</span></strong></td><td><span lang="zh">下一次请求</span><span lang="en">Next request</span></td><td><span lang="zh">一次训练之后</span><span lang="en">After a training run</span></td><td><span lang="zh">下一次请求，同一轮任务之内</span><span lang="en">Next request, inside the same turn</span></td></tr>
+          <tr><td><strong><span lang="zh">能不能强制</span><span lang="en">Can it enforce</span></strong></td><td><span lang="zh">不能，模型可以不照做</span><span lang="en">No, the model may not follow it</span></td><td><span lang="zh">不能保证</span><span lang="en">No guarantee</span></td><td><span lang="zh">能，在工具调用执行之前拒绝</span><span lang="en">Yes, a call is refused before it runs</span></td></tr>
+          <tr><td><strong><span lang="zh">谁来写</span><span lang="en">Who writes it</span></strong></td><td><span lang="zh">人，或模型自己记笔记</span><span lang="en">A person, or the model taking notes</span></td><td><span lang="zh">训练流程</span><span lang="en">A training pipeline</span></td><td><span lang="zh">会话里的模型，经过校验关</span><span lang="en">The session's model, through a gate</span></td></tr>
+          <tr><td><strong><span lang="zh">看得懂、撤得回吗</span><span lang="en">Readable, reversible</span></strong></td><td><span lang="zh">看得懂，撤得回</span><span lang="en">Both</span></td><td><span lang="zh">都很难</span><span lang="en">Neither, in practice</span></td><td><span lang="zh">一个文件一个适配，可关、可回滚、可删除</span><span lang="en">One file per adaptation: switch off, roll back, delete</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top:24px;color:var(--text-3)"><span lang="zh">实测里，模型在被明确告知之后仍有 3 次会话想跑那条不存在的命令。提示词拦不住的这 3 次，都在执行前被 Harness 拒绝了。</span><span lang="en">In the measured runs, the model still tried the missing command in 3 sessions after it had been told. A prompt could not stop those three; the harness refused each one before it ran.</span></p>
+  </div>
+</section>
+
+<section class="soft">
+  <div class="wrap">
+    <div class="head">
+      <div class="kicker"><span lang="zh">边界</span><span lang="en">Where it stops</span></div>
+      <h2><span lang="zh">哪些地方没有递归，以及为什么</span><span lang="en">What is not recursive, and why</span></h2>
+      <p><span lang="zh">把话说满很容易。下面这些是 DSHRSI 现在不做的。</span><span lang="en">Overclaiming would be easy. These are the things DSHRSI does not do today.</span></p>
+    </div>
+    <div class="grid c2">
+      <div class="card"><h3><span lang="zh">模型权重不动</span><span lang="en">The model's weights do not change</span></h3><p><span lang="zh">没有训练，没有微调。变的只是 Harness。换一个模型，学到的适配照样生效。</span><span lang="en">No training and no fine-tuning. Only the harness changes. Swap the model, and what was learned still applies.</span></p></div>
+      <div class="card"><h3><span lang="zh">裁判不改自己</span><span lang="en">The judge does not rewrite itself</span></h3><p><span lang="zh">判断点、触发策略和校验关是固定的代码，适配改不了它们。这是有意的：能自我修改的部分，必须由不能被它修改的部分来把关。</span><span lang="en">Detectors, the trigger policy and the validation gate are fixed code that no adaptation can change. That is deliberate: the part that modifies itself has to be checked by a part it cannot modify.</span></p></div>
+      <div class="card"><h3><span lang="zh">只能收紧，不能放行</span><span lang="en">It can tighten, never loosen</span></h3><p><span lang="zh">适配可以补充信息、拒绝、询问、要求验证。没有任何一种能力可以放行 Harness 本来会拒绝的操作。改写结果、新增工具、执行命令要等人批准。</span><span lang="en">An adaptation can add information, refuse, ask, or demand verification. No capability allows what the harness would refuse. Rewriting results, adding tools and running commands wait for a person's approval.</span></p></div>
+      <div class="card"><h3><span lang="zh">证据还很少</span><span lang="en">The evidence is still thin</span></h3><p><span lang="zh">只在一个模型系列、一台机器上跑过，每种配置一次。在题目互相独立、环境干净的基准上，同一个麻烦很少出现第二次，所以解出的题数只多出一点，单看任何一项都还在随机波动之内，这一点<a href="bench.html">评测页</a>写得很直白。差别最清楚的地方是反复出现的麻烦，<a href="trace.html">实录页</a>有一个完整的例子。</span><span lang="en">Runs so far cover one model family and one machine, once per configuration. On benchmarks whose tasks are independent and whose environment is clean, the same trouble rarely comes twice, so the gain in tasks solved is small and each score taken alone is still within chance; the <a href="bench.html">evaluation page</a> says so plainly. Where the difference is clearest is trouble that comes back, and the <a href="trace.html">trace page</a> has one complete example.</span></p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="head center">
+      <h2><span lang="zh">想看它具体怎么做到的</span><span lang="en">See how it is built</span></h2>
+    </div>
+    <p style="text-align:center" class="cta"><a class="btn primary" href="tech.html"><span lang="zh">技术路线</span><span lang="en">How it works</span></a><a class="btn" href="guide.html"><span lang="zh">亲手写一个适配</span><span lang="en">Write an adaptation</span></a><a class="btn" href="bench.html"><span lang="zh">评测</span><span lang="en">Evaluation</span></a></p>
+  </div>
+</section>
+
+</main>
+<script src="assets/site.js"></script>
+</body>
+</html>

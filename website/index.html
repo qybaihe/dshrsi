@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="zh-CN" data-lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DSHRSI：会递归自我改进的 Harness</title>
+<meta name="title-zh" content="DSHRSI：会递归自我改进的 Harness">
+<meta name="title-en" content="DSHRSI: the harness that improves itself">
+<meta name="description" content="DSHRSI brings recursive self-improvement to DeepSeek Harness: the harness observes its own runs, has its own model write harness code, validates it and mounts it mid-turn.">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/site.css">
+<script>document.documentElement.dataset.lang=(function(){try{return localStorage.getItem('dshrsi-lang')}catch(e){return null}})()||(/^zh\b/i.test(navigator.language||'')?'zh':'en')</script>
+</head>
+<body data-page="index">
+<main>
+
+<div class="hero">
+  <div class="wrap">
+    <a class="news" href="bench.html"><b>v0.1</b>
+      <span lang="zh">四个基准、原版 DSH 逐题对照的实测结果已公开 →</span>
+      <span lang="en">Results on four benchmarks, task by task against stock DSH, are out →</span>
+    </a>
+    <h1>
+      <span lang="zh">让 Harness <em>自己变强</em></span>
+      <span lang="en">The harness that <em>improves itself</em></span>
+    </h1>
+    <p class="lede">
+      <span lang="zh"><strong>RSI = Recursive Self-Improvement，递归自我改进。</strong>DSHRSI 让 DeepSeek Harness 盯着自己的每一次运行，用会话里的模型给自己写代码，校验之后在这一轮还没结束时装上。下一次运行，从更好的自己开始。</span>
+      <span lang="en"><strong>RSI stands for Recursive Self-Improvement.</strong> DSHRSI has DeepSeek Harness watch its own runs, write code for itself with the session's own model, validate it, and mount it before the turn is over. The next run starts from a better harness.</span>
+    </p>
+    <div class="cta">
+      <a class="btn primary" href="#install"><span lang="zh">30 秒装上</span><span lang="en">Install in 30 seconds</span></a>
+      <a class="btn glass" href="rsi.html"><span lang="zh">什么是递归自我改进</span><span lang="en">What recursive means here</span></a>
+      <a class="btn glass" href="bench.html"><span lang="zh">看评测</span><span lang="en">See the evaluation</span></a>
+    </div>
+
+    <figure class="reel">
+      <img lang="zh" src="assets/img/rsi-trace.zh.gif" width="1280" height="720" alt="动画：原版 Harness 在 30 个会话里有 12 个去读不存在的 lib.rs；装上 DSHRSI 后，第三次撞上时模型给 Harness 写了一段代码，36.9 秒后挂载，之后的 22 个会话只再出现 1 次">
+      <img lang="en" src="assets/img/rsi-trace.gif" width="1280" height="720" alt="Animation: on the stock harness 12 of 30 sessions read a lib.rs that is not there; with DSHRSI the model writes harness code the third time it happens, it is mounted 36.9 seconds later, and the next 22 sessions hit it once">
+      <figcaption><span lang="zh">不是演示脚本：取自一次评测运行的日志。<a href="trace.html">逐步看完整实录 →</a></span><span lang="en">Not a scripted demo: lifted from the logs of a benchmark run. <a href="trace.html">The full trace, step by step →</a></span></figcaption>
+    </figure>
+  </div>
+</div>
+
+<section>
+  <div class="wrap">
+    <div class="head center">
+      <div class="kicker">Recursive Self-Improvement</div>
+      <h2><span lang="zh">三个词，一个都不是装饰</span><span lang="en">Three words, none of them decoration</span></h2>
+      <p><span lang="zh">提示词、记忆文件、Skill 都是给模型多读一段话。DSHRSI 改的是 Harness 自己。</span><span lang="en">Prompts, memory files and skills give the model more to read. DSHRSI changes the harness itself.</span></p>
+    </div>
+    <div class="grid c3">
+      <div class="card">
+        <div class="num">SELF</div>
+        <h3><span lang="zh">自我：Harness 改的是自己</span><span lang="en">Self: the harness changes itself</span></h3>
+        <p><span lang="zh">被改进的和动手改进的是同一个系统。Harness 用它正在运行的那个模型，在它正在运行的那次会话里，给自己写代码。没有外部训练，没有人工维护的规则库。</span><span lang="en">What gets improved and what does the improving are one system. The harness uses the model it is running, in the session it is running, to write code for itself. No outside training, no hand-kept rule base.</span></p>
+      </div>
+      <div class="card">
+        <div class="num">IMPROVEMENT</div>
+        <h3><span lang="zh">改进：过了关才算数</span><span lang="en">Improvement: it counts only after the gate</span></h3>
+        <p><span lang="zh">每段代码都要过五道校验：对触发它的调用必须有动作，对本来成功的调用不许动。装上之后还要看账：这个麻烦在后来的会话里还出不出现。</span><span lang="en">Every piece of code passes five checks: it has to act on the calls that triggered it and leave alone the calls that worked. After that the ledger decides: does the trouble still show up in later sessions?</span></p>
+      </div>
+      <div class="card">
+        <div class="num">RECURSIVE</div>
+        <h3><span lang="zh">递归：这一代写出下一代</span><span lang="en">Recursive: each generation writes the next</span></h3>
+        <p><span lang="zh">改进不是一次性的。带着上一轮改动的 Harness 去跑下一次会话，没拦住的会被重写得更严，在第二个项目里碰到的会升级成全机生效，稳定下来的写进仓库传给别人。</span><span lang="en">It does not happen once. The harness that carries the last round's changes runs the next session; what did not hold is rewritten stricter, what turns up in a second project is widened to the machine, and what proves itself is written into the repository for others.</span></p>
+      </div>
+    </div>
+    <p style="text-align:center;margin-top:32px"><a class="btn" href="rsi.html"><span lang="zh">递归到底递归在哪 →</span><span lang="en">Where exactly the recursion is →</span></a></p>
+  </div>
+</section>
+
+<section class="soft">
+  <div class="wrap">
+    <div class="head">
+      <div class="kicker"><span lang="zh">闭环</span><span lang="en">The loop</span></div>
+      <h2><span lang="zh">从踩坑到改好，发生在同一轮任务里</span><span lang="en">From hitting the wall to fixing it, inside one turn</span></h2>
+    </div>
+    <ol class="steps">
+      <li><h3><span lang="zh">观察</span><span lang="en">Observe</span></h3><p><span lang="zh">16 个判断点读会话事件：重复失败的调用、反复出现的失败原因、用户的纠正、没验证就收工的一轮。</span><span lang="en">16 detectors read the session's events: calls that fail again, causes that keep coming back, corrections from the user, turns that end with nothing verified.</span></p></li>
+      <li><h3><span lang="zh">决策</span><span lang="en">Decide</span></h3><p><span lang="zh">每个麻烦有一个跨会话稳定的签名。以前的会话见过它，这次动手的门槛就更低。</span><span lang="en">Every trouble has a signature that is stable across sessions. If earlier sessions met it, the threshold for acting drops.</span></p></li>
+      <li><h3><span lang="zh">改写</span><span lang="en">Rewrite</span></h3><p><span lang="zh">会话里的模型写一段 JavaScript 适配。被打回就带着原因重写，最多两次，再不行用内置模板。</span><span lang="en">The session's model writes a JavaScript adaptation. A rejected one goes back with the reasons, twice at most, then a built-in template takes over.</span></p></li>
+      <li><h3><span lang="zh">校验并挂载</span><span lang="en">Validate and mount</span></h3><p><span lang="zh">静态、加载、重演、回归、权限五道关。通过后装进独立的运行环境，下一次模型请求之前生效。</span><span lang="en">Static, load, replay, regression, permission. After the gate it is mounted in its own runtime context and takes effect before the next model request.</span></p></li>
+      <li><h3><span lang="zh">沉淀并共享</span><span lang="en">Keep and share</span></h3><p><span lang="zh">有效的转正，出错的隔离，没拦住的重写。项目层的规矩写进仓库的 <code>.dsh-rsi/</code>，跟着代码走。</span><span lang="en">What works is promoted, what throws is quarantined, what did not hold is rewritten. Project rules go into <code>.dsh-rsi/</code> in the repository and travel with the code.</span></p></li>
+    </ol>
+    <p style="margin-top:32px"><a class="btn" href="tech.html"><span lang="zh">完整技术路线 →</span><span lang="en">The full technical route →</span></a></p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="head">
+      <div class="kicker"><span lang="zh">数字</span><span lang="en">Numbers</span></div>
+      <h2><span lang="zh">都是量出来的，量不出来的不写</span><span lang="en">Measured, or not claimed</span></h2>
+      <p><span lang="zh">真实模型（<code>mimo-v2.6-flash</code>）、真实的 <code>dsh</code> 进程，原版 Harness 在同样的题上作对照。样本大小、检验和没验证过的部分，评测页里都列着。</span><span lang="en">A real model (<code>mimo-v2.6-flash</code>) on real <code>dsh</code> processes, with the stock harness on the same tasks as the control. Sample sizes, tests and what has not been verified are on the evaluation page.</span></p>
+    </div>
+    <div class="grid c4" id="home-measured" style="margin-bottom:var(--space-5)">
+      <div class="stat"><div class="value">12 → 5</div><div class="label"><span lang="zh">撞上同一个失败调用的会话</span><span lang="en">Sessions that hit the same failed call</span></div><div class="note"><span lang="zh">30 道 Rust 题，原版 → 装上 DSHRSI；适配是第三次撞上时写出的</span><span lang="en">30 Rust tasks, stock → with DSHRSI; the adaptation was written the third time it happened</span></div></div>
+      <div class="stat"><div class="value">7 → 1</div><div class="label"><span lang="zh">适配全机生效之后</span><span lang="en">Once the adaptation was machine-wide</span></div><div class="note"><span lang="zh">两边是同样的 22 道题</span><span lang="en">the same 22 tasks on both sides</span></div></div>
+      <div class="stat"><div class="value">36.9 s</div><div class="label"><span lang="zh">从失败的调用到修好挂载</span><span lang="en">From the failed call to the mounted fix</span></div><div class="note"><span lang="zh">会话里的模型自己写的，第一稿被校验打回，第二稿通过</span><span lang="en">written by the session's own model; the gate rejected the first draft and passed the second</span></div></div>
+      <div class="stat"><div class="value">+10</div><div class="label"><span lang="zh">最严的三项成绩上多解出的题</span><span lang="en">More tasks solved on the three strictest scores</span></div><div class="note"><span lang="zh">681 → 691，共 767 题；六项成绩没有一项低于原版，差别还在随机波动之内（p = 0.09）</span><span lang="en">681 → 691 of 767; none of six scores is below stock, and the difference is still within chance (p = 0.09)</span></div></div>
+    </div>
+    <div class="grid c4" id="home-stats">
+      <div class="stat"><div class="value">+8%</div><div class="label"><span lang="zh">用时，这是代价</span><span lang="en">agent time, the price of it</span></div><div class="note"><span lang="zh">输入 token 多 9%，三个跑完的基准合计</span><span lang="en">and 9% more input tokens, over the three suites that ran to the end</span></div></div>
+      <div class="stat"><div class="value">16</div><div class="label"><span lang="zh">个判断点</span><span lang="en">detectors</span></div><div class="note"><span lang="zh">实时会话和历史会话用的是同一套</span><span lang="en">the same ones on live and stored sessions</span></div></div>
+      <div class="stat"><div class="value">5</div><div class="label"><span lang="zh">道校验关</span><span lang="en">validation stages</span></div><div class="note"><span lang="zh">不动本来成功的调用，才允许挂载</span><span lang="en">nothing mounts unless working calls stay untouched</span></div></div>
+      <div class="stat"><div class="value">0</div><div class="label"><span lang="zh">种放行能力</span><span lang="en">capabilities that grant permission</span></div><div class="note"><span lang="zh">适配只能收紧，放行不了 Harness 会拒绝的事</span><span lang="en">an adaptation can only tighten what the harness allows</span></div></div>
+    </div>
+    <p style="margin-top:32px;display:flex;flex-wrap:wrap;gap:12px"><a class="btn primary" href="trace.html"><span lang="zh">逐步看这次改进的实录 →</span><span lang="en">The trace of that improvement, step by step →</span></a><a class="btn" href="bench.html"><span lang="zh">四个基准的完整结果 →</span><span lang="en">Full results on four benchmarks →</span></a></p>
+  </div>
+</section>
+
+<section class="soft">
+  <div class="wrap">
+    <div class="head">
+      <div class="kicker"><span lang="zh">三层</span><span lang="en">Three layers</span></div>
+      <h2><span lang="zh">贴合这台机器、这个人、这个项目</span><span lang="en">Fitted to this machine, this person, this project</span></h2>
+    </div>
+    <div class="grid c3">
+      <div class="card"><div class="num">MACHINE</div><h3><span lang="zh">机器层</span><span lang="en">Machine</span></h3><p><span lang="zh">这台电脑的事实：没有 <code>python</code>，端口被占，内网域名解析不了。在第二个项目里再遇到，就升级成全机生效。</span><span lang="en">Facts about this computer: no <code>python</code>, a port taken, an internal host that does not resolve. Met again in a second project, it applies machine-wide.</span></p></div>
+      <div class="card"><div class="num">USER</div><h3><span lang="zh">用户层</span><span lang="en">User</span></h3><p><span lang="zh">你希望怎样被对待。给一条回复点了差评并说“太长了”，以后所有项目都记得。</span><span lang="en">How you want to be treated. Mark a reply as bad with the reason "too long", and every project remembers.</span></p></div>
+      <div class="card"><div class="num">PROJECT</div><h3><span lang="zh">项目层</span><span lang="en">Project</span></h3><p><span lang="zh">一个仓库的规矩。写成 <code>.dsh-rsi/adaptations/*.js</code>，提交就是共享，删掉就是拔掉；别人的机器要先 <code>dsh-rsi trust</code> 才运行。</span><span lang="en">The rules of one repository, as <code>.dsh-rsi/adaptations/*.js</code>. Commit to share, delete to unplug; another machine runs them only after <code>dsh-rsi trust</code>.</span></p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="head">
+      <div class="kicker"><span lang="zh">界面</span><span lang="en">In the app</span></div>
+      <h2><span lang="zh">它改了什么，你一眼看得见</span><span lang="en">You can see what it changed</span></h2>
+    </div>
+    <div class="grid c2">
+      <figure class="figure" style="margin:0"><img src="assets/img/ui-evolving.png" alt="The DeepSeek Harness web UI at the moment the harness improves itself: the RSI badge and the pill under the composer are lit" loading="lazy"><figcaption><span lang="zh">两次失败之后：标题栏的 RSI 徽标和输入框下方的状态条亮起。</span><span lang="en">After two failures: the RSI badge in the header and the pill under the composer light up.</span></figcaption></figure>
+      <figure class="figure" style="margin:0"><img src="assets/img/ui-panel-dark.png" alt="The next session in dark mode: the pill is open and lists the adaptation at work and the call it refused" loading="lazy"><figcaption><span lang="zh">下一次会话：展开状态条，能看到生效的适配和它拦下的调用。</span><span lang="en">The next session: the open pill lists the adaptation at work and the call it refused.</span></figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section class="soft" id="install">
+  <div class="wrap">
+    <div class="head">
+      <div class="kicker"><span lang="zh">安装</span><span lang="en">Install</span></div>
+      <h2><span lang="zh">装上，然后照常干活</span><span lang="en">Install it, then just work</span></h2>
+      <p><span lang="zh">不需要配置。同样的麻烦再次出现之前，它不露面。</span><span lang="en">Nothing to configure. It stays out of sight until the same trouble comes back.</span></p>
+    </div>
+    <div class="grid c2">
+      <div class="card">
+        <h3><span lang="zh">在桌面 App 或 Web 界面里</span><span lang="en">In the desktop app or the Web UI</span></h3>
+        <p><span lang="zh">打开 <strong>Plugins → Add plugin → Install a third-party plugin</strong>，粘贴下面的地址，点 <strong>Install</strong>，再点 <strong>Enable now</strong>。</span><span lang="en">Open <strong>Plugins → Add plugin → Install a third-party plugin</strong>, paste the address below, select <strong>Install</strong>, then <strong>Enable now</strong>.</span></p>
+<pre><code>https://github.com/qybaihe/dshrsi/releases/download/v0.1.0/dsh-rsi-0.1.0.tgz</code></pre>
+      </div>
+      <div class="card">
+        <h3><span lang="zh">通过命令行</span><span lang="en">From the command line</span></h3>
+        <p><span lang="zh">每个 profile 有自己的一套插件。<code>dsh plugin add</code> 会调用 <code>pnpm</code>，它需要在 <code>PATH</code> 上。</span><span lang="en">Each profile keeps its own plugins. <code>dsh plugin add</code> calls <code>pnpm</code>, which has to be on <code>PATH</code>.</span></p>
+<pre><code>dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.0/dsh-rsi-0.1.0.tgz
+dsh web</code></pre>
+      </div>
+    </div>
+    <div class="callout warn" style="margin-top:32px">
+      <span lang="zh"><strong>开发者预览。</strong>DSHRSI 针对 DeepSeek Harness <code>0.2.2-rc.3</code> 开发，后者本身是预览版，未来会有破坏兼容性的变更。适配是模型写的代码，它的隔离防的是写错，防不了恶意代码。</span>
+      <span lang="en"><strong>Developer preview.</strong> DSHRSI is built against DeepSeek Harness <code>0.2.2-rc.3</code>, itself a preview, and breaking changes will come. An adaptation is code written by a model; its isolation guards against mistakes, not against malicious code.</span>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="head center">
+      <h2><span lang="zh">接着往下看</span><span lang="en">Where to go next</span></h2>
+    </div>
+    <div class="grid c4">
+      <a class="card" href="rsi.html"><div class="num">01</div><h3><span lang="zh">递归自我改进</span><span lang="en">Recursive self-improvement</span></h3><p><span lang="zh">这个词在这里具体指什么，边界在哪。</span><span lang="en">What the term means here, and where it stops.</span></p><span class="go">→</span></a>
+      <a class="card" href="tech.html"><div class="num">02</div><h3><span lang="zh">技术路线</span><span lang="en">How it works</span></h3><p><span lang="zh">从会话事件到挂载的代码，每一步怎么做。</span><span lang="en">From session events to mounted code, step by step.</span></p><span class="go">→</span></a>
+      <a class="card" href="guide.html"><div class="num">03</div><h3><span lang="zh">怎么写</span><span lang="en">Writing adaptations</span></h3><p><span lang="zh">亲手写一个适配，放进仓库，让全组用上。</span><span lang="en">Write an adaptation by hand, put it in the repository, share it with the team.</span></p><span class="go">→</span></a>
+      <a class="card" href="bench.html"><div class="num">04</div><h3><span lang="zh">评测</span><span lang="en">Evaluation</span></h3><p><span lang="zh">四个基准，原版 DSH 逐题对照，结果和局限都在。</span><span lang="en">Four benchmarks, task by task against stock DSH, results and limits included.</span></p><span class="go">→</span></a>
+    </div>
+  </div>
+</section>
+
+</main>
+<script src="assets/site.js"></script>
+</body>
+</html>

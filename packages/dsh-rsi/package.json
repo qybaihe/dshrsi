@@ -1,7 +1,7 @@
 {
   "name": "dsh-rsi",
   "version": "0.1.0",
-  "description": "DSHRSI: a DeepSeek Harness plugin through which the harness rewrites itself around its machine, its user and its project",
+  "description": "DSHRSI: Recursive Self-Improvement for DeepSeek Harness. A plugin through which the harness improves itself around its machine, its user and its project, and builds on each improvement",
   "type": "module",
   "main": "index.js",
   "exports": {

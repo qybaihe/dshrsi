@@ -103,6 +103,8 @@ export function createEngine({ library, options = {}, host = {} }) {
   const record = entry => { const stored = library.record(entry); entries.push(stored); return stored }
   const audit = entry => library.audit(entry)
   const refresh = () => { records = library.list() }
+  /** Other processes write to the same library; this takes in what they stored since this one last looked. */
+  const reload = () => { records = library.list(); entries = library.ledger() }
 
   function setStatus(id, status, reason, type) {
     const before = library.get(id)
@@ -369,9 +371,16 @@ export function createEngine({ library, options = {}, host = {} }) {
       }
       if (mounted) {
         const since = mounted.installedAt ?? mounted.createdAt
+        // Only a session that had the adaptation mounted can show that it did not hold. Sessions that were already
+        // running when it was written keep meeting the cause without it.
+        const mountedAt = new Map()
+        for (const entry of entries) {
+          if (entry.type === 'mount' && entry.adaptationId === mounted.id && !mountedAt.has(entry.sessionId)) mountedAt.set(entry.sessionId, entry.time)
+        }
         context.covering = {
           id: mounted.id,
-          sinceMount: entries.filter(entry => entry.type === 'friction' && entry.signature === signature && entry.actionable && entry.time > since).length,
+          sinceMount: entries.filter(entry => entry.type === 'friction' && entry.signature === signature && entry.actionable
+            && entry.time > since && mountedAt.has(entry.sessionId) && entry.time >= mountedAt.get(entry.sessionId)).length,
         }
       } else {
         const inScope = same.filter(entry => scopeCovers(entry.scope, session.cwd))
@@ -418,6 +427,8 @@ export function createEngine({ library, options = {}, host = {} }) {
     if (session.mode === 'observe') return false
 
     if (decision.mode === 'create') {
+      // A session in another process may have answered this cause while this one was running.
+      reload()
       const installed = records.filter(entry => entry.friction?.signature === signature && MOUNTED.includes(entry.status) && layerOn(entry))
       const here = installed.find(entry => scopeCovers(entry.scope, session.cwd))
       if (here) {

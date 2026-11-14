@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>DSHRSI measured, one picture</title>
+<!-- The picture in the README's benchmark section. scripts/hero/render.mjs screenshots this page. Every number is
+     computed here from website/assets/bench-data.js and trace-data.js, which the benchmark scripts write. -->
+<style>
+  :root { --bg: #0d1117; --panel: #161b22; --line: #30363d; --text: #f0f6fc; --dim: #9198a1; --bad: #ff7b72; --brand: #7b93ff; --idle: #2a313c; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); }
+  body { width: 1280px; color: var(--text); font: 22px/1.35 "SF Pro Display", -apple-system, "Helvetica Neue", "PingFang SC", sans-serif; -webkit-font-smoothing: antialiased; }
+  .bar { display: flex; align-items: center; gap: 16px; height: 68px; padding: 0 44px; border-bottom: 2px solid var(--line); font-size: 23px; color: var(--dim); }
+  .bar .mark { display: inline-flex; align-items: center; gap: 12px; color: var(--text); font-weight: 700; font-size: 27px; letter-spacing: .02em; }
+  .bar .mark i { width: 18px; height: 18px; border-radius: 50%; background: var(--brand); }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 44px; padding: 34px 44px 30px; }
+  h2 { margin: 0 0 6px; font-size: 32px; line-height: 1.2; font-weight: 700; }
+  .sub { margin: 0 0 24px; color: var(--dim); font-size: 21px; }
+  .delta { display: grid; gap: 15px; }
+  .delta .row { display: grid; grid-template-columns: 196px 1fr; align-items: center; gap: 14px; }
+  .delta .name { font-size: 22px; line-height: 1.15; }
+  .delta .name small { display: block; color: var(--dim); font-size: 17px; }
+  .delta .track { position: relative; height: 36px; border-left: 2px solid var(--dim); }
+  .delta .fill { position: absolute; left: 0; top: 4px; height: 28px; border-radius: 0 6px 6px 0; background: var(--brand); }
+  .delta .fill.none { width: 10px; height: 10px; top: 13px; left: -6px; border-radius: 50%; background: var(--dim); }
+  .delta .val { position: absolute; top: 50%; transform: translateY(-50%); white-space: nowrap; color: var(--dim); font-size: 20px; font-variant-numeric: tabular-nums; }
+  .delta .val b { color: var(--text); font-size: 26px; margin-right: 8px; }
+  .lane { display: grid; grid-template-columns: 1fr 96px; align-items: center; gap: 14px; margin-bottom: 8px; }
+  .lane .who { grid-column: 1 / -1; font-size: 21px; font-weight: 600; margin-top: 10px; }
+  .cells { display: grid; grid-template-columns: repeat(30, 1fr); gap: 3px; }
+  .cells i { height: 46px; border-radius: 5px; background: var(--idle); }
+  .cells i.hit { background: var(--bad); }
+  .lane.plugin .cells i { background: #24305e; } .lane.plugin .cells i.hit { background: var(--bad); }
+  .cells i.wrote { box-shadow: 0 0 0 2px var(--bg), 0 0 0 5px var(--brand); }
+  .lane .n { text-align: right; font-size: 36px; font-weight: 800; white-space: nowrap; }
+  .lane .n small { font-size: 19px; font-weight: 500; color: var(--dim); }
+  .marks { display: grid; grid-template-columns: repeat(30, 1fr); gap: 3px; margin-right: 110px; font-size: 18px; color: var(--brand); }
+  .marks span { padding: 6px 0 0 8px; border-left: 2px solid var(--brand); white-space: nowrap; }
+  .marks span.wide { border-top: 2px solid var(--brand); border-top-left-radius: 6px; }
+  .then { display: flex; align-items: baseline; gap: 18px; margin-top: 22px; }
+  .then .v { font-size: 64px; line-height: 1; font-weight: 800; white-space: nowrap; }
+  .then .v span { color: var(--dim); font-weight: 500; } .then .v b { color: var(--brand); }
+  .then .w { font-size: 22px; } .then .w small { display: block; color: var(--dim); font-size: 19px; }
+  .foot { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 2px solid var(--line); }
+  .foot > div { padding: 24px 28px 30px; border-left: 2px solid var(--line); }
+  .foot > div:first-child { border-left: 0; padding-left: 44px; }
+  .foot .v { font-size: 46px; line-height: 1.05; font-weight: 800; white-space: nowrap; }
+  .foot .v b { color: var(--brand); }
+  .foot .w { margin-top: 6px; font-size: 19px; line-height: 1.3; color: var(--dim); }
+  .foot .w strong { color: var(--text); font-weight: 600; display: block; font-size: 20px; }
+</style>
+</head>
+<body>
+<div class="bar"><span class="mark"><i></i>DSHRSI</span><span id="where"></span></div>
+<div class="cols">
+  <div><h2 id="left-title"></h2><p class="sub" id="left-sub"></p><div class="delta" id="delta"></div></div>
+  <div><h2 id="right-title"></h2><p class="sub" id="right-sub"></p><div id="lanes"></div><div class="marks" id="marks"></div><div class="then" id="then"></div></div>
+</div>
+<div class="foot" id="foot"></div>
+<script src="../../website/assets/bench-data.js"></script>
+<script src="../../website/assets/trace-data.js"></script>
+<script>
+const B = window.DSHRSI_BENCH, T = window.DSHRSI_TRACE
+const zh = new URLSearchParams(location.search).get('lang') === 'zh'
+const t = (en, inChinese) => (zh ? inChinese : en)
+const set = (id, html) => { document.getElementById(id).innerHTML = html }
+
+// The scores of the suites that ran to the end, in the order of the README table.
+const SCORES = [
+  ['polyglot', 'passed1', 'first try', 'Aider Polyglot', t('first try', '一次通过'), true],
+  ['polyglot', 'passed2', 'within two tries', 'Aider Polyglot', t('within two tries', '两次以内'), false],
+  ['humaneval', 'base', 'HumanEval', 'HumanEval', '', false],
+  ['humaneval', 'plus', 'HumanEval+', 'HumanEval+', '', true],
+  ['mbpp', 'base', 'MBPP', 'MBPP', '', false],
+  ['mbpp', 'plus', 'MBPP+', 'MBPP+', '', true],
+]
+const rows = SCORES.map(([bench, field, metric, name, note, strict]) => {
+  const stock = B[bench].runs.find(run => run.arm === 'dsh'), plugin = B[bench].runs.find(run => run.arm === 'rsi')
+  const pair = B[bench].comparisons.find(entry => entry.metric === metric)
+  return { name, note, strict, tasks: stock.tasks, stock: stock[field], plugin: plugin[field], difference: plugin[field] - stock[field], pair }
+})
+if (rows.some(row => row.difference < 0)) document.body.insertAdjacentHTML('afterbegin', '<p style="color:red;font-size:40px">a score is below stock: this layout only draws gains</p>')
+const most = Math.max(...rows.map(row => row.difference), 1)
+set('where', t(`measured · ${T.model} · stock DSH and DSH + DSHRSI on the same tasks`, `实测 · ${T.model} · 原版 DSH 和装上 DSHRSI，同样的题`))
+set('left-title', t('Tasks solved beyond stock DSH', '比原版多解出几道题'))
+set('left-sub', t('Per score, in tasks. The line is zero: no difference.', '每项成绩按题数计。竖线是零：没有差别。'))
+set('delta', rows.map((row) => {
+  const width = (100 * row.difference) / most * 0.62
+  return `<div class="row"><div class="name">${row.name}<small>${row.note ? `${row.note} · ` : ''}${row.tasks} ${t('tasks', '题')}</small></div><div class="track"><span class="fill${row.difference === 0 ? ' none' : ''}" style="${row.difference === 0 ? '' : `width:${width}%`}"></span><span class="val" style="left:calc(${row.difference === 0 ? 0 : width}% + 14px)"><b>${row.difference > 0 ? '+' : ''}${row.difference}</b>${row.stock} → ${row.plugin}</span></div></div>`
+}).join(''))
+
+const made = T.adaptation
+const lane = (arm, who, cls) => `<div class="lane ${cls}"><div class="who">${who}</div><div class="cells">${arm.sessions.map(session => `<i class="${session.failed > 0 ? 'hit' : ''}${cls === 'plugin' && session.task === made.writtenIn.task ? ' wrote' : ''}"></i>`).join('')}</div><div class="n">${arm.hit} <small>/ ${arm.sessions.length}</small></div></div>`
+set('right-title', t('One failure it taught itself to avoid', '一个它自己学会避开的失败'))
+set('right-sub', t(`${T.arms.dsh.sessions.length} Rust tasks in start order. Red: the session read a lib.rs that is not there.`, `${T.arms.dsh.sessions.length} 道 Rust 题，按开始顺序。红色：这个会话去读了不存在的 lib.rs。`))
+set('lanes', lane(T.arms.dsh, t('Stock DSH', '原版 DSH'), 'stock') + lane(T.arms.rsi, 'DSH + DSHRSI', 'plugin'))
+const order = T.arms.rsi.sessions
+const wroteAt = order.findIndex(session => session.task === made.writtenIn.task) + 1
+const wideAt = order.findIndex(session => session.startedMs > made.widenedAtMs) + 1
+set('marks', `<span style="grid-column:${wroteAt} / ${wideAt}">✎</span><span class="wide" style="grid-column:${wideAt} / -1">${t(`the model's fix, machine-wide from ${made.widenedAt.slice(0, 5)} →`, `模型写的适配，${made.widenedAt.slice(0, 5)} 起全机生效 →`)}</span>`)
+set('then', `<div class="v">${T.arms.dsh.afterWidening.hit} <span>→</span> <b>${T.arms.rsi.afterWidening.hit}</b></div><div class="w">${t('once the fix was machine-wide', '适配全机生效之后')}<small>${t(`the same ${T.arms.rsi.afterWidening.total} tasks on both sides · written and mounted in ${made.secondsToMount} s`, `两边是同样的 ${T.arms.rsi.afterWidening.total} 道题 · 从写出到挂载 ${made.secondsToMount} 秒`)}</small></div>`)
+
+const strict = rows.filter(row => row.strict)
+const sum = field => strict.reduce((total, row) => total + row[field], 0)
+const onlyStock = strict.reduce((total, row) => total + row.pair.onlyA, 0), onlyPlugin = strict.reduce((total, row) => total + row.pair.onlyB, 0)
+let tail = 0
+for (let k = 0, term = 1; k <= Math.min(onlyStock, onlyPlugin); k += 1) { tail += term; term = (term * (onlyStock + onlyPlugin - k)) / (k + 1) }
+const p = Math.min(1, (2 * tail) / 2 ** (onlyStock + onlyPlugin))
+const total = (arm, field) => ['polyglot', 'humaneval', 'mbpp'].reduce((value, bench) => value + B[bench].runs.find(run => run.arm === arm)[field], 0)
+const more = field => Math.round(100 * (total('rsi', field) / total('dsh', field) - 1))
+set('foot', [
+  [`<b>+${sum('plugin') - sum('stock')}</b>`, t('tasks on the three strictest scores', '最严的三项成绩上多解出的题'), `${sum('stock')} → ${sum('plugin')} ${t('of', '/')} ${sum('tasks')}`],
+  [`<b>${onlyPlugin}</b> : ${onlyStock}`, t('tasks only one side solved', '只有一边解出的题'), t(`exact McNemar test, p = ${p.toFixed(2)}`, `精确 McNemar 检验 p = ${p.toFixed(2)}`)],
+  [`<b>${rows.filter(row => row.difference < 0).length}</b> / ${rows.length}`, t('scores below stock', '项成绩低于原版'), t(`${rows.filter(row => row.difference > 0).length} higher, ${rows.filter(row => row.difference === 0).length} level`, `${rows.filter(row => row.difference > 0).length} 项更高，${rows.filter(row => row.difference === 0).length} 项持平`)],
+  [`+${more('agentSeconds')}%`, t('agent time, the price of it', '用时，这是代价'), t(`input tokens +${more('inputTokens')}%`, `输入 token +${more('inputTokens')}%`)],
+].map(([value, label, note]) => `<div><div class="v">${value}</div><div class="w"><strong>${label}</strong>${note}</div></div>`).join(''))
+</script>
+</body>
+</html>

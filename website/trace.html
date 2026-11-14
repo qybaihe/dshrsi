@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="zh-CN" data-lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>实录 · DSHRSI</title>
+<meta name="title-zh" content="实录 · DSHRSI">
+<meta name="title-en" content="A real trace · DSHRSI">
+<meta name="description" content="One real self-improvement of DeepSeek Harness, from the first step of the session: the failed call, the code the model wrote for the harness, the gate, and what the next sessions did.">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/site.css">
+<script>document.documentElement.dataset.lang=(function(){try{return localStorage.getItem('dshrsi-lang')}catch(e){return null}})()||(/^zh\b/i.test(navigator.language||'')?'zh':'en')</script>
+</head>
+<body data-page="trace">
+<main>
+
+<div class="hero page">
+  <div class="wrap">
+    <div class="kicker"><span lang="zh">实录</span><span lang="en">A real trace</span></div>
+    <h1><span lang="zh">一次真实的自我改进，<em>从第一步看起</em></span><span lang="en">One real self-improvement, <em>from the first step</em></span></h1>
+    <p class="lede">
+      <span lang="zh">这不是演示脚本。下面每一个时间、每一条调用、每一行代码，都来自一次评测运行留下的会话日志和插件自己的审计日志：Aider Polyglot 的 30 道 Rust 题，模型是 <code>mimo-v2.6-flash</code>，没有人给插件任何提示。</span>
+      <span lang="en">This is not a scripted demo. Every time, every call and every line of code below comes from the session logs of a benchmark run and from the plugin's own audit log: the 30 Rust exercises of Aider Polyglot, on <code>mimo-v2.6-flash</code>, with no hint given to the plugin.</span>
+    </p>
+    <figure class="reel">
+      <img lang="zh" src="assets/img/rsi-trace.zh.gif" width="1280" height="720" loading="lazy" alt="动画：原版 Harness 在 30 个会话里有 12 个去读不存在的 lib.rs；装上 DSHRSI 后，第三次撞上时模型给 Harness 写了一段代码，36.9 秒后挂载，之后的 22 个会话只再出现 1 次">
+      <img lang="en" src="assets/img/rsi-trace.gif" width="1280" height="720" loading="lazy" alt="Animation: on the stock harness 12 of 30 sessions read a lib.rs that is not there; with DSHRSI the model writes harness code the third time it happens, it is mounted 36.9 seconds later, and the next 22 sessions hit it once">
+      <figcaption><span lang="zh">动画里的名字、时间和数字都取自同一份数据，和下面的内容一一对应。</span><span lang="en">The names, times and counts in the animation come from the same data as everything below.</span></figcaption>
+    </figure>
+  </div>
+</div>
+
+<section>
+  <div class="wrap">
+    <div class="head">
+      <div class="kicker"><span lang="zh">麻烦</span><span lang="en">The trouble</span></div>
+      <h2><span lang="zh">提示词写 lib.rs，文件在 src/lib.rs</span><span lang="en">The task says lib.rs. The file is src/lib.rs.</span></h2>
+      <p>
+        <span lang="zh">评测给每道 Rust 题的提示词都以“修改提供的文件：lib.rs”结尾，而文件在 <code>src/</code> 目录下。模型照着提示词去读，得到一个“找不到”，再绕回来。每个会话都是全新的，所以原版 Harness 上这件事从头到尾都在发生。一格是一个会话，按开始的先后排列。</span>
+        <span lang="en">The prompt the benchmark gives every Rust exercise ends with “modify the supplied files: lib.rs”, and the file is under <code>src/</code>. The model reads what the prompt names, gets “not found”, and finds its way back. Every session starts fresh, so on the stock harness this keeps happening from the first session to the last. One square is one session, in the order they started.</span>
+      </p>
+    </div>
+    <figure class="figure" style="margin:0">
+      <div class="track" id="track"></div>
+      <p class="cap">
+        <span lang="zh">两组各自的 30 个会话，各按自己的开始顺序排列；把鼠标停在格子上能看到题目和时间。红色是这个会话里至少一次读 <code>lib.rs</code> 得到“找不到”。</span>
+        <span lang="en">The 30 sessions of each arm, each in its own start order; hover a square for the exercise and the time. Red means at least one read of <code>lib.rs</code> came back “not found” in that session.</span>
+      </p>
+    </figure>
+    <div class="grid c4" id="trace-stats" style="margin-top:var(--space-6)"></div>
+  </div>
+</section>
+
+<section class="soft">
+  <div class="wrap">
+    <div class="head">
+      <div class="kicker"><span lang="zh">会话全程</span><span lang="en">The whole session</span></div>
+      <h2><span lang="zh">第三个撞上它的会话，一步不落</span><span lang="en">The third session that hit it, every step</span></h2>
+      <p>
+        <span lang="zh">这是 <code>rust/macros</code> 这道题的会话，从收到任务开始到这一轮结束。左边是时刻（UTC）和距会话开始的秒数。蓝色的几段是插件做的事，它们全部发生在第 1 步和第 2 步之间。</span>
+        <span lang="en">This is the session of the <code>rust/macros</code> exercise, from the task arriving to the end of the turn. On the left, the time (UTC) and the seconds since the session started. The blue entries are what the plugin did, and all of them happen between step 1 and step 2.</span>
+      </p>
+    </div>
+    <div class="figure" style="padding:var(--space-3)"><ol class="tl" id="timeline"></ol></div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="head">
+      <div class="kicker"><span lang="zh">产物</span><span lang="en">What came out</span></div>
+      <h2><span lang="zh">模型给 Harness 写的那段代码</span><span lang="en">The code the model wrote for the harness</span></h2>
+      <p>
+        <span lang="zh">一字未改。它做两件事：读 <code>lib.rs</code> 失败时，在结果上附一句去哪里找；并在之后会话的提示词里加一段说明。两件都只是补充信息，放行不了任何 Harness 本来会拒绝的操作。</span>
+        <span lang="en">Unedited. It does two things: when a read of <code>lib.rs</code> fails, it attaches where to look to the result; and it adds a section to the prompt of later sessions. Both only add information, and neither can allow anything the harness would refuse.</span>
+      </p>
+    </div>
+<pre><code id="source"></code></pre>
+    <h3 style="margin:var(--space-7) 0 var(--space-3)"><span lang="zh">之后每个会话的提示词里多出的一段</span><span lang="en">What the prompt of every later session gained</span></h3>
+    <div class="callout" id="prompt-section" style="font:13.5px/1.7 var(--font-mono)"></div>
+  </div>
+</section>
+
+<section class="soft">
+  <div class="wrap">
+    <div class="head">
+      <div class="kicker"><span lang="zh">递归</span><span lang="en">Recursive</span></div>
+      <h2><span lang="zh">这一步的结果，是下一步的起点</span><span lang="en">Each step is where the next one starts</span></h2>
+      <p>
+        <span lang="zh">写出来只是开始。后面的会话带着它运行，也继续被同一套判断点盯着，账本决定它的去留。</span>
+        <span lang="en">Being written is only the beginning. Later sessions run with it and are watched by the same detectors, and the ledger decides what becomes of it.</span>
+      </p>
+    </div>
+    <div class="figure" style="padding:var(--space-3)"><ol class="tl" id="later"></ol></div>
+
+    <h3 style="margin:var(--space-7) 0 var(--space-3)"><span lang="zh">这条实录说明了什么，没说明什么</span><span lang="en">What this trace shows, and what it does not</span></h3>
+    <div class="prose" style="max-width:none">
+      <ul>
+        <li><span lang="zh"><strong>它说明这条闭环在没人参与的情况下走得通。</strong>发现、动手、被打回、重写、校验、挂载、扩大、转正，每一步都有日志。</span><span lang="en"><strong>It shows the loop closes with nobody in it.</strong> Noticing, acting, being rejected, rewriting, validating, mounting, widening and promoting each left a log entry.</span></li>
+        <li><span lang="zh"><strong>它针对的那类失败确实少了。</strong>全机生效之后开始的 151 道题（所有语言）里，原版有 7 道撞上，装了 DSHRSI 的有 1 道，精确 McNemar 检验 p = 0.07。</span><span lang="en"><strong>The failure it was written for did become rarer.</strong> In the 151 tasks (all languages) that started after it was machine-wide, 7 hit it on the stock harness and 1 with DSHRSI; exact McNemar test, p = 0.07.</span></li>
+        <li><span lang="zh"><strong>一次读不到文件不等于一道题做不出来。</strong>这个失败的代价是一次白费的调用。两组在这 30 道 Rust 题上两次以内都全部通过。</span><span lang="en"><strong>One failed read is not one failed task.</strong> What this failure costs is a wasted call. Both arms solved all 30 Rust exercises within two tries.</span></li>
+        <li><span lang="zh"><strong>每组只跑了一次。</strong>解题数上的结果在<a href="bench.html">评测页</a>，连同检验和局限。</span><span lang="en"><strong>Each arm ran once.</strong> Results on tasks solved are on the <a href="bench.html">evaluation page</a>, with the tests and the limits.</span></li>
+      </ul>
+    </div>
+
+    <h3 style="margin:var(--space-7) 0 var(--space-3)"><span lang="zh">从原始日志重新取一遍</span><span lang="en">Lift it out of the raw logs again</span></h3>
+<pre><code>node bench/run.mjs polyglot --arm dsh --run flash-dsh-p1 --concurrency 12   <span class="c"># MIMO_MODEL=mimo-v2.6-flash</span>
+node bench/run.mjs polyglot --arm rsi --run flash-rsi-p1 --concurrency 12
+node bench/trace.mjs --write      <span class="c"># reads the session logs and the plugin's audit log</span></code></pre>
+    <p style="color:var(--text-3);font-size:14px">
+      <span lang="zh">这一页用的数据在仓库的 <a href="https://github.com/qybaihe/dshrsi/blob/main/bench/results/trace.json"><code>bench/results/trace.json</code></a>。模型每次运行写出的代码不会一样。</span>
+      <span lang="en">The data behind this page is <a href="https://github.com/qybaihe/dshrsi/blob/main/bench/results/trace.json"><code>bench/results/trace.json</code></a> in the repository. The code the model writes differs from run to run.</span>
+    </p>
+  </div>
+</section>
+
+</main>
+<script src="assets/trace-data.js"></script>
+<script src="assets/site.js"></script>
+<script src="assets/trace.js"></script>
+</body>
+</html>

@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="zh-CN" data-lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>评测 · DSHRSI</title>
+<meta name="title-zh" content="评测 · DSHRSI">
+<meta name="title-en" content="Evaluation · DSHRSI">
+<meta name="description" content="Stock DeepSeek Harness against DeepSeek Harness with DSHRSI on Aider Polyglot, HumanEval+, MBPP+ and LiveCodeBench: every number, the protocol and how to reproduce it.">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/site.css">
+<script>document.documentElement.dataset.lang=(function(){try{return localStorage.getItem('dshrsi-lang')}catch(e){return null}})()||(/^zh\b/i.test(navigator.language||'')?'zh':'en')</script>
+<style>
+  /* filters: one row above everything they scope */
+  .filters { display: flex; flex-wrap: wrap; gap: var(--space-3) var(--space-5); align-items: center; margin-bottom: var(--space-6); }
+  .filters .group { display: flex; align-items: center; gap: var(--space-3); }
+  .filters .group[hidden] { display: none; }
+  .filters .label { font-size: 14px; color: var(--text-3); }
+  .seg { display: inline-flex; padding: 3px; border: 1px solid var(--border); border-radius: var(--radius-pill); background: var(--bg); }
+  .seg button { appearance: none; border: 0; background: none; color: var(--text-2); font: 500 14px/1 var(--font-sans); padding: 8px 14px; border-radius: var(--radius-pill); cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--text); color: var(--bg); }
+  .seg button:disabled { opacity: .4; cursor: default; }
+
+  /* bar charts, built from plain elements so labels wrap and the layout follows the page width */
+  .chart h3 { font-size: 18px; font-weight: 500; }
+  .chart .sub { margin: 4px 0 var(--space-4); color: var(--text-3); font-size: 14px; }
+  .legend i.base { background: var(--series-base); } .legend i.rsi { background: var(--series-rsi); }
+  .bars { --name: 220px; --tip: 76px; display: grid; gap: 14px; }
+  .bars .row { display: grid; grid-template-columns: var(--name) minmax(0, 1fr); gap: var(--space-4); align-items: center; }
+  .bars .name { font-size: 14px; color: var(--text-2); line-height: 1.35; }
+  .bars .name small { display: block; color: var(--text-3); font-size: 12.5px; }
+  .bars .track { position: relative; display: grid; gap: 2px; padding-right: var(--tip); }
+  /* hairline grid at each quarter of the axis, behind the bars */
+  .bars .track::before { content: ""; position: absolute; inset: -7px var(--tip) -7px 0; pointer-events: none; border-right: 1px solid var(--grid);
+    background: linear-gradient(to right, var(--grid) 1px, transparent 1px) 0 0 / 25% 100%; }
+  .bars .bar { position: relative; z-index: 1; height: 14px; min-width: 2px; border-radius: 0 4px 4px 0; outline-offset: 3px; }
+  .bars .bar.base { background: var(--series-base); } .bars .bar.rsi { background: var(--series-rsi); }
+  .bars .bar:hover, .bars .bar:focus-visible { filter: brightness(1.12); }
+  .bars .bar .val { position: absolute; left: 100%; top: 50%; transform: translateY(-50%); margin-left: 8px; font: 12.5px/1 var(--font-sans); font-variant-numeric: tabular-nums; color: var(--text-2); white-space: nowrap; }
+  .bars .scale { display: grid; grid-template-columns: var(--name) minmax(0, 1fr); gap: var(--space-4); font: 12px/1 var(--font-sans); font-variant-numeric: tabular-nums; color: var(--text-3); }
+  .bars .scale .ticks { position: relative; height: 14px; margin-right: var(--tip); }
+  .bars .scale .ticks span { position: absolute; top: 0; transform: translateX(-50%); }
+  .bars .scale .ticks span:first-child { transform: none; }
+  .bars .scale .ticks span:last-child { transform: translateX(-100%); }
+  /* the difference chart: one bar per score, from a zero line */
+  .deltas { --name: 220px; display: grid; gap: 12px; }
+  .deltas .row { display: grid; grid-template-columns: var(--name) minmax(0, 1fr); gap: var(--space-4); align-items: center; }
+  .deltas .name { font-size: 14px; color: var(--text-2); line-height: 1.35; }
+  .deltas .name small { display: block; color: var(--text-3); font-size: 12.5px; }
+  .deltas .track { position: relative; height: 28px; margin-right: 150px; }
+  .deltas .track::before { content: ""; position: absolute; top: -6px; bottom: -6px; left: var(--zero); width: 1px; background: var(--text-3); }
+  .deltas .bar { position: absolute; top: 4px; height: 20px; min-width: 0; border-radius: 0 4px 4px 0; outline-offset: 3px; }
+  .deltas .bar.rsi { background: var(--series-rsi); } .deltas .bar.base { background: var(--series-base); border-radius: 4px 0 0 4px; }
+  .deltas .bar.none { width: 7px !important; height: 7px; top: 10.5px; margin-left: -3px; border-radius: 50%; background: var(--text-3); }
+  .deltas .bar:hover, .deltas .bar:focus-visible { filter: brightness(1.12); }
+  .deltas .val { position: absolute; top: 50%; transform: translateY(-50%); margin-left: 10px; font: 13px/1 var(--font-sans); font-variant-numeric: tabular-nums; color: var(--text-3); white-space: nowrap; }
+  .deltas .val b { font-size: 15px; color: var(--text); margin-right: 6px; }
+  .tip { position: fixed; z-index: 40; pointer-events: none; max-width: 280px; padding: 8px 12px; border-radius: var(--radius-input); background: var(--text); color: var(--bg); font-size: 13px; line-height: 1.45; box-shadow: 0 8px 24px rgba(0, 0, 0, .18); }
+  .tip b { display: block; font-size: 15px; }
+  .tip[hidden] { display: none; }
+  .empty { color: var(--text-3); font-size: 14px; padding: var(--space-4) 0; }
+  td .of { color: var(--text-3); }
+  td .same { color: var(--text-3); }
+  .adapt { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); }
+  .adapt .item { min-width: 0; } .adapt .item .tag { max-width: 100%; min-width: 0; white-space: normal; overflow-wrap: anywhere; word-break: break-word; }
+  .adapt .item { padding: var(--space-4) var(--space-5); border-radius: var(--radius-panel); background: var(--surface); }
+  .adapt .item h4 { margin: 0; font: 500 16px/1.4 var(--font-sans); }
+  .adapt .item p { margin: 6px 0 0; color: var(--text-3); font-size: 14px; overflow-wrap: anywhere; }
+  .adapt .item .meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .dots { font: 14px/1.9 var(--font-mono); white-space: nowrap; }
+  .dots .x { color: var(--bad); } .dots .o { color: var(--good); } .dots .w { color: var(--brand); }
+  @media (max-width: 720px) { .bars { --name: 1fr; --tip: 64px; } .bars .row, .bars .scale { grid-template-columns: 1fr; gap: 6px; } .bars .scale > :first-child { display: none; }
+    .deltas .row { grid-template-columns: 1fr; gap: 4px; } .deltas .track { margin-right: 130px; } }
+</style>
+</head>
+<body data-page="bench">
+<main>
+
+<div class="hero page">
+  <div class="wrap">
+    <div class="kicker"><span lang="zh">评测</span><span lang="en">Evaluation</span></div>
+    <h1><span lang="zh">四个基准，同一个模型，<em>逐题对照</em></span><span lang="en">Four benchmarks, one model, <em>task by task</em></span></h1>
+    <p class="lede">
+      <span lang="zh">原版 DeepSeek Harness 和装上 DSHRSI 的 DeepSeek Harness，用同一个模型（<code>mimo-v2.6-flash</code>）、同样的提示词、同样的沙箱，跑同样的题。下面是全部结果，没有差别的也在里面。</span>
+      <span lang="en">Stock DeepSeek Harness and DeepSeek Harness with DSHRSI, on the same model (<code>mimo-v2.6-flash</code>), the same prompts, the same sandbox and the same tasks. Every result is below, including the ones where nothing changed.</span>
+    </p>
+  </div>
+</div>
+
+<section>
+  <div class="wrap">
+    <div class="head">
+      <div class="kicker"><span lang="zh">结果</span><span lang="en">Results</span></div>
+      <h2><span lang="zh">解出了多少题</span><span lang="en">How many tasks were solved</span></h2>
+      <p id="reading">
+        <span lang="zh">先说结论：装上 DSHRSI 之后，跑完的六项成绩没有一项低于原版，三项更高：Polyglot 一次通过 220 → 223，MBPP+ 308 → 315，MBPP 368 → 369。最严的三项成绩合起来，没解出的题从 86 道降到 76 道。差别不大，单看任何一项都还在随机波动的范围内，所以下面每一行都带着检验的 p 值。插件没有得到任何提示，自己写了 33 个适配；代价是多花约 8% 的用时和 9% 的输入 token。</span>
+        <span lang="en">The short version: with DSHRSI, none of the six scores that ran to the end is below stock, and three are higher: Polyglot first try 220 → 223, MBPP+ 308 → 315, MBPP 368 → 369. Over the three strictest scores together, unsolved tasks went from 86 to 76. The differences are small, and each one taken alone is still within what chance can do, which is why every row below carries the p of its test. The plugin was given no hints and wrote 33 adaptations for itself; the price is about 8% more agent time and 9% more input tokens.</span>
+      </p>
+    </div>
+
+    <div class="grid c4" id="highlights" style="margin-bottom:var(--space-6)"></div>
+
+    <figure class="figure chart" style="margin:0 0 var(--space-6)">
+      <h3><span lang="zh">比原版多解出几道题</span><span lang="en">Tasks solved beyond stock DSH</span></h3>
+      <p class="sub"><span lang="zh">每一项成绩上，装了 DSHRSI 的一组减去原版一组，按题数计。竖线是零：没有差别。</span><span lang="en">For each score, the DSHRSI arm minus the stock arm, in tasks. The vertical line is zero: no difference.</span></p>
+      <div class="deltas" id="chart-delta"></div>
+    </figure>
+
+    <div class="filters" role="group" aria-label="Filters">
+      <div class="group"><span class="label"><span lang="zh">模型</span><span lang="en">Model</span></span><div class="seg" id="f-model"></div></div>
+      <div class="group"><span class="label"><span lang="zh">轮次</span><span lang="en">Pass</span></span><div class="seg" id="f-pass"></div></div>
+    </div>
+
+    <div class="table"><table id="scoreboard"></table></div>
+    <p id="partial" style="color:var(--text-2);font-size:14px;margin-top:12px"></p>
+    <p class="cap" style="color:var(--text-3);font-size:14px;margin-top:12px">
+      <span lang="zh">差值按题数计。p 是同一批题上的精确 McNemar 检验：p 接近 1 表示两边的差别和随机波动分不开。</span>
+      <span lang="en">The difference is in tasks. p is an exact McNemar test on the same tasks: a p near 1 means the difference cannot be told apart from chance.</span>
+    </p>
+
+  </div>
+</section>
+
+<section class="soft">
+  <div class="wrap">
+    <div class="head">
+      <div class="kicker"><span lang="zh">过程</span><span lang="en">The work itself</span></div>
+      <h2><span lang="zh">一路上碰了多少壁</span><span lang="en">How much got in the way</span></h2>
+      <p>
+        <span lang="zh">失败的工具调用不都是一回事。测试没过、编译报错，是活儿本身还没做对。命令不存在、路径不存在、编辑没对上，是环境在挡路，这一种才是 Harness 能学着绕开的。剩下的是分类器叫不出名字的非零退出。两边用同一段代码从会话日志里数。</span>
+        <span lang="en">Not every failed tool call is the same thing. A failed test or a compile error is the work not being right yet. A missing command, a path that is not there or an edit that did not apply is the surroundings getting in the way, and only that kind is something a harness can learn its way around. The rest are non-zero exits the classifier has no name for. Both arms are counted from the session logs by the same code.</span>
+      </p>
+    </div>
+
+    <figure class="figure chart">
+      <h3><span lang="zh">失败的工具调用，每 100 题</span><span lang="en">Failed tool calls per 100 tasks</span></h3>
+      <p class="sub"><span lang="zh">所有原因合计，按原因的拆分在下面的表里。越短越好。</span><span lang="en">All causes together; the split by cause is in the table below. Shorter is better.</span></p>
+      <div class="legend"><span><i class="base"></i><span lang="zh">原版 DSH</span><span lang="en">Stock DSH</span></span><span><i class="rsi"></i>DSH + DSHRSI</span></div>
+      <div class="bars" id="chart-friction"></div>
+    </figure>
+
+    <h3 style="margin:var(--space-7) 0 var(--space-2)"><span lang="zh">每题的开销</span><span lang="en">Cost per task</span></h3>
+    <p style="color:var(--text-3);font-size:14px;margin:0 0 var(--space-4)"><span lang="zh">三列“失败”是每 100 题的次数，其余各列是每题的平均值。</span><span lang="en">The three “failed” columns are per 100 tasks; every other column is the average per task.</span></p>
+    <div class="table"><table id="cost"></table></div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="head">
+      <div class="kicker"><span lang="zh">Harness 写了什么</span><span lang="en">What the harness wrote</span></div>
+      <h2><span lang="zh">跑评测的时候，它在改自己</span><span lang="en">While the benchmark ran, it was changing itself</span></h2>
+      <p>
+        <span lang="zh">评测没有给插件任何提示。下面是它在所选模型和轮次里自己写出、通过校验并挂载的适配。“起作用”是它实际拦截、补充或要求验证的次数。</span>
+        <span lang="en">The plugin was given no hints for the benchmarks. These are the adaptations it wrote, validated and mounted by itself for the selected model and pass. “Acted” counts how often one actually refused, annotated or demanded a check.</span>
+      </p>
+    </div>
+    <div id="adaptations"></div>
+    <div id="effects"></div>
+  </div>
+</section>
+
+<section class="soft" id="live">
+  <div class="wrap">
+    <div class="head">
+      <div class="kicker"><span lang="zh">同一个麻烦反复出现时</span><span lang="en">When the same trouble keeps coming back</span></div>
+      <h2><span lang="zh">差别在这里</span><span lang="en">This is where the difference is</span></h2>
+      <p>
+        <span lang="zh">基准里每道题都是一个全新的干净目录，同一个麻烦很少出现第二次。Polyglot 的 Rust 题是个例外：提示词让模型去改 <code>lib.rs</code>，文件其实在 <code>src/lib.rs</code>，于是同一个失败的调用一再出现。一格是一个会话，按开始的先后排列。</span>
+        <span lang="en">In a benchmark every task is a fresh, clean directory, and the same trouble rarely comes twice. The Rust exercises of Polyglot are an exception: the prompt tells the model to edit <code>lib.rs</code>, the file is at <code>src/lib.rs</code>, and so the same failed call keeps coming back. One square is one session, in the order they started.</span>
+      </p>
+    </div>
+    <figure class="figure" style="margin:0">
+      <div class="track" id="track"></div>
+      <p class="cap">
+        <span lang="zh">原版 Harness 从第一个会话到最后一个都在撞。装了 DSHRSI 的一组在第三次撞上时，由会话里的模型写出适配并挂载；它扩大到整台机器之后，同样的 22 道题上，原版撞了 7 次，它撞了 1 次。</span>
+        <span lang="en">The stock harness runs into it from the first session to the last. In the DSHRSI arm, the third time it happened the session's model wrote an adaptation and it was mounted; once it applied to the whole machine, on the same 22 tasks the stock harness hit it 7 times and this one once.</span>
+      </p>
+    </figure>
+    <div class="grid c4" id="trace-stats" style="margin-top:var(--space-6)"></div>
+    <p style="margin-top:var(--space-6)"><a class="btn primary" href="trace.html"><span lang="zh">逐步看这次会话的完整实录 →</span><span lang="en">The full trace of that session, step by step →</span></a></p>
+  </div>
+</section>
+
+<section id="protocol">
+  <div class="wrap">
+    <div class="head">
+      <div class="kicker"><span lang="zh">方法</span><span lang="en">Method</span></div>
+      <h2><span lang="zh">怎么跑的</span><span lang="en">How it was run</span></h2>
+    </div>
+    <div class="table"><table>
+      <tbody>
+        <tr><th scope="row"><span lang="zh">两组</span><span lang="en">Two arms</span></th><td><span lang="zh">原版：<code>@deepseek-ai/dsh</code> 0.2.2-rc.3，<code>headless</code> profile。对照：同一个 Harness 加上默认配置的 <code>dsh-rsi</code>。除此之外没有任何差别。</span><span lang="en">Stock: <code>@deepseek-ai/dsh</code> 0.2.2-rc.3, <code>headless</code> profile. Compared with: the same harness plus <code>dsh-rsi</code> at its default settings. Nothing else differs.</span></td></tr>
+        <tr><th scope="row"><span lang="zh">模型</span><span lang="en">Model</span></th><td><span lang="zh">小米 MiMo 的 <code>mimo-v2.6-flash</code>，两组用同一个模型。</span><span lang="en">Xiaomi MiMo <code>mimo-v2.6-flash</code>; both arms use the same model.</span></td></tr>
+        <tr><th scope="row"><span lang="zh">沙箱</span><span lang="en">Sandbox</span></th><td><span lang="zh">DSH 的 <code>workspace-write</code>：只能写这道题的工作目录和一个共享的构建缓存目录，从不向人请求批准。网络没有限制。</span><span lang="en">DSH's <code>workspace-write</code>: writes only inside the task's workspace and one shared build-cache directory, and no approval is ever asked for. The network is not restricted.</span></td></tr>
+        <tr><th scope="row"><span lang="zh">适配库</span><span lang="en">Adaptation library</span></th><td><span lang="zh">一轮里所有会话共用一个 Harness 目录，所以一个会话学到的，后面开始的会话都能用上。同时跑 8 到 12 个会话。每个基准都从空的适配库开始。</span><span lang="en">All sessions of a run share one harness home, so what one session learns is there for every session that starts after it. 8 to 12 sessions run at a time. Every suite starts with an empty library.</span></td></tr>
+        <tr><th scope="row">Aider Polyglot</th><td><span lang="zh">225 道 Exercism 题，C++、Go、Java、JavaScript、Python、Rust。用 Aider 的提示词；测试没过就在同一个会话里带着测试输出再来一轮，共两次机会。用题目自带的测试判分。</span><span lang="en">225 Exercism exercises in C++, Go, Java, JavaScript, Python and Rust, with Aider's prompts. If the tests fail there is one more turn in the same session with the test output, two tries in all. Scored with the exercise's own tests.</span></td></tr>
+        <tr><th scope="row">HumanEval+ · MBPP+</th><td><span lang="zh">164 和 378 个 Python 函数。函数桩或描述放在 <code>solution.py</code> 里，用 EvalPlus 0.3.1 判分：原始测试，以及 EvalPlus 扩充后的测试。测试不放进工作目录。</span><span lang="en">164 and 378 Python functions. The stub or the description is placed in <code>solution.py</code>; scored by EvalPlus 0.3.1 on the original tests and on its extended tests. The tests are not in the workspace.</span></td></tr>
+        <tr><th scope="row">LiveCodeBench v6</th><td><span lang="zh">v6 新增的 175 道 LeetCode 和 AtCoder 题（43 简单，52 中等，80 困难）。题面在 <code>problem.md</code>，用 LiveCodeBench 自己的评分代码在公开和隐藏测试上判分，每个测试限时 6 秒。</span><span lang="en">The 175 LeetCode and AtCoder problems added in v6 (43 easy, 52 medium, 80 hard). The statement is in <code>problem.md</code>; scored by LiveCodeBench's own evaluator on the public and hidden tests, 6 seconds per test.</span></td></tr>
+        <tr><th scope="row"><span lang="zh">机器</span><span lang="en">Machine</span></th><td><span lang="zh">一台 Apple 芯片的 Mac，16 GB 内存，macOS。Go、Rust、CMake、JDK 21、Python 3.12 来自 Homebrew 和 uv。Polyglot 的 225 个参考答案在这套环境下全部通过。</span><span lang="en">One Apple-silicon Mac with 16 GB of memory, macOS. Go, Rust, CMake, JDK 21 and Python 3.12 from Homebrew and uv. All 225 Polyglot reference solutions pass in this environment.</span></td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="callout warn" style="margin-top:var(--space-6)">
+      <span lang="zh"><strong>这些数字不能和排行榜比。</strong>这里的智能体可以反复读、改、运行代码，一轮最长 30 分钟；排行榜上的同名基准只给模型一次作答机会。这里比的是两套 Harness，不是模型。</span>
+      <span lang="en"><strong>These numbers are not comparable with leaderboards.</strong> Here the agent can read, edit and run code as often as it wants, for up to 30 minutes a turn; leaderboard runs of the same benchmarks give the model one shot. What is compared here is two harnesses, not models.</span>
+    </div>
+
+    <h3 style="margin:var(--space-7) 0 var(--space-3)"><span lang="zh">没做到的</span><span lang="en">What this does not cover</span></h3>
+    <div class="prose" style="max-width:none">
+      <ul>
+        <li><span lang="zh"><strong>SWE-bench 和 Terminal-Bench 没有跑。</strong>它们每道题要一个容器镜像，这台机器的磁盘放不下。这两个基准的任务都在同一个大仓库或同一套环境里反复操作，是最可能体现差别的地方，也是下一步要补的。</span><span lang="en"><strong>SWE-bench and Terminal-Bench were not run.</strong> They need a container image per task, and this machine does not have the disk for them. Their tasks work repeatedly inside one large repository or one environment, which is where a difference is most likely to show, and they are what comes next.</span></li>
+        <li><span lang="zh"><strong>LiveCodeBench 没有跑完，第 2 轮没有跑。</strong>模型账户的余额在 LiveCodeBench 中途用尽。第 2 轮是带着第 1 轮留下的适配库把同样的题再跑一遍，最能检验“递归”这两个字，它还欠着。</span><span lang="en"><strong>LiveCodeBench is partial, and there is no second pass.</strong> The model account ran out of balance part-way through LiveCodeBench. A second pass, the same tasks again on the library the first pass left behind, is the most direct test of the word “recursive”, and it is still owed.</span></li>
+        <li><span lang="zh"><strong>每种配置只跑了一次。</strong>同一配置跑两次会差多少还没有量过，配对检验是目前防止把波动当成效果的手段。</span><span lang="en"><strong>One run per configuration.</strong> How much two runs of the same configuration differ has not been measured; the paired tests are what keeps noise from being read as an effect.</span></li>
+        <li><span lang="zh"><strong>一个模型家族，一台机器。</strong>没有在别的模型、Linux 或 Windows 上验证。</span><span lang="en"><strong>One model family, one machine.</strong> Not verified on other models, on Linux or on Windows.</span></li>
+        <li><span lang="zh"><strong>会话可以联网</strong>，沙箱只限制写文件。两组条件相同。</span><span lang="en"><strong>Sessions can reach the network</strong>; the sandbox confines writes only. The condition is the same for both arms.</span></li>
+      </ul>
+    </div>
+
+    <h3 style="margin:var(--space-7) 0 var(--space-3)"><span lang="zh">自己跑一遍</span><span lang="en">Run it yourself</span></h3>
+<pre><code>git clone https://github.com/qybaihe/dshrsi.git &amp;&amp; cd dshrsi &amp;&amp; npm install
+bench/setup.sh                                   <span class="c"># toolchains, datasets, scoring code</span>
+node bench/run.mjs polyglot --validate           <span class="c"># reference solutions through the scoring commands</span>
+
+export MIMO_API_KEY=... MIMO_MODEL=mimo-v2.6-flash
+node bench/run.mjs polyglot --arm dsh --run flash-dsh-p1 --concurrency 12
+node bench/run.mjs polyglot --arm rsi --run flash-rsi-p1 --concurrency 12
+node bench/report.mjs --write                    <span class="c"># tables and bench/results/*.json</span></code></pre>
+    <p style="color:var(--text-3);font-size:14px">
+      <span lang="zh">每道题的结果在仓库的 <a href="https://github.com/qybaihe/dshrsi/tree/main/bench/results"><code>bench/results/</code></a> 里，这一页没有展示的运行也在那里。<span id="generated"></span></span>
+      <span lang="en">Per-task results are in <a href="https://github.com/qybaihe/dshrsi/tree/main/bench/results"><code>bench/results/</code></a> in the repository, including runs this page does not show. <span id="generated-en"></span></span>
+    </p>
+  </div>
+</section>
+
+</main>
+<div class="tip" id="tip" hidden></div>
+<script src="assets/bench-data.js"></script>
+<script src="assets/trace-data.js"></script>
+<script src="assets/site.js"></script>
+<script src="assets/bench.js"></script>
+<script src="assets/trace.js"></script>
+</body>
+</html>
