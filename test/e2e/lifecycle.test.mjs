@@ -246,6 +246,79 @@ test('advice the model ignores is replaced by enforcement: the adaptation is rev
   assert.match(library.readSource(record.id), /Mention that frobnicate is missing/)
 })
 
+test('going back, against the real harness: a version, a step, the whole harness, and the stock switch', async (t) => {
+  const box = makeSandbox('goback')
+  t.after(box.cleanup)
+  const cwd = box.workspace('ws', { ...FILES, 'sum.js': 'export const sum = (a, b) => a + b\n' })
+  const advisory = `define({
+  title: 'Mention that frobnicate is missing',
+  description: 'frobnicate does not exist on this machine; mention it when it fails.',
+  capabilities: ['annotate'],
+  setup(h) {
+    h.onToolResult({ command: /^frobnicate\\b/ }, (call, result) => result.ok ? undefined : h.annotate('Note: frobnicate could not be found.'))
+  },
+})`
+  const enforcing = `define({
+  title: 'Refuse frobnicate',
+  description: 'frobnicate does not exist on this machine and notes did not stop the retries; refuse the call.',
+  capabilities: ['deny'],
+  setup(h) {
+    h.beforeTool({ command: /^frobnicate\\b/ }, () => h.deny('frobnicate does not exist on this machine, so this call was not run. Use: node --test'))
+  },
+})`
+  const policy = (body) => {
+    if (isGeneratorRequest(body)) return { text: fenced(said(body, /An earlier adaptation for this finding is installed/) ? enforcing : advisory) }
+    if (toolResults(body).some(result => /pass 1/.test(result.text))) return { text: 'Tests pass.' }
+    if (said(body, /was not run/)) return bash('node --test', 'run tests with node')
+    return bash('frobnicate test', 'run tests')
+  }
+  const options = { home: box.home, cwd, task: 'run the tests', policy, rsi: { generator: 'model' } }
+  assert.equal((await runDsh(options)).final.text, 'Tests pass.')
+  const library = box.library()
+  const [{ id }] = library.list()
+  const now = () => { const record = library.get(id); return [record.version, record.capabilities.join(), ['candidate', 'active'].includes(record.status) ? 'runs' : record.status] }
+  assert.deepEqual(now(), [2, 'deny', 'runs'])
+
+  // One version back. It comes back as what it was accepted as, so the next session runs it: it notes, the model
+  // ignores the notes, and the rewrite that follows is version 3, never a second "version 2".
+  assert.match(rsiCli(box.home, 'rollback', id), /v1 {2}Mention that frobnicate is missing/)
+  assert.deepEqual(now(), [1, 'annotate', 'runs'])
+  const second = await runDsh(options)
+  assert.equal(second.final.text, 'Tests pass.', second.stderr)
+  assert.ok(notices(second.agentRequests.at(-1)).some(text => /Note: frobnicate could not be found/.test(text)))
+  assert.deepEqual([now()[0], library.versions(id)], [3, [1, 2, 3]])
+
+  // One step back: the rewrite is undone, and the timeline says who did what.
+  assert.match(rsiCli(box.home, 'undo'), /^Undid generation \d+ \(revise\): Refuse frobnicate\n\S+ {2}now v1 /)
+  assert.deepEqual(now(), [1, 'annotate', 'runs'])
+  const timeline = JSON.parse(rsiCli(box.home, 'timeline', '-n', '50', '--json'))
+  assert.deepEqual(timeline.map(entry => entry.change).filter(change => change !== 'promote'), ['create', 'revise', 'rollback', 'revise', 'undo'])
+  assert.deepEqual(timeline.filter(entry => entry.by === 'user').map(entry => entry.change), ['rollback', 'undo'])
+  assert.match(rsiCli(box.home, 'timeline'), /GEN {2}WHEN[\s\S]*rollback[\s\S]*v2 -> v1/)
+
+  // The whole harness as it was after the first session, and from there back to before it learned anything.
+  const afterFirst = timeline.find(entry => entry.change === 'rollback').generation - 1
+  assert.match(rsiCli(box.home, 'restore', String(afterFirst)), /back as it was at generation \d+: 1 adaptation\(s\) changed/)
+  assert.deepEqual(now(), [2, 'deny', 'runs'])
+  assert.match(rsiCli(box.home, 'restore', '0'), /generation 0: 1 adaptation/)
+  assert.equal(now()[2], 'disabled')
+  assert.match(rsiCli(box.home, 'undo'), /Undid generation \d+ \(a restore\)/)
+  assert.deepEqual(now(), [2, 'deny', 'runs'])
+
+  // Stock: the same library, and a session that is exactly the stock harness. Then on again.
+  assert.match(rsiCli(box.home, 'off', 'looks', 'wrong'), /now runs as stock/)
+  assert.match(rsiCli(box.home, 'status'), /OFF: the harness runs as stock since \d+ s ago \(looks wrong\)/)
+  const once = body => (toolResults(body).length === 0 ? bash('frobnicate test', 'run tests') : { text: 'It failed.' })
+  const bare = await runDsh({ ...options, policy: once })
+  assert.equal(bare.final.text, 'It failed.', bare.stderr)
+  assert.deepEqual([bare.generatorRequests.length, notices(bare.agentRequests.at(-1)).length], [0, 0])
+  assert.match(toolResults(bare.agentRequests.at(-1))[0].text, /command not found/)
+  assert.doesNotMatch(systemText(bare.agentRequests[0]), /harness adaptation/)
+  assert.match(rsiCli(box.home, 'on'), /Adapting again: 1 adaptation\(s\) are at work/)
+  const back = await runDsh({ ...options, policy: once })
+  assert.match(toolResults(back.agentRequests.at(-1))[0].text, /was not run/)
+})
+
 test('an adaptation that keeps throwing is quarantined while the session carries on untouched', async (t) => {
   const box = makeSandbox('quarantine')
   t.after(box.cleanup)
