@@ -10,7 +10,7 @@
 
 ### **観察 → 改善 → その上に積み上げる → もう一度。使うほど、あなたのハーネスとして磨かれていく。**
 
-<a href="https://qybaihe.github.io/dshrsi/trace.html">
+<a href="https://dshr.si/trace.html">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="../../assets/rsi-trace.dark.gif" />
     <img src="../../assets/rsi-trace.gif" alt="実際の実行を再生したアニメーション：標準のハーネスでは 30 セッション中 12 セッションで同じ呼び出しが失敗し、DSHRSI を入れると 3 回目でハーネスが自分自身を改善し、その後の 22 セッションでは 1 回しか起きません" width="960" />
@@ -25,7 +25,7 @@
 [![Benchmarks](https://img.shields.io/badge/Benchmarks-4_Suites_%C2%B7_2_Models-2563eb?style=for-the-badge)](#benchmarks)
 [![MIT License](https://img.shields.io/badge/License-MIT-38bdf8?style=for-the-badge)](../../LICENSE)
 
-**[🌐 公式サイト](https://qybaihe.github.io/dshrsi/) · [📖 プラグインリファレンス](../../packages/dsh-rsi/README.md) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
+**[🌐 公式サイト](https://dshr.si/) · [📖 プラグインリファレンス](../../packages/dsh-rsi/README.md) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
 
 [RSI とは](#rsi) · [クイックスタート](#quick-start) · [仕組み](#how-it-works) · [実測結果](#measured) · [ベンチマーク](#benchmarks) · [検出器とケイパビリティ](#coverage) · [プロジェクトハーネス](#project-harness) · [安全なデフォルト](#security) · [よくある質問](#faq)
 

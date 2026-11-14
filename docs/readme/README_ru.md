@@ -10,7 +10,7 @@
 
 ### **Наблюдает → улучшает → строит поверх улучшенного → и снова. Харнесс, который раз за разом становится всё более вашим.**
 
-<a href="https://qybaihe.github.io/dshrsi/trace.html">
+<a href="https://dshr.si/trace.html">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="../../assets/rsi-trace.dark.gif" />
     <img src="../../assets/rsi-trace.gif" alt="Анимация по записи реального прогона: на стандартном харнессе 12 сессий из 30 делают один и тот же неудачный вызов; с DSHRSI харнесс на третий раз улучшает сам себя, и в следующих 22 сессиях это случается один раз" width="960" />
@@ -25,7 +25,7 @@
 [![Benchmarks](https://img.shields.io/badge/Benchmarks-4_Suites_%C2%B7_2_Models-2563eb?style=for-the-badge)](#benchmarks)
 [![MIT License](https://img.shields.io/badge/License-MIT-38bdf8?style=for-the-badge)](../../LICENSE)
 
-**[🌐 Сайт](https://qybaihe.github.io/dshrsi/) · [📖 Справочник по плагину](../../packages/dsh-rsi/README.md) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
+**[🌐 Сайт](https://dshr.si/) · [📖 Справочник по плагину](../../packages/dsh-rsi/README.md) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
 
 [Что такое RSI](#rsi) · [Быстрый старт](#quick-start) · [Как это работает](#how-it-works) · [Результаты замеров](#measured) · [Бенчмарки](#benchmarks) · [Детекторы и возможности](#coverage) · [Проектный харнесс](#project-harness) · [Безопасность по умолчанию](#security) · [Частые вопросы](#faq)
 

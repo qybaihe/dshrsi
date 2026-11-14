@@ -10,7 +10,7 @@
 
 ### **Спостерігає → Покращує → Будує на покращеному → І знову. Harness, який дедалі краще вміє бути саме вашим.**
 
-<a href="https://qybaihe.github.io/dshrsi/trace.html">
+<a href="https://dshr.si/trace.html">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="../../assets/rsi-trace.dark.gif" />
     <img src="../../assets/rsi-trace.gif" alt="Анімація за записом реального запуску: на стандартному harness 12 сесій із 30 роблять той самий невдалий виклик; з DSHRSI harness на третій раз покращує сам себе, і в наступних 22 сесіях це трапляється один раз" width="960" />
@@ -25,7 +25,7 @@
 [![Benchmarks](https://img.shields.io/badge/Benchmarks-4_Suites_%C2%B7_2_Models-2563eb?style=for-the-badge)](#benchmarks)
 [![MIT License](https://img.shields.io/badge/License-MIT-38bdf8?style=for-the-badge)](../../LICENSE)
 
-**[🌐 Сайт](https://qybaihe.github.io/dshrsi/) · [📖 Довідник плагіна](../../packages/dsh-rsi/README.md) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
+**[🌐 Сайт](https://dshr.si/) · [📖 Довідник плагіна](../../packages/dsh-rsi/README.md) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
 
 [Що таке RSI](#rsi) · [Швидкий старт](#quick-start) · [Як це працює](#how-it-works) · [Результати вимірювань](#measured) · [Бенчмарки](#benchmarks) · [Детектори та можливості](#coverage) · [Проєктний harness](#project-harness) · [Типові налаштування безпеки](#security) · [Часті запитання](#faq)
 

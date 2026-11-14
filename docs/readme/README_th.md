@@ -10,7 +10,7 @@
 
 ### **สังเกต → ปรับปรุง → ต่อยอด → แล้ววนอีกรอบ — harness ที่ยิ่งใช้ ยิ่งเป็นของคุณ**
 
-<a href="https://qybaihe.github.io/dshrsi/trace.html">
+<a href="https://dshr.si/trace.html">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="../../assets/rsi-trace.dark.gif" />
     <img src="../../assets/rsi-trace.gif" alt="ภาพเคลื่อนไหวจากการรันจริง: บน harness เดิม 12 จาก 30 เซสชันเรียก tool แล้วล้มเหลวแบบเดียวกัน เมื่อมี DSHRSI พอเกิดครั้งที่สาม harness ก็ปรับปรุงตัวเอง และอีก 22 เซสชันถัดมาเกิดขึ้นเพียงครั้งเดียว" width="960" />
@@ -25,7 +25,7 @@
 [![Benchmarks](https://img.shields.io/badge/Benchmarks-4_Suites_%C2%B7_2_Models-2563eb?style=for-the-badge)](#benchmarks)
 [![MIT License](https://img.shields.io/badge/License-MIT-38bdf8?style=for-the-badge)](../../LICENSE)
 
-**[🌐 เว็บไซต์](https://qybaihe.github.io/dshrsi/) · [📖 เอกสารอ้างอิงของ Plugin](../../packages/dsh-rsi/README.md) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
+**[🌐 เว็บไซต์](https://dshr.si/) · [📖 เอกสารอ้างอิงของ Plugin](../../packages/dsh-rsi/README.md) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
 
 [RSI คืออะไร](#rsi) · [เริ่มต้นใช้งาน](#quick-start) · [หลักการทำงาน](#how-it-works) · [ผลที่วัดได้จริง](#measured) · [Benchmark](#benchmarks) · [ตัวตรวจจับและความสามารถ](#coverage) · [Harness ประจำโปรเจกต์](#project-harness) · [ค่าเริ่มต้นด้านความปลอดภัย](#security) · [คำถามที่พบบ่อย](#faq)
 

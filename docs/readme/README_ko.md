@@ -10,7 +10,7 @@
 
 ### **관찰 → 개선 → 그 위에 쌓기 → 다시. 쓸수록 점점 더 내 것이 되어 가는 하네스.**
 
-<a href="https://qybaihe.github.io/dshrsi/trace.html">
+<a href="https://dshr.si/trace.html">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="../../assets/rsi-trace.dark.gif" />
     <img src="../../assets/rsi-trace.gif" alt="실제 실행을 재생한 애니메이션: 기본 하네스에서는 세션 30개 중 12개가 똑같은 실패 호출을 했고, DSHRSI를 쓰면 세 번째에 하네스가 스스로를 개선해 이후 22개 세션에서는 한 번만 발생했습니다" width="960" />
@@ -25,7 +25,7 @@
 [![Benchmarks](https://img.shields.io/badge/Benchmarks-4_Suites_%C2%B7_2_Models-2563eb?style=for-the-badge)](#benchmarks)
 [![MIT License](https://img.shields.io/badge/License-MIT-38bdf8?style=for-the-badge)](../../LICENSE)
 
-**[🌐 웹사이트](https://qybaihe.github.io/dshrsi/) · [📖 플러그인 레퍼런스](../../packages/dsh-rsi/README.md) · [🐛 이슈](https://github.com/qybaihe/dshrsi/issues)**
+**[🌐 웹사이트](https://dshr.si/) · [📖 플러그인 레퍼런스](../../packages/dsh-rsi/README.md) · [🐛 이슈](https://github.com/qybaihe/dshrsi/issues)**
 
 [RSI의 의미](#rsi) · [빠른 시작](#quick-start) · [동작 원리](#how-it-works) · [실측 결과](#measured) · [벤치마크](#benchmarks) · [감지기와 기능](#coverage) · [프로젝트 하네스](#project-harness) · [안전 기본값](#security) · [자주 묻는 질문](#faq)
 

@@ -5,7 +5,7 @@
   "type": "module",
   "description": "DSHRSI: Recursive Self-Improvement for DeepSeek Harness. The repository of the dsh-rsi plugin, its tests, benchmarks and website.",
   "license": "MIT",
-  "homepage": "https://qybaihe.github.io/dshrsi/",
+  "homepage": "https://dshr.si/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/qybaihe/dshrsi.git"

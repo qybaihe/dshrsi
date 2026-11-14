@@ -10,7 +10,7 @@
 
 ### **Obserwuj → Ulepszaj → Buduj na tym → I od nowa. Harness, który staje się coraz bardziej twój.**
 
-<a href="https://qybaihe.github.io/dshrsi/trace.html">
+<a href="https://dshr.si/trace.html">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="../../assets/rsi-trace.dark.gif" />
     <img src="../../assets/rsi-trace.gif" alt="Animowany zapis prawdziwego przebiegu: na zwykłym harnessie 12 sesji na 30 wykonuje to samo nieudane wywołanie; z DSHRSI harness za trzecim razem ulepsza sam siebie, a w kolejnych 22 sesjach zdarza się to raz" width="960" />
@@ -25,7 +25,7 @@
 [![Benchmarks](https://img.shields.io/badge/Benchmarks-4_Suites_%C2%B7_2_Models-2563eb?style=for-the-badge)](#benchmarks)
 [![MIT License](https://img.shields.io/badge/License-MIT-38bdf8?style=for-the-badge)](../../LICENSE)
 
-**[🌐 Strona WWW](https://qybaihe.github.io/dshrsi/) · [📖 Dokumentacja wtyczki](../../packages/dsh-rsi/README.md) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
+**[🌐 Strona WWW](https://dshr.si/) · [📖 Dokumentacja wtyczki](../../packages/dsh-rsi/README.md) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
 
 [Co znaczy RSI](#rsi) · [Szybki start](#quick-start) · [Jak to działa](#how-it-works) · [Wyniki pomiarów](#measured) · [Benchmarki](#benchmarks) · [Detektory i możliwości](#coverage) · [Harness projektu](#project-harness) · [Bezpieczne ustawienia domyślne](#security) · [FAQ](#faq)
 

@@ -48,6 +48,7 @@
       <div>
         <a class="brand" href="index.html"><img src="assets/logo.svg" alt="" width="28" height="28">DSHRSI</a>
         <p>${both('DeepSeek Harness 上的递归自我改进。Harness 从自己的运行里改进自己，一次比一次好。', 'Recursive self-improvement for DeepSeek Harness. The harness improves itself from its own runs, one round on top of the last.')}</p>
+        <div class="adapted"><span>${both('适配对象', 'Built for')}</span><img src="assets/deepseek-combine.svg" alt="DeepSeek" height="18"></div>
       </div>
       <div><h4>${both('了解', 'Learn')}</h4><ul>${PAGES.slice(1).map(([href, zh, en]) => `<li><a href="${href}">${both(zh, en)}</a></li>`).join('')}</ul></div>
       <div><h4>${both('使用', 'Use')}</h4><ul>
@@ -91,5 +92,22 @@
       setTimeout(() => { button.textContent = 'Copy' }, 1400)
     })
     block.append(button)
+  }
+
+  const revealNodes = document.querySelectorAll('[data-reveal]')
+  if (revealNodes.length) {
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (reduce || !('IntersectionObserver' in window)) {
+      for (const node of revealNodes) node.classList.add('in')
+    } else {
+      const io = new IntersectionObserver((entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue
+          entry.target.classList.add('in')
+          io.unobserve(entry.target)
+        }
+      }, { threshold: 0.14, rootMargin: '0px 0px -8% 0px' })
+      for (const node of revealNodes) io.observe(node)
+    }
   }
 })()

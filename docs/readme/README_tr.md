@@ -10,7 +10,7 @@
 
 ### **Gözlemle → Geliştir → Üzerine İnşa Et → Yeniden. Giderek daha çok sizin olan bir harness.**
 
-<a href="https://qybaihe.github.io/dshrsi/trace.html">
+<a href="https://dshr.si/trace.html">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="../../assets/rsi-trace.dark.gif" />
     <img src="../../assets/rsi-trace.gif" alt="Gerçek bir çalıştırmanın animasyonlu izi: standart harness'te 30 oturumun 12'si aynı başarısız çağrıyı yapıyor; DSHRSI ile harness üçüncü seferde kendini geliştiriyor ve sonraki 22 oturumda bu yalnızca bir kez yaşanıyor" width="960" />
@@ -25,7 +25,7 @@
 [![Benchmarks](https://img.shields.io/badge/Benchmarks-4_Suites_%C2%B7_2_Models-2563eb?style=for-the-badge)](#benchmarks)
 [![MIT License](https://img.shields.io/badge/License-MIT-38bdf8?style=for-the-badge)](../../LICENSE)
 
-**[🌐 Web Sitesi](https://qybaihe.github.io/dshrsi/) · [📖 Plugin Referansı](../../packages/dsh-rsi/README.md) · [🐛 Issue'lar](https://github.com/qybaihe/dshrsi/issues)**
+**[🌐 Web Sitesi](https://dshr.si/) · [📖 Plugin Referansı](../../packages/dsh-rsi/README.md) · [🐛 Issue'lar](https://github.com/qybaihe/dshrsi/issues)**
 
 [RSI Ne Demek](#rsi) · [Hızlı Başlangıç](#quick-start) · [Nasıl Çalışır](#how-it-works) · [Ölçülen Sonuçlar](#measured) · [Benchmark'lar](#benchmarks) · [Dedektörler ve Yetenekler](#coverage) · [Proje Harness'i](#project-harness) · [Güvenlik Varsayılanları](#security) · [SSS](#faq)
 

@@ -10,7 +10,7 @@
 
 ### **Observe → Improve → Build on It → Again. A harness that keeps getting better at being yours.**
 
-<a href="https://qybaihe.github.io/dshrsi/trace.html">
+<a href="https://dshr.si/trace.html">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/rsi-trace.dark.gif" />
     <img src="assets/rsi-trace.gif" alt="Animated trace of a real run: on the stock harness, 12 of 30 sessions make the same failed call; with DSHRSI the harness improves itself the third time it happens, and the next 22 sessions hit it once" width="960" />
@@ -25,7 +25,7 @@
 [![Benchmarks](https://img.shields.io/badge/Benchmarks-4_Suites_%C2%B7_2_Models-2563eb?style=for-the-badge)](#benchmarks)
 [![MIT License](https://img.shields.io/badge/License-MIT-38bdf8?style=for-the-badge)](LICENSE)
 
-**[🌐 Website](https://qybaihe.github.io/dshrsi/) · [📖 Plugin Reference](packages/dsh-rsi/README.md) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
+**[🌐 Website](https://dshr.si/) · [📖 Plugin Reference](packages/dsh-rsi/README.md) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
 
 [What RSI Means](#rsi) · [Quick Start](#quick-start) · [How It Works](#how-it-works) · [Measured Results](#measured) · [Benchmarks](#benchmarks) · [Detectors & Capabilities](#coverage) · [Project Harness](#project-harness) · [Safety Defaults](#security) · [FAQ](#faq)
 

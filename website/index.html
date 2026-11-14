@@ -3,10 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>DSHRSI：会递归自我改进的 Harness</title>
-<meta name="title-zh" content="DSHRSI：会递归自我改进的 Harness">
-<meta name="title-en" content="DSHRSI: the harness that improves itself">
-<meta name="description" content="DSHRSI brings recursive self-improvement to DeepSeek Harness: the harness observes its own runs, has its own model write harness code, validates it and mounts it mid-turn.">
+<title>DSHRSI：同一个坑，不必踩第二次</title>
+<meta name="title-zh" content="DSHRSI：同一个坑，不必踩第二次">
+<meta name="title-en" content="DSHRSI: the same pit, not a second time">
+<meta name="description" content="DSHRSI is an open-source plugin for DeepSeek Harness. The harness observes its own runs, writes harness code, validates it, and mounts it mid-turn — so the next run starts from a better harness.">
+<link rel="canonical" href="https://dshr.si/">
+<meta property="og:title" content="DSHRSI: the harness that improves itself">
+<meta property="og:description" content="An open-source plugin that lets DeepSeek Harness improve itself from its own runs.">
+<meta property="og:url" content="https://dshr.si/">
+<meta property="og:type" content="website">
 <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/site.css">
 <script>document.documentElement.dataset.lang=(function(){try{return localStorage.getItem('dshrsi-lang')}catch(e){return null}})()||(/^zh\b/i.test(navigator.language||'')?'zh':'en')</script>
@@ -15,22 +20,30 @@
 <main>
 
 <div class="hero">
+  <div class="hero-field" aria-hidden="true"><div class="grid"></div><div class="ring"></div></div>
   <div class="wrap">
-    <a class="news" href="bench.html"><b>v0.1</b>
-      <span lang="zh">四个基准的实测结果已公开 →</span>
-      <span lang="en">Results on four benchmarks are out →</span>
+    <a class="news" href="#proven"><b>v0.1.3</b>
+      <span lang="zh">已实现改进，并有可核对的实测 →</span>
+      <span lang="en">Improvements shipped, with measured results →</span>
     </a>
     <h1>
-      <span lang="zh">让 Harness <em>自己变强</em></span>
-      <span lang="en">The harness that <em>improves itself</em></span>
+      <span lang="zh">同一个坑，<em>不必踩第二次</em></span>
+      <span lang="en">The same pit, <em>not a second time</em></span>
     </h1>
     <p class="lede">
-      <span lang="zh"><strong>RSI = Recursive Self-Improvement，递归自我改进。</strong>DSHRSI 让 DeepSeek Harness 盯着自己的每一次运行，用会话里的模型给自己写代码，校验之后在这一轮还没结束时装上。下一次运行，从更好的自己开始。</span>
-      <span lang="en"><strong>RSI stands for Recursive Self-Improvement.</strong> DSHRSI has DeepSeek Harness watch its own runs, write code for itself with the session's own model, validate it, and mount it before the turn is over. The next run starts from a better harness.</span>
+      <span lang="zh"><strong>DSHRSI</strong> 是面向 DeepSeek Harness 的开源插件：让 Harness 盯着自己的每一次运行，用当次会话的模型给自己写代码，校验之后在这一轮还没结束时装上。下一次运行，从更好的自己开始。</span>
+      <span lang="en"><strong>DSHRSI</strong> is an open-source plugin for DeepSeek Harness: the harness watches its own runs, has the session's model write harness code, validates it, and mounts it before the turn is over. The next run starts from a better harness.</span>
     </p>
+    <div class="fit-for">
+      <img class="mark" src="assets/logo.svg" alt="DSHRSI" width="28" height="28">
+      <span class="caption" lang="zh">适配对象</span>
+      <span class="caption" lang="en">Built for</span>
+      <span class="sep" aria-hidden="true"></span>
+      <img class="word" src="assets/deepseek-combine.svg" alt="DeepSeek" height="18">
+    </div>
     <div class="cta">
       <a class="btn primary" href="#install"><span lang="zh">30 秒装上</span><span lang="en">Install in 30 seconds</span></a>
-      <a class="btn glass" href="rsi.html"><span lang="zh">什么是递归自我改进</span><span lang="en">What recursive means here</span></a>
+      <a class="btn glass" href="#future"><span lang="zh">看下一代 Harness</span><span lang="en">The next harness</span></a>
       <a class="btn glass" href="bench.html"><span lang="zh">看评测</span><span lang="en">See the evaluation</span></a>
     </div>
 
@@ -44,80 +57,155 @@
 
 <section>
   <div class="wrap">
-    <div class="head center">
-      <div class="kicker">Recursive Self-Improvement</div>
-      <h2><span lang="zh">三个词，一个都不是装饰</span><span lang="en">Three words, none of them decoration</span></h2>
-      <p><span lang="zh">提示词、记忆文件、Skill 都是给模型多读一段话。DSHRSI 改的是 Harness 自己。</span><span lang="en">Prompts, memory files and skills give the model more to read. DSHRSI changes the harness itself.</span></p>
+    <div class="head center" data-reveal>
+      <div class="kicker">The idea</div>
+      <h2><span lang="zh">车手不换，进站换零件</span><span lang="en">Same driver. New parts in the pit.</span></h2>
+      <p><span lang="zh">不微调权重，不堆提示词，只改 Harness 代码。提示词、记忆文件、Skill 都是给模型多读一段话；DSHRSI 改的是模型跑在上面的那一层。</span><span lang="en">No fine-tuning. No pile of prompts. Only harness code. Prompts, memory files and skills give the model more to read; DSHRSI changes the layer the model runs on.</span></p>
     </div>
+    <figure class="pit" data-reveal>
+      <picture lang="zh"><source media="(prefers-color-scheme: dark)" srcset="assets/img/pit-stop.zh.dark.svg"><img src="assets/img/pit-stop.zh.svg" width="1280" height="720" loading="lazy" alt="用一次进站画出 DSHRSI 的原理：赛车是 Harness，车手是模型，新零件是这一轮进行到一半时写出的 Harness 代码"></picture>
+      <picture lang="en"><source media="(prefers-color-scheme: dark)" srcset="assets/img/pit-stop.dark.svg"><img src="assets/img/pit-stop.svg" width="1280" height="720" loading="lazy" alt="How DSHRSI works, drawn as a pit stop: the car is the harness, the driver is the model, and the new part is harness code written in the middle of a turn"></picture>
+    </figure>
     <div class="grid c3">
-      <div class="card">
-        <div class="num">SELF</div>
-        <h3><span lang="zh">自我：Harness 改的是自己</span><span lang="en">Self: the harness changes itself</span></h3>
-        <p><span lang="zh">被改进的和动手改进的是同一个系统。Harness 用正在运行的模型，在正在运行的会话里，给自己写代码。</span><span lang="en">What gets improved and what does the improving are one system. The harness uses the model it is running, in the session it is running, to write code for itself.</span></p>
-      </div>
-      <div class="card">
-        <div class="num">IMPROVEMENT</div>
-        <h3><span lang="zh">改进：过了关才算数</span><span lang="en">Improvement: it counts only after the gate</span></h3>
-        <p><span lang="zh">每段代码都要过五道校验才能装上。装上之后还要看结果：这个麻烦在后来的会话里还出不出现。</span><span lang="en">Every piece of code has to pass five checks before it is mounted. After that the results decide: does the trouble still show up in later sessions?</span></p>
-      </div>
-      <div class="card">
-        <div class="num">RECURSIVE</div>
-        <h3><span lang="zh">递归：这一代写出下一代</span><span lang="en">Recursive: each generation writes the next</span></h3>
-        <p><span lang="zh">改进不是一次性的。下一次会话跑在改进过的 Harness 上；没拦住的会被重写得更严，稳定下来的写进仓库传给别人。</span><span lang="en">It does not happen once. The next session runs on the improved harness; what did not hold is rewritten stricter, and what proves itself is written into the repository for others.</span></p>
-      </div>
+      <div class="card" data-reveal><div class="num">01</div><h3><span lang="zh">不微调权重</span><span lang="en">No weight updates</span></h3><p><span lang="zh">模型还是原来的模型。改的不是参数，是它做事时用的 Harness。</span><span lang="en">The model stays the model. What changes is the harness it works through, not its parameters.</span></p></div>
+      <div class="card d2" data-reveal><div class="num">02</div><h3><span lang="zh">不堆提示词</span><span lang="en">No prompt pile-up</span></h3><p><span lang="zh">不是再往上下文里塞一段说明。改进写成代码，过关之后挂上。</span><span lang="en">It does not stuff another paragraph into context. The improvement is code, mounted after it passes the gate.</span></p></div>
+      <div class="card d3" data-reveal><div class="num">03</div><h3><span lang="zh">只改 Harness 代码</span><span lang="en">Harness code only</span></h3><p><span lang="zh">车手是模型，车是 Harness，新零件是这一轮里写出的代码。下一次请求，从装好零件的车上出发。</span><span lang="en">The driver is the model, the car is the harness, the new part is code written mid-turn. The next request leaves the pits with that part on.</span></p></div>
     </div>
-    <p style="text-align:center;margin-top:32px"><a class="btn" href="rsi.html"><span lang="zh">递归到底递归在哪 →</span><span lang="en">Where exactly the recursion is →</span></a></p>
   </div>
 </section>
 
 <section class="soft">
   <div class="wrap">
-    <div class="head">
+    <div class="head center" data-reveal>
       <div class="kicker"><span lang="zh">闭环</span><span lang="en">The loop</span></div>
-      <h2><span lang="zh">从踩坑到改好，发生在同一轮任务里</span><span lang="en">From hitting the wall to fixing it, inside one turn</span></h2>
+      <h2><span lang="zh">从发现到复用，发生在同一轮任务里</span><span lang="en">From finding the problem to reusing the fix, inside one turn</span></h2>
     </div>
-    <figure class="pit">
-      <picture lang="zh"><source media="(prefers-color-scheme: dark)" srcset="assets/img/pit-stop.zh.dark.svg"><img src="assets/img/pit-stop.zh.svg" width="1280" height="720" loading="lazy" alt="用一次进站画出 DSHRSI 的原理：赛车是 Harness，车手是模型，新零件是这一轮进行到一半时写出的 Harness 代码"></picture>
-      <picture lang="en"><source media="(prefers-color-scheme: dark)" srcset="assets/img/pit-stop.dark.svg"><img src="assets/img/pit-stop.svg" width="1280" height="720" loading="lazy" alt="How DSHRSI works, drawn as a pit stop: the car is the harness, the driver is the model, and the new part is harness code written in the middle of a turn"></picture>
-    </figure>
-    <ol class="steps">
-      <li><h3><span lang="zh">观察</span><span lang="en">Observe</span></h3><p><span lang="zh">16 个判断点盯着每次会话：重复失败的调用、用户的纠正、没验证就收工的一轮。</span><span lang="en">16 detectors watch every session: calls that fail again, corrections from the user, turns that end with nothing verified.</span></p></li>
-      <li><h3><span lang="zh">决策</span><span lang="en">Decide</span></h3><p><span lang="zh">同一个麻烦再次出现，就该动手了。</span><span lang="en">When the same trouble comes back, it is time to act.</span></p></li>
-      <li><h3><span lang="zh">改写</span><span lang="en">Rewrite</span></h3><p><span lang="zh">会话里的模型给 Harness 写一段代码。被打回，就带着原因重写。</span><span lang="en">The session's model writes a piece of harness code. If it is rejected, it goes back with the reasons.</span></p></li>
-      <li><h3><span lang="zh">校验并挂载</span><span lang="en">Validate and mount</span></h3><p><span lang="zh">五道校验全过才装上，下一次模型请求之前就生效。</span><span lang="en">It is mounted only after all five checks, and takes effect before the next model request.</span></p></li>
-      <li><h3><span lang="zh">沉淀并共享</span><span lang="en">Keep and share</span></h3><p><span lang="zh">有效的留下，出错的隔离，没拦住的重写。项目的规矩写进仓库，跟着代码走。</span><span lang="en">What works is kept, what throws is quarantined, what did not hold is rewritten. Project rules go into the repository and travel with the code.</span></p></li>
+    <ol class="flow">
+      <li data-reveal>
+        <div class="n">01</div>
+        <h3><span lang="zh">发现重复问题</span><span lang="en">Spot the recurrence</span></h3>
+        <p><span lang="zh">16 个判断点盯着会话：重复失败的调用、你给过的纠正、没验证就收工的一轮。</span><span lang="en">16 detectors watch the session: calls that fail again, corrections you already made, turns that end with nothing verified.</span></p>
+      </li>
+      <li data-reveal class="d2">
+        <div class="n">02</div>
+        <h3><span lang="zh">自动生成改进</span><span lang="en">Write the improvement</span></h3>
+        <p><span lang="zh">同一个麻烦再来，会话里的模型就给 Harness 写一段代码。被打回，就带着原因重写。</span><span lang="en">When the same trouble comes back, the session's model writes harness code. If it is rejected, it goes back with the reasons.</span></p>
+      </li>
+      <li data-reveal class="d3">
+        <div class="n">03</div>
+        <h3><span lang="zh">验证后生效</span><span lang="en">Validate, then mount</span></h3>
+        <p><span lang="zh">校验全部通过才会装上，并在下一次模型请求之前生效。</span><span lang="en">It is mounted only after every check passes, and takes effect before the next model request.</span></p>
+      </li>
+      <li data-reveal class="d4">
+        <div class="n">04</div>
+        <h3><span lang="zh">下次直接复用</span><span lang="en">Reuse next time</span></h3>
+        <p><span lang="zh">有效的留下，出错的隔离，没拦住的重写。项目规矩可以写进仓库，跟着代码走。</span><span lang="en">What works is kept, what throws is isolated, what did not hold is rewritten. Project rules can go into the repository and travel with the code.</span></p>
+      </li>
     </ol>
-    <p style="margin-top:32px"><a class="btn" href="tech.html"><span lang="zh">完整技术路线 →</span><span lang="en">The full technical route →</span></a></p>
+    <p style="margin-top:32px;text-align:center"><a class="btn" href="tech.html"><span lang="zh">完整技术路线 →</span><span lang="en">The full technical route →</span></a></p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="head center" data-reveal>
+      <div class="kicker"><span lang="zh">一个已核实的例子</span><span lang="en">A verified case</span></div>
+      <h2><span lang="zh">机器只有 python3，却反复去跑 python</span><span lang="en">The machine has python3. The harness keeps running python.</span></h2>
+      <p><span lang="zh">说明里写的是 <code>python stats.py</code>，这台机器上却只有 <code>python3</code>。改进不是偷偷改命令，而是写出一条规则：提示改用 python3，若仍调用 python 就拦截。</span><span lang="en">The instructions say <code>python stats.py</code>, but the machine only has <code>python3</code>. The improvement does not silently rewrite the command. It writes a rule: prompt for python3, and deny python if it is still called.</span></p>
+    </div>
+    <div class="case">
+      <article class="case-pane before" data-reveal>
+        <div class="eyebrow"><span lang="zh">改进前</span><span lang="en">Before</span></div>
+        <pre><code>python stats.py
+# command not found: python</code></pre>
+        <p><span lang="zh">没有插件时，5/5 次会话都在这个坑里停下。写出规则之前，9/9 次同样失败。</span><span lang="en">Without the plugin, 5 of 5 sessions hit this pit. Before a rule was written, 9 of 9 failed the same way.</span></p>
+      </article>
+      <article class="case-pane after d2" data-reveal>
+        <div class="eyebrow"><span lang="zh">改进后</span><span lang="en">After</span></div>
+        <pre><code>python3 stats.py
+# the rule is deny + prompt,
+# not a rewritten command</code></pre>
+        <p><span lang="zh">规则挂上之后，0/7 次再失败。它不保证模型再也不试旧命令，但同一类失败不再无声地重复。</span><span lang="en">After the rule was mounted, 0 of 7 failed again. It does not promise the model will never retry the old command; it stops the same failure repeating in silence.</span></p>
+      </article>
+    </div>
+    <p class="case-note"><span lang="zh">真实 <code>dsh</code> 会话，模型 <code>mimo-v2.6-pro</code>。样本小，不是成功率统计；有无插件，最终都给出了正确答案。</span><span lang="en">Real <code>dsh</code> sessions with <code>mimo-v2.6-pro</code>. The sample is small, not a success-rate statistic; every session, with or without the plugin, still produced the right answer.</span></p>
+  </div>
+</section>
+
+<section class="soft" id="proven">
+  <div class="wrap">
+    <div class="head center" data-reveal>
+      <div class="kicker"><span lang="zh">已验证的改进</span><span lang="en">Improvements already measured</span></div>
+      <h2><span lang="zh">重复失败在减少，单项跑分有净增益</span><span lang="en">Repeat failures fall. Some scores gain. Not an overall lift.</span></h2>
+      <p><span lang="zh">3,390 次真实 <code>dsh</code> 会话，对照原版 DeepSeek Harness。我们已经实现了改进；解题率上两套 Harness 仍分不开。</span><span lang="en">3,390 real <code>dsh</code> sessions, against stock DeepSeek Harness. The improvements are real; on task success the two harnesses still cannot be told apart.</span></p>
+    </div>
+    <div class="proof">
+      <div class="proof-hero" data-reveal>
+        <div class="value">16/310 <em>→</em> 3/310</div>
+        <p><span lang="zh">MBPP+ × <code>mimo-v2.6-pro</code>：测试在第一次断言失败就退出的情况，从 16/310 降到 3/310（p=0.002）。这是已验证、统计上站得住的改进。它没有让更多任务通过。</span><span lang="en">MBPP+ × <code>mimo-v2.6-pro</code>: tests aborting on the first assertion failure fell from 16/310 to 3/310 (p=0.002). This is a verified, statistically supported improvement. It did not make more tasks pass.</span></p>
+      </div>
+      <div class="proof-side d2" data-reveal>
+        <div class="value">308 <em>→</em> 315</div>
+        <p><span lang="zh">MBPP+ × <code>mimo-v2.6-flash</code>：通过题数从 308/378 到 315/378，净多通过 7 题（13 题仅在加上插件后通过，6 题仅在基线通过；p=0.17）。已完成套件里最大净损失为 −3。整体解题率仍无法与随机波动区分。</span><span lang="en">MBPP+ × <code>mimo-v2.6-flash</code>: passes went from 308/378 to 315/378, a net gain of 7 (13 tasks passed only with the plugin, 6 only on the baseline; p=0.17). The largest completed-suite net loss is −3. Overall pass rates are still not distinguishable from chance.</span></p>
+        <p class="ids">Mbpp/103, 116, 244, 255, 260, 264, 310, 564, 626, 769, 773, 797, 801 · vs 3, 84, 129, 439, 580, 786</p>
+      </div>
+    </div>
+    <p class="proof-meta" data-reveal><span lang="zh">八次运行共写出 56 条自我改造，15 条实际起作用，10 条扩大到整机。三个跑完的套件上，插件一侧大约多花 8–9% 的时间与输入 token。</span><span lang="en">Across eight runs, 56 self-modifications were written, 15 took effect, and 10 were widened to the whole machine. On the three finished suites the plugin side used about 8–9% more time and input tokens.</span></p>
+    <p style="margin-top:32px;display:flex;flex-wrap:wrap;gap:12px;justify-content:center"><a class="btn primary" href="trace.html"><span lang="zh">逐步看一次改进的实录 →</span><span lang="en">A trace of one improvement →</span></a><a class="btn" href="bench.html"><span lang="zh">四个基准的完整结果 →</span><span lang="en">Full results on four benchmarks →</span></a></p>
   </div>
 </section>
 
 <section>
   <div class="wrap">
     <div class="head">
-      <div class="kicker"><span lang="zh">数字</span><span lang="en">Numbers</span></div>
-      <h2><span lang="zh">都是量出来的，量不出来的不写</span><span lang="en">Measured, or not claimed</span></h2>
-      <p><span lang="zh">真实模型、真实会话，和原版 Harness 在同样的题上对照。代价是用时多 8%。</span><span lang="en">A real model in real sessions, against the stock harness on the same tasks. The price is 8% more agent time.</span></p>
-    </div>
-    <div class="grid c4" id="home-measured">
-      <div class="stat"><div class="value">12 → 5</div><div class="label"><span lang="zh">撞上同一个失败的会话，共 30 个</span><span lang="en">sessions that hit the same failure, of 30</span></div></div>
-      <div class="stat"><div class="value">7 → 1</div><div class="label"><span lang="zh">带着这次改进的 22 个会话里</span><span lang="en">in the 22 sessions that carried the fix</span></div></div>
-      <div class="stat"><div class="value">36.9 s</div><div class="label"><span lang="zh">从失败到修好装上</span><span lang="en">from the failure to the mounted fix</span></div></div>
-      <div class="stat"><div class="value">+10</div><div class="label"><span lang="zh">多解出的题，差别还在随机波动之内</span><span lang="en">more tasks solved, still within chance</span></div></div>
-    </div>
-    <p style="margin-top:32px;display:flex;flex-wrap:wrap;gap:12px"><a class="btn primary" href="trace.html"><span lang="zh">逐步看这次改进的实录 →</span><span lang="en">The trace of that improvement, step by step →</span></a><a class="btn" href="bench.html"><span lang="zh">四个基准的完整结果 →</span><span lang="en">Full results on four benchmarks →</span></a></p>
-  </div>
-</section>
-
-<section class="soft">
-  <div class="wrap">
-    <div class="head">
       <div class="kicker"><span lang="zh">三层</span><span lang="en">Three layers</span></div>
       <h2><span lang="zh">贴合这台机器、这个人、这个项目</span><span lang="en">Fitted to this machine, this person, this project</span></h2>
     </div>
     <div class="grid c3">
-      <div class="card"><div class="num">MACHINE</div><h3><span lang="zh">机器层</span><span lang="en">Machine</span></h3><p><span lang="zh">这台电脑的事实：缺一个命令，端口被占，内网域名解析不了。在第二个项目里再遇到，就对整台机器生效。</span><span lang="en">Facts about this computer: a missing command, a port taken, an internal host that does not resolve. Met again in a second project, it applies machine-wide.</span></p></div>
-      <div class="card"><div class="num">USER</div><h3><span lang="zh">用户层</span><span lang="en">User</span></h3><p><span lang="zh">你希望怎样被对待。给一条回复点了差评并说“太长了”，以后所有项目都记得。</span><span lang="en">How you want to be treated. Mark a reply as bad with the reason "too long", and every project remembers.</span></p></div>
-      <div class="card"><div class="num">PROJECT</div><h3><span lang="zh">项目层</span><span lang="en">Project</span></h3><p><span lang="zh">一个仓库的规矩，直接写进仓库：提交就是共享，删掉就是拔掉。别人的机器确认之后才运行。</span><span lang="en">The rules of one repository, written into the repository itself. Commit to share, delete to unplug; another machine runs them only after its owner accepts them.</span></p></div>
+      <div class="card" data-reveal><div class="num">MACHINE</div><h3><span lang="zh">机器层</span><span lang="en">Machine</span></h3><p><span lang="zh">这台电脑的事实：缺一个命令，端口被占，内网域名解析不了。在第二个项目里再遇到，就对整台机器生效。</span><span lang="en">Facts about this computer: a missing command, a port taken, an internal host that does not resolve. Met again in a second project, it applies machine-wide.</span></p></div>
+      <div class="card d2" data-reveal><div class="num">USER</div><h3><span lang="zh">用户层</span><span lang="en">User</span></h3><p><span lang="zh">你希望怎样被对待。给一条回复点了差评并说“太长了”，以后所有项目都记得。</span><span lang="en">How you want to be treated. Mark a reply as bad with the reason "too long", and every project remembers.</span></p></div>
+      <div class="card d3" data-reveal><div class="num">PROJECT</div><h3><span lang="zh">项目层</span><span lang="en">Project</span></h3><p><span lang="zh">一个仓库的规矩，直接写进仓库：提交就是共享，删掉就是拔掉。别人的机器确认之后才运行。</span><span lang="en">The rules of one repository, written into the repository itself. Commit to share, delete to unplug; another machine runs them only after its owner accepts them.</span></p></div>
+    </div>
+  </div>
+</section>
+
+<section class="soft" id="future">
+  <div class="wrap">
+    <div class="head center" data-reveal>
+      <div class="kicker"><span lang="zh">构想 · 下一代 Harness</span><span lang="en">A vision · the next harness</span></div>
+      <h2><span lang="zh">越用越适配你的电脑，也越用越适配你的习惯</span><span lang="en">The more you use it, the more it fits your machine and your habits</span></h2>
+      <p><span lang="zh">未来的 Harness 不必靠人一次次手动更新。它从失败路径的 trace 里定位问题，验证成功的走法，再提炼可复用的改进。第一次仍可能踩坑；学到并验证之后，同一类坑会少反复出现。</span><span lang="en">The next harness should not wait for manual updates. It locates trouble in traces of failed paths, checks a successful way through, and distills a reusable improvement. The first attempt may still stumble; after that lesson is proven, the same pit shows up less often.</span></p>
+    </div>
+    <div class="vision">
+      <div class="card" data-reveal>
+        <span class="badge"><span lang="zh">构想</span><span lang="en">Vision</span></span>
+        <h3 style="margin-top:16px"><span lang="zh">缺了一条命令，不必再从头报错</span><span lang="en">A missing command should not stall you twice</span></h3>
+        <p><span lang="zh">比如，macOS 默认往往没有 GNU <code>timeout</code>。构想是：Harness 记下这类环境差异，而不是每次都先失败一次。</span><span lang="en">For example, macOS does not usually ship GNU <code>timeout</code>. The idea is that the harness remembers this kind of environment fact, instead of failing once every time.</span></p>
+      </div>
+      <div class="card d2" data-reveal>
+        <span class="badge"><span lang="zh">构想</span><span lang="en">Vision</span></span>
+        <h3 style="margin-top:16px"><span lang="zh">缺环境、缺依赖，也能越用越通</span><span lang="en">Missing tools and environments, learned as you go</span></h3>
+        <p><span lang="zh">某次因为虚拟环境、软件包或路径没准备好而跑不通。验证过可行的走法之后，下一次先检查、再复用，而不是把成功轨迹原样照抄。</span><span lang="en">A run fails because a venv, a package or a path was missing. After a working path is proven, the next run checks and reuses it — it does not copy a successful trace verbatim.</span></p>
+      </div>
+      <div class="card d3" data-reveal>
+        <span class="badge now"><span lang="zh">已有小样本实测</span><span lang="en">Already seen in a small live sample</span></span>
+        <h3 style="margin-top:16px"><span lang="zh">你只说过一次的规矩，下一次还记得</span><span lang="en">A rule you said once, remembered the next time</span></h3>
+        <p><span lang="zh">不要改 <code>notes.txt</code>，写到草稿里。没有插件时，下一会话仍改了原文件；有插件时，下一会话主动写到草稿。</span><span lang="en">Don't edit <code>notes.txt</code>; write to a draft. Without the plugin, the next session still edited the original; with it, the next session wrote to the draft on its own.</span></p>
+      </div>
+    </div>
+    <p class="case-note" data-reveal style="font-size:18px;color:var(--text);font-family:var(--font-display);font-weight:600;letter-spacing:-0.02em"><span lang="zh">或许，最棒的 Harness，就在你的电脑上诞生。</span><span lang="en">Perhaps the best harness will be born on your machine.</span></p>
+  </div>
+</section>
+
+<section class="closer">
+  <div class="wrap" data-reveal>
+    <div class="kicker"><span lang="zh">我们的判断</span><span lang="en">Our view</span></div>
+    <h2><span lang="zh">Harness，可能先于模型实现 RSI</span><span lang="en">The harness may reach RSI before the model does</span></h2>
+    <p class="lede"><span lang="zh">递归自我改进不必先改权重。只要运行时的反馈能不断变成经过验证的 Harness 代码，就会长出一个专属于你、并且持续进化的 Harness。</span><span lang="en">Recursive self-improvement does not have to start with weights. If runtime feedback keeps turning into validated harness code, you get a harness that is yours — and that keeps evolving.</span></p>
+    <p class="endline"><span lang="zh">你的下一代 Coding Agent，从这里开始。</span><span lang="en">Your next coding agent starts here.</span></p>
+    <div class="cta">
+      <a class="btn primary" href="#install"><span lang="zh">从安装开始</span><span lang="en">Start by installing</span></a>
+      <a class="btn glass" href="rsi.html"><span lang="zh">什么是递归自我改进</span><span lang="en">What recursive means here</span></a>
     </div>
   </div>
 </section>

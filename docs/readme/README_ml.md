@@ -10,7 +10,7 @@
 
 ### **നിരീക്ഷിക്കുക → മെച്ചപ്പെടുത്തുക → അതിന്മേൽ പണിയുക → വീണ്ടും. ഓരോ തവണയും കൂടുതൽ നിങ്ങളുടേതായി മാറുന്ന harness.**
 
-<a href="https://qybaihe.github.io/dshrsi/trace.html">
+<a href="https://dshr.si/trace.html">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="../../assets/rsi-trace.dark.gif" />
     <img src="../../assets/rsi-trace.gif" alt="ഒരു യഥാർത്ഥ run-ന്റെ animation: സാധാരണ harness-ൽ 30 sessions-ൽ 12 എണ്ണം അതേ പരാജയപ്പെട്ട call നടത്തുന്നു; DSHRSI ഉള്ളപ്പോൾ മൂന്നാം തവണ harness സ്വയം മെച്ചപ്പെടുത്തുന്നു, തുടർന്നുള്ള 22 sessions-ൽ ഇത് ഒരു തവണ മാത്രം സംഭവിക്കുന്നു" width="960" />
@@ -25,7 +25,7 @@
 [![Benchmarks](https://img.shields.io/badge/Benchmarks-4_Suites_%C2%B7_2_Models-2563eb?style=for-the-badge)](#benchmarks)
 [![MIT License](https://img.shields.io/badge/License-MIT-38bdf8?style=for-the-badge)](../../LICENSE)
 
-**[🌐 വെബ്സൈറ്റ്](https://qybaihe.github.io/dshrsi/) · [📖 Plugin Reference](../../packages/dsh-rsi/README.md) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
+**[🌐 വെബ്സൈറ്റ്](https://dshr.si/) · [📖 Plugin Reference](../../packages/dsh-rsi/README.md) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
 
 [RSI എന്നാൽ എന്ത്](#rsi) · [Quick Start](#quick-start) · [പ്രവർത്തിക്കുന്ന വിധം](#how-it-works) · [അളന്ന ഫലങ്ങൾ](#measured) · [Benchmarks](#benchmarks) · [Detectors-ഉം Capabilities-ഉം](#coverage) · [Project Harness](#project-harness) · [സുരക്ഷാ defaults](#security) · [FAQ](#faq)
 

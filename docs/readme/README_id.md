@@ -10,7 +10,7 @@
 
 ### **Amati → Perbaiki → Bangun di Atasnya → Ulangi Lagi. Harness yang makin lama makin menjadi milik Anda.**
 
-<a href="https://qybaihe.github.io/dshrsi/trace.html">
+<a href="https://dshr.si/trace.html">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="../../assets/rsi-trace.dark.gif" />
     <img src="../../assets/rsi-trace.gif" alt="Animasi jejak dari run sungguhan: pada harness bawaan, 12 dari 30 sesi melakukan pemanggilan gagal yang sama; dengan DSHRSI, pada kali ketiga harness memperbaiki dirinya sendiri, dan pada 22 sesi berikutnya hal itu hanya terjadi sekali" width="960" />
@@ -25,7 +25,7 @@
 [![Benchmarks](https://img.shields.io/badge/Benchmarks-4_Suites_%C2%B7_2_Models-2563eb?style=for-the-badge)](#benchmarks)
 [![MIT License](https://img.shields.io/badge/License-MIT-38bdf8?style=for-the-badge)](../../LICENSE)
 
-**[🌐 Situs web](https://qybaihe.github.io/dshrsi/) · [📖 Referensi Plugin](../../packages/dsh-rsi/README.md) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
+**[🌐 Situs web](https://dshr.si/) · [📖 Referensi Plugin](../../packages/dsh-rsi/README.md) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
 
 [Apa Itu RSI](#rsi) · [Mulai Cepat](#quick-start) · [Cara Kerja](#how-it-works) · [Hasil Terukur](#measured) · [Benchmark](#benchmarks) · [Detektor & Kapabilitas](#coverage) · [Harness Proyek](#project-harness) · [Default Keamanan](#security) · [FAQ](#faq)
 

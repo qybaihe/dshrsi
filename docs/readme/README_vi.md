@@ -10,7 +10,7 @@
 
 ### **Quan sát → Cải tiến → Xây tiếp trên đó → Lặp lại. Một harness càng dùng càng là của riêng bạn.**
 
-<a href="https://qybaihe.github.io/dshrsi/trace.html">
+<a href="https://dshr.si/trace.html">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="../../assets/rsi-trace.dark.gif" />
     <img src="../../assets/rsi-trace.gif" alt="Ảnh động ghi lại một lần chạy thật: với harness gốc, 12 trên 30 phiên thực hiện cùng một lệnh gọi thất bại; với DSHRSI, đến lần thứ ba harness tự cải tiến chính nó, và 22 phiên sau đó chỉ gặp lại một lần" width="960" />
@@ -25,7 +25,7 @@
 [![Benchmarks](https://img.shields.io/badge/Benchmarks-4_Suites_%C2%B7_2_Models-2563eb?style=for-the-badge)](#benchmarks)
 [![MIT License](https://img.shields.io/badge/License-MIT-38bdf8?style=for-the-badge)](../../LICENSE)
 
-**[🌐 Trang web](https://qybaihe.github.io/dshrsi/) · [📖 Tài liệu tham khảo plugin](../../packages/dsh-rsi/README.md) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
+**[🌐 Trang web](https://dshr.si/) · [📖 Tài liệu tham khảo plugin](../../packages/dsh-rsi/README.md) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
 
 [RSI nghĩa là gì](#rsi) · [Bắt đầu nhanh](#quick-start) · [Cách hoạt động](#how-it-works) · [Kết quả đo thực tế](#measured) · [Benchmark](#benchmarks) · [Bộ phát hiện & năng lực](#coverage) · [Harness dự án](#project-harness) · [Mặc định an toàn](#security) · [Câu hỏi thường gặp](#faq)
 

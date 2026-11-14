@@ -10,7 +10,7 @@
 
 ### **观察 → 改进 → 在改进之上再改进。一份越用越懂你的 Harness。**
 
-<a href="https://qybaihe.github.io/dshrsi/trace.html">
+<a href="https://dshr.si/trace.html">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="../../assets/rsi-trace.zh.dark.gif" />
     <img src="../../assets/rsi-trace.zh.gif" alt="一次真实运行的动画记录：原版 Harness 的 30 次会话里有 12 次发出同一个失败调用；装上 DSHRSI 后，第三次撞上时 Harness 改进了自己，之后的 22 次会话只再出现 1 次" width="960" />
@@ -25,7 +25,7 @@
 [![Benchmarks](https://img.shields.io/badge/Benchmarks-4_Suites_%C2%B7_2_Models-2563eb?style=for-the-badge)](#benchmarks)
 [![MIT License](https://img.shields.io/badge/License-MIT-38bdf8?style=for-the-badge)](../../LICENSE)
 
-**[🌐 官网](https://qybaihe.github.io/dshrsi/) · [📖 插件参考文档](../../packages/dsh-rsi/README.zh.md) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
+**[🌐 官网](https://dshr.si/) · [📖 插件参考文档](../../packages/dsh-rsi/README.zh.md) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
 
 [RSI 是什么](#rsi) · [快速开始](#quick-start) · [工作原理](#how-it-works) · [实测结果](#measured) · [基准评测](#benchmarks) · [判断点与能力](#coverage) · [项目 Harness](#project-harness) · [安全默认值](#security) · [常见问题](#faq)
 
