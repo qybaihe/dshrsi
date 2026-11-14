@@ -21,14 +21,11 @@
 
 [![RSI](https://img.shields.io/badge/RSI-Recursive_Self--Improvement-4d6bfe?style=for-the-badge)](#rsi)
 [![DeepSeek Harness](https://img.shields.io/badge/DeepSeek_Harness-0.2.2--rc.3_plugin-7c5cff?style=for-the-badge)](https://github.com/deepseek-ai/deepseek-harness)
-[![Detectors](https://img.shields.io/badge/Detectors-16-12b5e5?style=for-the-badge)](#coverage)
 [![Validation](https://img.shields.io/badge/Validation-5--Stage_Gate-0ea5e9?style=for-the-badge)](#how-it-works)
-[![Layers](https://img.shields.io/badge/Layers-Machine_%C2%B7_User_%C2%B7_Project-0284c7?style=for-the-badge)](#project-harness)
 [![Benchmarks](https://img.shields.io/badge/Benchmarks-4_Suites_%C2%B7_2_Models-2563eb?style=for-the-badge)](#benchmarks)
-[![Tests](https://img.shields.io/badge/Tests-130_unit_%C2%B7_29_e2e-1d4ed8?style=for-the-badge)](#contributing)
 [![MIT License](https://img.shields.io/badge/License-MIT-38bdf8?style=for-the-badge)](../../LICENSE)
 
-**[🌐 Trang web](https://qybaihe.github.io/dshrsi/) · [📖 Tài liệu tham khảo plugin](../../packages/dsh-rsi/README.md) · [🧩 Harness dự án](../../packages/dsh-rsi/README.md#layers-and-the-project-harness) · [🔬 Cổng kiểm định](../../packages/dsh-rsi/README.md#the-validation-gate) · [⚠️ Giới hạn đã biết](../../packages/dsh-rsi/README.md#known-limits) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
+**[🌐 Trang web](https://qybaihe.github.io/dshrsi/) · [📖 Tài liệu tham khảo plugin](../../packages/dsh-rsi/README.md) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
 
 [RSI nghĩa là gì](#rsi) · [Bắt đầu nhanh](#quick-start) · [Cách hoạt động](#how-it-works) · [Kết quả đo thực tế](#measured) · [Benchmark](#benchmarks) · [Bộ phát hiện & năng lực](#coverage) · [Harness dự án](#project-harness) · [Mặc định an toàn](#security) · [Câu hỏi thường gặp](#faq)
 
@@ -116,26 +113,6 @@ Không cần cấu hình gì cả. DSHRSI ẩn mình cho đến khi cùng một 
 
 Gõ `/rsi` trong bất kỳ phiên nào để xem những gì đang được gắn, mỗi thứ thuộc tầng nào, và những gì đang chờ bạn phê duyệt.
 
-### 3. Cho repository một harness của riêng nó
-Những quy tắc học được trong một repository có thể nằm ngay trong repository đó, mỗi bản thích ứng một file:
-
-```bash
-# Lệnh này đi kèm plugin, nằm trong profile mà plugin được cài vào
-alias dsh-rsi="$HOME/.dsh/profiles/web/node_modules/.bin/dsh-rsi"
-
-dsh-rsi project init      # trong repository: tạo .dsh-rsi/, sau đó commit nó
-dsh-rsi trust             # trên mọi máy khác: chấp nhận các file sau khi đã đọc chúng
-```
-
-### 4. Chạy từ mã nguồn
-
-```bash
-git clone https://github.com/qybaihe/dshrsi.git && cd dshrsi
-npm install               # kéo về một bản dsh đã ghim phiên bản và pnpm mà nó gọi
-npx dsh plugin --profile web add "$PWD/packages/dsh-rsi"
-npx dsh web
-```
-
 Các profile `desktop` và `headless`, chỉ mục plugin, tarball cục bộ và cách nạp plugin cho riêng một lần chạy đều được trình bày trong [tài liệu tham khảo plugin](../../packages/dsh-rsi/README.md#install).
 
 ---
@@ -155,36 +132,13 @@ Skill, file memory và system prompt dài hơn đều hoạt động ở cấp �
 
 **DSHRSI hoạt động ở cấp độ harness. Những gì nó học được trở thành code gắn trên chính các điểm mở rộng của harness:**
 
-```mermaid
-flowchart LR
-  subgraph S1["1 · Quan sát"]
-    A["sự kiện của phiên"] --> B["16 bộ phát hiện"]
-  end
-  subgraph S2["2 · Quyết định"]
-    B --> C["chữ ký ma sát<br/>+ thư viện + các phiên trước"]
-  end
-  subgraph S3["3 · Viết lại"]
-    C --> D["mô hình của phiên<br/>viết một bản thích ứng"]
-    D --> E["cổng kiểm định 5 giai đoạn"]
-    E -. "bị từ chối, kèm lý do" .-> D
-  end
-  subgraph S4["4 · Gắn"]
-    E --> F["ngữ cảnh node:vm cô lập<br/>có hiệu lực trước request kế tiếp gửi tới mô hình"]
-  end
-  subgraph S5["5 · Lưu giữ và chia sẻ"]
-    F --> G["thư viện: thăng hạng · cách ly · sửa lại"]
-    G --> H[".dsh-rsi/ trong repository"]
-  end
-  G -. "phiên tiếp theo bắt đầu từ đây" .-> A
-```
-
 | Giai đoạn | Cơ chế | Hiệu quả |
 | :--- | :--- | :--- |
-| **1. Quan sát** | 16 bộ phát hiện đọc các sự kiện của phiên đã được chuẩn hóa: những lệnh gọi thất bại lần nữa, nguyên nhân thất bại cứ quay lại, loay hoay thử lệnh, người dùng sửa sai, những lượt kết thúc mà chưa kiểm chứng gì. | Trục trặc có một chữ ký ổn định qua các phiên, ví dụ `bash:command-not-found:python`. |
+| **1. Quan sát** | 16 bộ phát hiện đọc các sự kiện của phiên đã được chuẩn hóa: những lệnh gọi thất bại lần nữa, nguyên nhân thất bại cứ quay lại, loay hoay thử lệnh, người dùng sửa sai, những lượt kết thúc mà chưa kiểm chứng gì. | Trục trặc có một chữ ký không đổi từ phiên này sang phiên khác. |
 | **2. Viết lại** | Chính mô hình của phiên viết một bản thích ứng bằng JavaScript dựa trên một API gồm 10 năng lực. Code bị từ chối được trả về kèm lý do, tối đa hai lần, sau đó một template dựng sẵn sẽ thay thế. | Bản sửa là code harness, không phải thêm một đoạn prompt nữa. |
 | **3. Kiểm định** | Tĩnh → nạp → phát lại → hồi quy → quyền hạn. Bản thích ứng phải tác động lên những lệnh gọi đã kích hoạt nó và không được đụng tới bất kỳ lệnh gọi nào đã thành công trong phiên này. | Code không làm gì cả, hoặc làm hỏng thứ vốn đang chạy tốt, sẽ không bao giờ được gắn. |
-| **4. Gắn** | Bản thích ứng chạy trong ngữ cảnh `node:vm` riêng của nó, phía sau một cầu nối JSON, mọi lệnh gọi đều có timeout, và có hiệu lực trước request kế tiếp gửi tới mô hình. | Chính lượt đã gặp trục trặc là lượt đầu tiên được hưởng lợi. |
-| **5. Lưu giữ và chia sẻ** | Mỗi máy một thư viện, kèm sổ cái và nhật ký audit. Cái gì hiệu quả thì được thăng hạng, cái gì ném lỗi thì bị cách ly, cái gì không trụ được thì được viết lại chặt hơn, còn quy tắc của dự án được ghi vào `.dsh-rsi/`. | Phiên tiếp theo bắt đầu ở trạng thái đã thích ứng, và đồng đội nhận được quy tắc của dự án sau khi chạy `dsh-rsi trust`. |
+| **4. Gắn** | Bản thích ứng chạy trong ngữ cảnh cô lập riêng của nó, mọi lệnh gọi đều có timeout, và có hiệu lực trước request kế tiếp gửi tới mô hình. | Chính lượt đã gặp trục trặc là lượt đầu tiên được hưởng lợi. |
+| **5. Lưu giữ và chia sẻ** | Mỗi máy giữ một thư viện các bản thích ứng. Cái gì hiệu quả thì được thăng hạng, cái gì ném lỗi thì bị cách ly, cái gì không trụ được thì được viết lại chặt hơn, còn quy tắc của dự án được ghi vào repository. | Phiên tiếp theo bắt đầu ở trạng thái đã thích ứng, và đồng đội nhận được quy tắc của dự án sau khi họ chấp nhận chúng. |
 | **↻ Lặp lại** | Phiên tiếp theo chạy trên harness mà giai đoạn 5 để lại, và giai đoạn 1 quan sát nó cùng với mọi bản thích ứng đã gắn sẵn. | Cải tiến được xây trên cải tiến. Đó chính là đệ quy. |
 
 ---
@@ -199,46 +153,9 @@ Các con số này đến từ việc chạy một mô hình thật, `mimo-v2.6-
 
 | Kịch bản | Không có DSHRSI | Có DSHRSI | Harness đã viết gì |
 | :--- | :--- | :--- | :--- |
-| **Thiếu lệnh**: README ghi `python stats.py`, máy chỉ có `python3` | ❌ **5 / 5** phiên thực hiện lệnh gọi thất bại | ✅ **0 / 7** phiên sau khi có bản thích ứng (9 / 9 trước đó) | `deny` + `prompt`, do mô hình viết, qua cổng kiểm định ngay lần thử đầu tiên |
-| **Một quy tắc người dùng chỉ nói một lần**: "đừng bao giờ sửa `notes.txt`, hãy ghi vào `notes.draft.txt`" | ❌ Phiên tiếp theo đã sửa `notes.txt` | ✅ Phiên tiếp theo tự ghi vào `notes.draft.txt` mà không cần nhắc | `deny` + `prompt`, do mô hình viết ngay sau khi bị sửa sai |
+| **Thiếu lệnh**: hướng dẫn ghi `python`, máy chỉ có `python3` | ❌ **5 / 5** phiên thực hiện lệnh gọi thất bại | ✅ **0 / 7** phiên sau khi có bản thích ứng (9 / 9 trước đó) | `deny` + `prompt`, do mô hình viết, qua cổng kiểm định ngay lần thử đầu tiên |
+| **Một quy tắc người dùng chỉ nói một lần**: đừng bao giờ sửa một file nào đó, thay vào đó hãy ghi vào bản nháp của nó | ❌ Phiên tiếp theo đã sửa file đó | ✅ Phiên tiếp theo tự ghi vào bản nháp mà không cần nhắc | `deny` + `prompt`, do mô hình viết ngay sau khi bị sửa sai |
 | **Một bản sửa không ai yêu cầu kiểm chứng** | không chạy | ⚪ Không viết gì: mô hình tự kiểm chứng bản sửa của mình trong 3 / 3 phiên, nên không có gì để học | không có |
-
-Kịch bản đầu tiên được chạy ba lần với plugin, mỗi lần bắt đầu từ một thư viện trống, cộng thêm một lần chạy đối chứng. Kịch bản thứ hai được chạy một lần có plugin và một lần không có.
-
-**Thiếu lệnh, theo từng phiên** (số lệnh gọi công cụ thất bại trong mỗi phiên):
-
-| Lần chạy | S1 | S2 | S3 | S4 | S5 | S6 |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Không có DSHRSI** | ❌ 1 | ❌ 1 | ❌ 1 | ❌ 1 | ❌ 1 | |
-| **Có DSHRSI · lần chạy 1** | ❌ 1 | ❌ 1 | ❌ 1 → 🧬 | ✅ 0 | ✅ 0 | ✅ 0 |
-| **Có DSHRSI · lần chạy 2** | ❌ 1 | ❌ 1 | ❌ 1 → 🧬 | ✅ 0 | ✅ 0 | |
-| **Có DSHRSI · lần chạy 3** | ❌ 1 | ❌ 1 | ❌ 1 → 🧬 | ✅ 0 | ✅ 0 | |
-
-🧬 đánh dấu lượt mà mô hình viết bản thích ứng và harness gắn nó vào. Ở 3 trong 7 phiên sau đó, mô hình vẫn thử gọi `python`, và harness từ chối lệnh gọi trước khi nó kịp chạy. Mọi phiên trong kịch bản này đều kết thúc với câu trả lời đúng, dù có plugin hay không.
-
-Chạy lại trên máy của bạn:
-
-```bash
-MIMO_API_KEY=... npm run test:live -- python --sessions 6          # có plugin
-MIMO_API_KEY=... npm run test:live -- python --sessions 5 --off    # lần chạy đối chứng, không có plugin
-```
-
-<details>
-<summary><strong>Chưa được kiểm chứng trên máy này (bấm để mở rộng)</strong></summary>
-
-<br />
-
-Các luồng này có sẵn trong cây mã nguồn và được phủ bởi unit test hoặc test end-to-end với mô hình mô phỏng, nhưng chưa từng được quan sát trong một phiên thật hay một ứng dụng thật:
-
-| Phạm vi | Vì sao chưa kiểm chứng ở đây |
-| :--- | :--- |
-| Ứng dụng desktop DeepSeek Harness | Chưa được cài trên máy phát triển. Đã kiểm chứng trên profile `web` và cơ chế cài đặt mà ứng dụng bọc lại |
-| `negative-feedback`, `approval-denied`, `context-pressure`, `model-instability` | Chỉ được test bằng các sự kiện dựng sẵn, chưa từng được kích hoạt trong một phiên thật |
-| Test tự động trên trình duyệt | Không có. Giao diện được duyệt qua bằng tay trên trang `dsh web` thật, ở cả chế độ sáng lẫn tối |
-| Các profile ACP và SDK | Ở đó không có giao diện, và chưa được kiểm chứng |
-| Các mô hình ngoài dòng MiMo v2.6 | Chưa chạy lần nào. Các benchmark dùng `mimo-v2.6-pro` và `mimo-v2.6-flash`; ba kịch bản ở trên dùng `mimo-v2.6-pro` |
-
-</details>
 
 ---
 
@@ -270,26 +187,17 @@ DeepSeek Harness nguyên bản so với DeepSeek Harness + DSHRSI, qua 3,390 phi
 
 **Điều DSHRSI thực sự đã làm, không cần một gợi ý nào, là tự thay đổi chính nó.** Qua tám lần chạy, các mô hình đã viết **56 bản thích ứng**; 15 bản trong số đó đã thực sự hành động, và 10 bản trong số này đã được mở rộng ra toàn máy. Với từng bản trong 10 bản ấy, chúng tôi lấy các task bắt đầu sau khi nó xuất hiện và so sánh với chính những task đó dưới DSH nguyên bản:
 
-| Bản thích ứng do mô hình viết | Lỗi mà nó xử lý | DSH nguyên bản | DSH + DSHRSI | p |
-| :--- | :--- | ---: | ---: | ---: |
-| *Stop inline python checks that abort on first mismatch* (MBPP, `mimo-v2.6-pro`) | Một lần chạy test chết ngay ở assertion thất bại đầu tiên | 16 trên 310 task | **3 trên 310** | 0.002 |
-| *Redirect missing lib.rs reads to a glob lookup* (Polyglot, `mimo-v2.6-flash`) | Đọc `lib.rs` tại một đường dẫn không tồn tại | 7 trên 151 task | **1 trên 151** | 0.07 |
-| 8 bản còn lại | | không có thay đổi đo được | | |
+| Lỗi mà harness đã tự học cách tránh | DSH nguyên bản | DSH + DSHRSI | p |
+| :--- | ---: | ---: | ---: |
+| Một lần chạy test chết ngay ở assertion thất bại đầu tiên (MBPP, `mimo-v2.6-pro`) | 16 trên 310 task | **3 trên 310** | 0.002 |
+| Đọc một file tại một đường dẫn không tồn tại (Polyglot, `mimo-v2.6-flash`) | 7 trên 151 task | **1 trên 151** | 0.07 |
+| 8 bản thích ứng còn lại | không có thay đổi đo được | | |
 
-Không bản nào trong hai bản này làm cho số task pass tăng lên, và plugin tốn thêm khoảng 8–9% thời gian chạy agent và token đầu vào. Cả mười bản đều được liệt kê trong [`bench/README.md`](../../bench/README.md#did-those-adaptations-work).
+Không bản nào trong hai bản này làm cho số task pass tăng lên, và plugin tốn thêm khoảng 8–9% thời gian chạy agent và token đầu vào. Cả mười bản đều được liệt kê trong [ghi chú benchmark](../../bench/README.md#did-those-adaptations-work).
 
 **LiveCodeBench v6 bị dừng giữa chừng:** tài khoản mô hình hết số dư khi đang chạy dở. Trên các task mà cả hai bên đã hoàn thành tính đến lúc đó, DSH nguyên bản giải được 94 và DSHRSI giải được 96 trên 105 với `mimo-v2.6-pro`, còn với `mimo-v2.6-flash` là 42 so với 42 trên 51. Cũng vì lý do đó, đợt chạy thứ hai (chạy lại cùng các task trên thư viện mà đợt đầu để lại) vẫn chưa được thực hiện.
 
-Chạy lại trên máy của bạn:
-
-```bash
-bench/setup.sh                                                        # toolchain, dataset, code chấm điểm
-MIMO_API_KEY=... node bench/run.mjs polyglot --arm dsh --run dsh-p1   # DeepSeek Harness nguyên bản
-MIMO_API_KEY=... node bench/run.mjs polyglot --arm rsi --run rsi-p1   # có plugin
-node bench/report.mjs --write                                         # các bảng và bench/results/*.json
-```
-
-Quy trình đánh giá, các bảng chi phí và lỗi, cùng các giới hạn nằm trong [`bench/README.md`](../../bench/README.md); kết quả theo từng task nằm trong [`bench/results/`](../../bench/results).
+Quy trình đánh giá, các bảng chi phí và lỗi, các giới hạn và các lệnh để chạy lại toàn bộ đều nằm trong [ghi chú benchmark](../../bench/README.md).
 
 ---
 
@@ -297,26 +205,7 @@ Quy trình đánh giá, các bảng chi phí và lỗi, cùng các giới hạn 
 
 ## 🛡️ Bộ phát hiện & năng lực
 
-**16 bộ phát hiện** quyết định khi nào harness nên thay đổi. Cùng những bộ phát hiện đó chạy được cả trên phiên đang diễn ra lẫn trên phiên đã lưu trên đĩa (`dsh-rsi mine`):
-
-| Bộ phát hiện | Nó tìm thấy gì | Phản ứng |
-| :--- | :--- | :---: |
-| `repeat-failing-call` | Cùng một lệnh gọi thất bại lần nữa với cùng tham số | thích ứng |
-| `failure-signature` | Cùng một nguyên nhân thất bại cứ quay lại: thiếu lệnh, thiếu dependency, mạng, quyền truy cập, cổng đang bị chiếm, không tìm thấy đường dẫn, edit không khớp, tham số không hợp lệ, hết bộ nhớ | thích ứng |
-| `command-flailing` | Cùng một loại lệnh thất bại liên tiếp với tham số thay đổi | thích ứng |
-| `read-thrash` | Cùng một file không hề thay đổi bị đọc đi đọc lại | thích ứng |
-| `edit-churn` | Cùng một file bị sửa nhiều lần trong một lượt | thích ứng |
-| `error-storm` | Phần lớn các lệnh gọi công cụ gần đây đều thất bại | thích ứng |
-| `stall` | Thất bại liên tiếp, không có lần thành công nào xen giữa | thích ứng |
-| `timeout-recurrence` | Cùng một loại lệnh cứ bị timeout | thích ứng |
-| `output-flood` | Cùng một loại lệnh cứ sinh ra output quá khổ | thích ứng |
-| `approval-denied` / `denied-repeat` | Người dùng cứ từ chối cùng một loại hành động, hoặc một lệnh gọi đã bị từ chối lại được thử lại y nguyên | thích ứng |
-| `user-correction` | Người dùng sửa sai cho mô hình, hoặc ngắt giữa chừng rồi đổi hướng | thích ứng |
-| `premature-completion` | Code đã bị thay đổi và lượt sắp kết thúc mà chưa chạy bước kiểm tra nào | thích ứng |
-| `negative-feedback` | Người dùng đánh dấu một câu trả lời là tệ và ghi lý do | thích ứng |
-| `user-interrupt` | Người dùng ngắt giữa lượt | ghi nhận |
-| `model-instability` | Các request tới mô hình cứ thất bại, bị thử lại, hoặc chạm giới hạn output | ghi nhận |
-| `context-pressure` | Ngữ cảnh bị nén lại khi task đang làm dở | ghi nhận |
+**16 bộ phát hiện** quyết định khi nào harness nên thay đổi. [Danh sách đầy đủ](../../packages/dsh-rsi/README.md#detectors) nằm trong tài liệu tham khảo plugin.
 
 **10 năng lực** là tất cả những gì một bản thích ứng có thể làm. Nó chỉ chạm được tới harness thông qua chúng:
 
@@ -360,17 +249,9 @@ Mỗi bản thích ứng thuộc về một trong ba tầng. Từng tầng có t
 | :--- | :--- | :--- | :--- |
 | **`machine`** | Các sự thật về chiếc máy tính này | Không có `python`; một cổng đã bị chiếm; một host nội bộ không phân giải được | Workspace nơi nó được học, rồi toàn máy khi một workspace thứ hai gặp phải nó |
 | **`user`** | Cách bạn muốn được đối xử | Một câu trả lời bị đánh dấu là tệ với lý do "quá dài" | Toàn máy |
-| **`project`** | Quy tắc và thói quen của một repository | "Repository này luôn luôn dùng pnpm" | Workspace, và chính repository thông qua `.dsh-rsi/` |
+| **`project`** | Quy tắc và thói quen của một repository | "Repository này luôn luôn dùng pnpm" | Workspace, và chính repository: các quy tắc được commit cùng với code |
 
 **Tầng project đi cùng với code:**
-
-```
-.dsh-rsi/
-  harness.json           dấu định dạng và các thiết lập cấp dự án
-  adaptations/
-    remember-the-user-s-instruction-3f2a1c.js     được học, rồi được ghi vào đây
-    no-force-push.js                              bản viết tay cũng hoạt động y như vậy
-```
 
 - **Commit để chia sẻ, xóa để gỡ ra.** Một file là một bản thích ứng.
 - **Không có gì chạy chỉ vì nó được clone về.** Mỗi máy chấp nhận đúng nội dung của các file bằng `dsh-rsi trust`, và phải chấp nhận lại khi chúng thay đổi.
@@ -387,7 +268,7 @@ Mỗi bản thích ứng thuộc về một trong ba tầng. Từng tầng có t
 - **Năng lực mạnh phải được phê duyệt (`autonomy: tighten`)** — Các bản thích ứng viết lại kết quả, thêm công cụ hoặc chạy lệnh được lưu ở trạng thái `proposed` và chờ `dsh-rsi approve <id>`.
 - **Vô hình cho đến khi cần** — Khi không có ma sát và chưa gắn gì, system prompt, danh sách công cụ và các message giữ nguyên đến từng byte. Có một test end-to-end canh giữ điều này.
 - **Lỗi được khoanh vùng** — Một handler ném lỗi không bao giờ ảnh hưởng tới lệnh gọi công cụ mà nó gắn vào. Sau ba lỗi, bản thích ứng bị cách ly.
-- **Mọi thứ đều được ghi lại** — Mọi quyết định nằm trong `audit.jsonl`, mọi ma sát, lần gắn và hành động nằm trong `ledger.jsonl`. `dsh-rsi disable`, `retire` và `rollback` gỡ một bản thích ứng ra hoặc đưa nó về bản trước.
+- **Mọi thứ đều được ghi lại** — Mọi quyết định, ma sát, lần gắn và hành động đều được ghi vào nhật ký. `dsh-rsi disable`, `retire` và `rollback` gỡ một bản thích ứng ra hoặc đưa nó về bản trước.
 - **Ba chế độ** — `adapt` gắn trực tiếp (mặc định), `propose` sinh ra rồi chờ bạn, `observe` chỉ ghi nhận.
 
 ---
@@ -457,7 +338,6 @@ Gõ `/rsi` trong một phiên, hoặc `dsh-rsi status` trong terminal. `dsh-rsi 
 - [🛠️ Dòng lệnh `dsh-rsi`](../../packages/dsh-rsi/README.md#command-line) · [⚙️ Cấu hình](../../packages/dsh-rsi/README.md#configuration)
 - [⚠️ Giới hạn đã biết](../../packages/dsh-rsi/README.md#known-limits)
 - [📊 Quy trình & kết quả benchmark](../../bench/README.md)
-- [🌐 Mã nguồn website](../../website) — tự cải tiến đệ quy, cách hoạt động, cách viết bản thích ứng, đánh giá; mở `website/index.html` bằng trình duyệt
 - [🧱 DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) — harness mà plugin này cắm vào
 
 <a id="contributing"></a>
@@ -471,23 +351,6 @@ npm install && npm test    # 130 unit test, rồi 29 test end-to-end; không c�
 ```
 
 Các test end-to-end thay endpoint của mô hình bằng một endpoint mô phỏng. Mọi thứ khác đều là thật: tiến trình `dsh`, việc thực thi công cụ, log của phiên và việc cài đặt plugin.
-
-```
-packages/dsh-rsi/        gói plugin (ESM thuần, không có bước build)
-  index.js               nửa phía host: các binding tới điểm mở rộng của DSH
-  client.js              nửa phía trình duyệt: badge RSI và pill trạng thái
-  src/engine.js          quan sát → quyết định → sinh code → kiểm định → gắn → lưu giữ → chia sẻ
-  src/signals.js         16 bộ phát hiện
-  src/validate.js        cổng kiểm định
-  src/sandbox.js         nơi code của bản thích ứng chạy
-  src/project.js         harness dự án: <repository>/.dsh-rsi
-  bin/rsi.js             lệnh dsh-rsi
-market/index.json        một chỉ mục plugin có thể thêm vào DSH
-test/unit/  test/e2e/    unit test, và test end-to-end trên một tiến trình dsh thật
-test/live/               chạy với mô hình thật (cần MIMO_API_KEY)
-bench/                   benchmark: DSH nguyên bản so với DSH + dsh-rsi
-website/                 website (các trang tĩnh, không có bước build)
-```
 
 ## 📄 Giấy phép
 
