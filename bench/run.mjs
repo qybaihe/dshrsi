@@ -5,36 +5,44 @@
 //   node bench/run.mjs humaneval --arm dsh|rsi --run <name> [--concurrency 8] [--limit N] [--library-from <run>]
 //   node bench/run.mjs mbpp      --arm dsh|rsi --run <name> [--concurrency 8] [--limit N] [--library-from <run>]
 //   node bench/run.mjs livecodebench --arm dsh|rsi --run <name> [--concurrency 8] [--limit N] [--library-from <run>]
+//   node bench/run.mjs swebench  --arm dsh|rsi --run <name> [--concurrency 8] [--limit N] [--tasks id,id] [--subset mini]
 //   node bench/run.mjs polyglot  --validate [--concurrency 6]      reference solutions through the scoring commands
 //
 // `dsh` is DeepSeek Harness as shipped; `rsi` is the same harness with the
 // dsh-rsi plugin at its default settings. Model, prompts, sandbox, toolchains
-// and task order are the same for both. MIMO_MODEL picks the model (default mimo-v2.6-pro).
+// and task order are the same for both. BENCH_BASE_URL, BENCH_MODEL and BENCH_API_KEY name the model endpoint;
+// without them it is Xiaomi MiMo, with MIMO_MODEL (default mimo-v2.6-pro) and MIMO_API_KEY.
 //
 // A run is resumable: finished tasks are in <run>/results.jsonl and are
 // skipped. All sessions of a run share one harness home, so in the `rsi` arm
 // what one session learns is there for every session that starts after it.
 // `--library-from` starts a run with the adaptation library another run ended with,
 // for a second visit to the same repositories.
+//
+// SWE-bench sessions are sealed (bench/lib/sealed.mjs): their runs are under the neutral root, not under the
+// benchmark home, and the model endpoint has to be a loopback relay. The other suites run as they always did.
 import fs from 'node:fs'
 import path from 'node:path'
 import { openLibrary } from '../packages/dsh-rsi/src/library.js'
 import { summarize } from '../packages/dsh-rsi/src/metrics.js'
 import { DEFAULT_POLICY } from '../packages/dsh-rsi/src/trigger.js'
-import { MODEL, measure, readSession, runTurn, stopAll } from './lib/dsh.mjs'
+import { API_KEY_ENV, BASE_URL, MODEL, measure, readSession, runTurn, stopAll } from './lib/dsh.mjs'
 import { paths, pool, prepareCaches, shuffled } from './lib/env.mjs'
+import { ensureIndex, indexUrl } from './lib/pypi-index.mjs'
+import { DISK_REFUSAL, openSession, provideToolchains, sealed, visibleDir } from './lib/sealed.mjs'
 import * as humaneval from './lib/humaneval.mjs'
 import * as livecodebench from './lib/livecodebench.mjs'
 import * as mbpp from './lib/mbpp.mjs'
 import * as polyglot from './lib/polyglot.mjs'
+import * as swebench from './lib/swebench.mjs'
 
 const argv = process.argv.slice(2)
 const flag = name => argv.includes(name)
 const option = (name, fallback) => (argv.includes(name) ? argv[argv.indexOf(name) + 1] : fallback)
 const bench = argv[0]
-const SUITES = { polyglot, humaneval, mbpp, livecodebench }
+const SUITES = { polyglot, humaneval, mbpp, livecodebench, swebench }
 if (!Object.hasOwn(SUITES, bench)) {
-  console.error('usage: node bench/run.mjs <polyglot|humaneval|mbpp|livecodebench> --arm dsh|rsi --run <name> [--concurrency N] [--only a,b] [--limit N] [--library-from <run>]\n       node bench/run.mjs polyglot --validate')
+  console.error('usage: node bench/run.mjs <polyglot|humaneval|mbpp|livecodebench|swebench> --arm dsh|rsi --run <name> [--concurrency N] [--only a,b] [--limit N] [--tasks id,id] [--subset mini] [--library-from <run>]\n       node bench/run.mjs polyglot --validate')
   process.exit(2)
 }
 const concurrency = Number(option('--concurrency', 8))
@@ -71,13 +79,16 @@ if (!['dsh', 'rsi'].includes(arm) || !runName) {
   console.error('--arm dsh|rsi and --run <name> are required')
   process.exit(2)
 }
-if (!process.env.MIMO_API_KEY) {
-  console.error('MIMO_API_KEY is not set')
+if (!process.env[API_KEY_ENV]) {
+  console.error(`${API_KEY_ENV} is not set`)
   process.exit(2)
 }
 
-const dir = path.join(paths.runs, bench, runName)
+const isSealed = bench === 'swebench'
+const dir = path.join(isSealed ? sealed.runs : paths.runs, bench, runName)
 const home = path.join(dir, 'home')
+/** Where a sealed run's sessions work: a directory whose name says nothing about the run. */
+const sessionsDir = isSealed ? visibleDir(bench, runName) : dir
 const resultsFile = path.join(dir, 'results.jsonl')
 fs.mkdirSync(home, { recursive: true })
 const rsi = arm === 'rsi' ? JSON.parse(option('--config', '{}')) : false
@@ -112,7 +123,8 @@ if (inherited && arm === 'rsi' && !fs.existsSync(path.join(home, 'rsi'))) {
 }
 
 const suite = SUITES[bench]
-let tasks = bench === 'polyglot' ? polyglot.listTasks(option('--only', polyglot.LANGUAGES.join(',')).split(',')) : suite.listTasks()
+let tasks = bench === 'polyglot' ? polyglot.listTasks(option('--only', polyglot.LANGUAGES.join(',')).split(','))
+  : bench === 'swebench' ? swebench.listTasks(option('--subset')) : suite.listTasks()
 tasks = shuffled(tasks)
 if (option('--tasks')) tasks = tasks.filter(task => option('--tasks').split(',').includes(task.id))
 if (option('--limit')) tasks = tasks.slice(0, Number(option('--limit')))
@@ -122,6 +134,24 @@ const readRows = () => (fs.existsSync(resultsFile) ? fs.readFileSync(resultsFile
 const done = new Set(readRows().filter(row => !row.infra).map(row => row.id))
 const todo = tasks.filter(task => !done.has(task.id))
 
+// SWE-bench is scored elsewhere, from one line per answered task. The file is written anew from the result rows,
+// so resuming a run never repeats a line, and a task that is run again has one line.
+const predictionsFile = path.join(dir, 'predictions.jsonl')
+const predictionLine = row => `${JSON.stringify(swebench.prediction(row, arm, MODEL))}\n`
+const relay = new URL(BASE_URL)
+if (bench === 'swebench') {
+  // A sealed session's only way out is one loopback port; an endpoint elsewhere cannot be named in its profile.
+  if (!['127.0.0.1', 'localhost'].includes(relay.hostname) || !relay.port) {
+    console.error(`SWE-bench sessions reach the model through a loopback relay only (bench/lib/relay.mjs); BENCH_BASE_URL is ${relay.origin}`)
+    process.exit(2)
+  }
+  provideToolchains()
+  await ensureIndex()
+  fs.writeFileSync(predictionsFile, [...new Map(readRows().filter(row => !row.infra).map(row => [row.id, row])).values()].map(predictionLine).join(''))
+  // Checkouts and private directories of tasks a stopped run was in the middle of; those tasks start over.
+  fs.rmSync(sessionsDir, { recursive: true, force: true })
+}
+
 const metaFile = path.join(dir, 'meta.json')
 // A run belongs to one model; resuming it with another would mix two experiments in one result file.
 if (fs.existsSync(metaFile) && JSON.parse(fs.readFileSync(metaFile, 'utf8')).model !== MODEL) {
@@ -129,27 +159,74 @@ if (fs.existsSync(metaFile) && JSON.parse(fs.readFileSync(metaFile, 'utf8')).mod
   process.exit(2)
 }
 if (!fs.existsSync(metaFile)) {
-  fs.writeFileSync(metaFile, JSON.stringify({ bench, arm, run: runName, model: MODEL, rsi, libraryFrom: inherited ?? null, concurrency, tasks: tasks.length, startedAt: new Date().toISOString() }, null, 1))
+  fs.writeFileSync(metaFile, JSON.stringify({ bench, arm, run: runName, model: MODEL, rsi, libraryFrom: inherited ?? null, concurrency, tasks: tasks.length, startedAt: new Date().toISOString(), ...(isSealed ? { sealed: 1, sessionsIn: sessionsDir } : {}) }, null, 1))
 }
 console.log(`${stamp()} ${bench} | arm ${arm} | run ${runName} | model ${MODEL} | ${todo.length} of ${tasks.length} task(s) to run | concurrency ${concurrency}`)
 
 /** DSH's own words for a provider that will not serve the request: no balance, no valid key, too many requests. */
 const REFUSED = /dsh: (QUOTA|AUTH|RATE_LIMIT)\b/
+/** DSH's words for a request the provider or the connection failed, after the harness's own retries. */
+const TROUBLE = /dsh: (SERVER|TRANSPORT|TIMEOUT|STREAM_CLOSED|EMPTY_RESPONSE|MALFORMED_RESPONSE)\b/
 let refusals = 0
+
+/**
+ * Whether the model endpoint serves a request right now: a one-token completion. An answer of any kind from the
+ * provider counts, a refusal included (those have their own rule above); no connection, a relay that cannot reach
+ * the provider, and a server error do not.
+ */
+async function endpointAnswers() {
+  try {
+    const reply = await fetch(`${BASE_URL.replace(/\/$/, '')}/chat/completions`, {
+      method: 'POST', signal: AbortSignal.timeout(90000),
+      headers: { 'content-type': 'application/json', authorization: `Bearer ${process.env[API_KEY_ENV]}` },
+      body: JSON.stringify({ model: MODEL, messages: [{ role: 'user', content: 'ping' }], max_tokens: 1 }),
+    })
+    await reply.arrayBuffer()
+    return reply.status < 500
+  } catch {
+    return false
+  }
+}
+
+let waiting
+/** Waits until the endpoint serves again, however long that takes. One probe loop serves every lane. */
+function untilEndpointAnswers() {
+  waiting ??= (async () => {
+    const since = Date.now()
+    console.error(`${stamp()} the model endpoint ${relay.origin} is not answering; waiting for it. Tasks that were running start over and lose no attempt.`)
+    for (let probe = 1; ; probe += 1) {
+      await new Promise(resolve => setTimeout(resolve, Math.min(15000 * probe, 60000)))
+      if (await endpointAnswers()) break
+      if (probe % 10 === 0) console.error(`${stamp()} still no answer from ${relay.origin} after ${Math.round((Date.now() - since) / 60000)} min`)
+    }
+    console.error(`${stamp()} the model endpoint answers again after ${Math.round((Date.now() - since) / 1000)}s; carrying on`)
+    waiting = undefined
+  })()
+  return waiting
+}
 
 /**
  * One agent turn plus what its session log shows. A session that never reached the model, or that the provider
  * refused, is tried again; if it stays that way the task is not an answer, and it runs again when the run is resumed.
+ *
+ * With `session` (a sealed session), a turn that ended without an answer while the endpoint is not answering is an
+ * outage, not an attempt: the caller waits for the endpoint and starts the task over. A turn the provider failed
+ * in the middle of its work is `interrupted`: the caller starts it over too, from a fresh checkout.
  */
-async function turn(workspace, prompt, sessionId, seen) {
+async function turn(workspace, prompt, sessionId, seen, session) {
   let last
   for (let attempt = 0; attempt < 3; attempt += 1) {
     if (attempt > 0) await new Promise(resolve => setTimeout(resolve, 15000 * attempt))
-    const ran = await runTurn({ home, cwd: workspace, prompt, rsi, sessionId })
-    const session = readSession(home, ran.sessionId)
-    const measured = session ? measure(session, seen) : NOTHING
+    const ran = await runTurn({ home, cwd: workspace, prompt, rsi, sessionId, sealed: session })
+    const log = readSession(home, ran.sessionId)
+    const measured = log ? measure(log, seen) : NOTHING
     const refused = ran.code !== 0 && REFUSED.test(ran.stderr)
     last = { code: ran.code, timedOut: ran.timedOut, seconds: ran.seconds, sessionId: ran.sessionId, answered: ran.text !== '', ...measured, attempts: attempt + 1, stderr: ran.code === 0 ? undefined : ran.stderr.slice(-300) }
+    if (session && !refused && !ran.timedOut && (ran.code !== 0 || measured.steps === 0)) {
+      if (!(await endpointAnswers())) return { ...last, outage: true }
+      // The provider failed this session in the middle of its work although it serves again: its checkout is half done.
+      if (measured.steps > 0 && TROUBLE.test(ran.stderr)) return { ...last, interrupted: true }
+    }
     if (refused) {
       refusals += 1
       // Every session of the run is being turned away: going on would only mark the remaining tasks as not answered.
@@ -196,23 +273,67 @@ async function runHumanEval(task) {
   return { id: task.id, group: task.group, sessionId: agent.sessionId, tries: [{ agent }], solution: suite.collect(workspace), infra: agent.infra === true }
 }
 
+/**
+ * One turn on a checkout of the repository, in a sealed session; what the agent changed is the answer. Nothing is
+ * scored here. A turn cut short by an outage of the model endpoint, or one whose commands were refused because the
+ * disk reserve was reached, is not an answer: the first starts over once the endpoint serves again, the second is
+ * left for the run to be resumed.
+ */
+async function runSwebench(task) {
+  const workspace = path.join(sessionsDir, 'work', task.name)
+  let outages = 0
+  let interruptions = 0
+  for (;;) {
+    let session
+    try {
+      await suite.prepare(task, workspace)
+      session = openSession({
+        runDir: sessionsDir, home, name: task.name, workspace, relayPort: Number(relay.port), keyEnv: API_KEY_ENV,
+        // The session can read its index address; the run is in it under the digest its directories are named by.
+        indexUrl: indexUrl({ run: path.basename(sessionsDir), name: task.name, blocked: suite.blockedProjects(task) }), hidden: suite.hiddenPaths(task),
+      })
+      const agent = await turn(workspace, suite.firstPrompt(task), undefined, 0, session)
+      if (agent.outage) {
+        outages += 1
+        await untilEndpointAnswers()
+        continue
+      }
+      if (agent.interrupted && interruptions < 2) {
+        interruptions += 1
+        continue
+      }
+      const starved = session.refused() > 0
+      const infra = agent.infra === true || agent.interrupted === true || starved
+      const { patch, leftOut } = infra ? { patch: '', leftOut: 0 } : await suite.collect(task, workspace)
+      return { id: task.id, repo: task.repo, sessionId: agent.sessionId, tries: [{ agent }], patch, patchBytes: Buffer.byteLength(patch), leftOut, commands: session.commands(), outages, interruptions, infra, ...(starved ? { error: DISK_REFUSAL } : {}) }
+    } finally {
+      await session?.close()
+      suite.tidy(workspace)
+    }
+  }
+}
+
 await pool(todo, concurrency, async (task) => {
   let row
   try {
-    row = bench === 'polyglot' ? await runPolyglot(task) : await runHumanEval(task)
+    row = bench === 'polyglot' ? await runPolyglot(task) : bench === 'swebench' ? await runSwebench(task) : await runHumanEval(task)
   } catch (error) {
     row = { id: task.id, language: task.language, tries: [], infra: true, error: String(error?.stack ?? error).slice(0, 600) }
   }
   fs.appendFileSync(resultsFile, `${JSON.stringify({ ...row, finishedAt: new Date().toISOString() })}\n`)
+  if (bench === 'swebench' && !row.infra) fs.appendFileSync(predictionsFile, predictionLine(row))
   finished += 1
   const agents = row.tries.map(entry => entry.agent).filter(Boolean)
   const sum = key => agents.reduce((total, agent) => total + (agent[key] ?? 0), 0)
-  const verdict = bench === 'polyglot' ? row.tries.map((entry, index) => `try${index + 1} ${entry.passed ? 'pass' : 'FAIL'}`).join(' ') : 'collected'
+  const verdict = bench === 'polyglot' ? row.tries.map((entry, index) => `try${index + 1} ${entry.passed ? 'pass' : 'FAIL'}`).join(' ')
+    : bench === 'swebench' ? (row.patchBytes > 0 ? `patch ${row.patchBytes} B` : 'no patch') : 'collected'
   console.log(`${stamp()} [${String(finished).padStart(3)}/${todo.length}] ${task.id.padEnd(38)} ${row.infra ? 'INFRA ' : ''}${verdict.padEnd(22)} ${String(Math.round(sum('seconds'))).padStart(4)}s steps ${String(sum('steps')).padStart(3)} failed ${sum('failed')} refused ${sum('refused')}${sum('notices') > 0 ? ` notices ${sum('notices')}` : ''}`)
 })
 
 const rows = [...new Map(readRows().map(row => [row.id, row])).values()].filter(row => tasks.some(task => task.id === row.id))
-if (bench !== 'polyglot') {
+if (bench === 'swebench') {
+  console.log(`${stamp()} swebench ${rows.filter(row => row.patchBytes > 0).length}/${rows.length} task(s) with a patch | not scored here; SWE-bench's evaluation takes ${predictionsFile}`)
+} else if (bench !== 'polyglot') {
   const scored = suite.scoreAll(rows.map(row => ({ id: row.id, solution: row.solution ?? '' })), path.join(dir, 'evalplus'))
   fs.writeFileSync(path.join(dir, 'scores.json'), JSON.stringify(Object.fromEntries(scored), null, 1))
   const base = [...scored.values()].filter(entry => entry.base).length
