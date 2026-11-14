@@ -216,7 +216,7 @@ An adaptation has to pass, in order:
 
 If it fails, the reasons go back to the model for a rewrite (twice at most by default). If that fails too, a built-in template is used.
 
-Adaptation code runs in its own `node:vm` context. Between it and the host there is only a bridge that passes JSON strings, so it cannot reach host objects. Every call has a synchronous and an asynchronous timeout. A handler that throws never affects the tool call it is attached to, and an adaptation is quarantined after three such errors. If a source stored in the library has been edited to hold more permissions than it had when it passed validation, it is refused at mount time and quarantined.
+Adaptation code runs in its own `node:vm` context. Between it and the host there is only a bridge that passes JSON strings, so it cannot reach host objects. Every call has a synchronous and an asynchronous timeout. A handler that throws never affects the tool call it is attached to, and after three such errors an adaptation [goes back](#going-back) to the version before it, or is quarantined when it has none. If a source stored in the library has been edited to hold more permissions than it had when it passed validation, it is refused at mount time and quarantined.
 
 This isolation guards against mistakes and casual misuse. **It is not a security boundary against malicious code.**
 
