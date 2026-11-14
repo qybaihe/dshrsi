@@ -320,6 +320,12 @@ define({
 </details>
 
 <details>
+<summary><strong>改進要是改錯了怎麼辦？</strong></summary>
+
+隨時可以撤回：Harness 自己的程式碼從不被更動，調適的任何一個版本也從不刪除。調適一再出錯，或者它擋下的呼叫其實能成功，Harness 會自己把它撤回。你也可以動手：`/rsi undo` 撤回最近一次變更，`dsh-rsi restore` 把整個 Harness 還原到先前的某個時間點，`/rsi off` 直接使用原版 Harness。這些都會在正在執行的工作階段裡立刻生效。[回退是怎麼做的](../../packages/dsh-rsi/README.md#going-back)。
+</details>
+
+<details>
 <summary><strong>要怎麼查看、復原或關閉它學到的東西？</strong></summary>
 
 在工作階段裡輸入 `/rsi`，或是在終端機執行 `dsh-rsi status`。`dsh-rsi show <id>` 會印出某個調適的原始碼和驗證報告；`disable`、`retire` 和 `rollback` 則可以把它撤下或退回。設定 `mode: observe`，就只記錄而不做任何變更。
