@@ -21,14 +21,11 @@
 
 [![RSI](https://img.shields.io/badge/RSI-Recursive_Self--Improvement-4d6bfe?style=for-the-badge)](#rsi)
 [![DeepSeek Harness](https://img.shields.io/badge/DeepSeek_Harness-0.2.2--rc.3_plugin-7c5cff?style=for-the-badge)](https://github.com/deepseek-ai/deepseek-harness)
-[![Detectors](https://img.shields.io/badge/Detectors-16-12b5e5?style=for-the-badge)](#coverage)
 [![Validation](https://img.shields.io/badge/Validation-5--Stage_Gate-0ea5e9?style=for-the-badge)](#how-it-works)
-[![Layers](https://img.shields.io/badge/Layers-Machine_%C2%B7_User_%C2%B7_Project-0284c7?style=for-the-badge)](#project-harness)
 [![Benchmarks](https://img.shields.io/badge/Benchmarks-4_Suites_%C2%B7_2_Models-2563eb?style=for-the-badge)](#benchmarks)
-[![Tests](https://img.shields.io/badge/Tests-130_unit_%C2%B7_29_e2e-1d4ed8?style=for-the-badge)](#contributing)
 [![MIT License](https://img.shields.io/badge/License-MIT-38bdf8?style=for-the-badge)](../../LICENSE)
 
-**[🌐 Site](https://qybaihe.github.io/dshrsi/) · [📖 Referência do plugin](../../packages/dsh-rsi/README.md) · [🧩 Harness de projeto](../../packages/dsh-rsi/README.md#layers-and-the-project-harness) · [🔬 Gate de validação](../../packages/dsh-rsi/README.md#the-validation-gate) · [⚠️ Limitações conhecidas](../../packages/dsh-rsi/README.md#known-limits) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
+**[🌐 Site](https://qybaihe.github.io/dshrsi/) · [📖 Referência do plugin](../../packages/dsh-rsi/README.md) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
 
 [O que é RSI](#rsi) · [Início rápido](#quick-start) · [Como funciona](#how-it-works) · [Resultados medidos](#measured) · [Benchmarks](#benchmarks) · [Detectores e capacidades](#coverage) · [Harness de projeto](#project-harness) · [Padrões de segurança](#security) · [Perguntas frequentes](#faq)
 
@@ -116,26 +113,6 @@ Não há nada para configurar. O DSHRSI fica fora de vista até o mesmo problema
 
 Digite `/rsi` em qualquer sessão para ver o que está montado, a qual camada cada item pertence e o que está esperando a sua aprovação.
 
-### 3. Dê a um repositório o seu próprio harness
-Regras aprendidas em um repositório podem ficar nesse mesmo repositório, um arquivo por adaptação:
-
-```bash
-# O comando vem junto com o plugin, dentro do perfil em que ele foi instalado
-alias dsh-rsi="$HOME/.dsh/profiles/web/node_modules/.bin/dsh-rsi"
-
-dsh-rsi project init      # no repositório: cria .dsh-rsi/; depois faça o commit
-dsh-rsi trust             # em cada outra máquina: aceite os arquivos depois de ler
-```
-
-### 4. Rode a partir do código-fonte
-
-```bash
-git clone https://github.com/qybaihe/dshrsi.git && cd dshrsi
-npm install               # traz um dsh em versão fixada e o pnpm que ele chama
-npx dsh plugin --profile web add "$PWD/packages/dsh-rsi"
-npx dsh web
-```
-
 Os perfis `desktop` e `headless`, os índices de plugins, os tarballs locais e o carregamento para uma única execução estão na [referência do plugin](../../packages/dsh-rsi/README.md#install).
 
 ---
@@ -155,36 +132,13 @@ Skills, arquivos de memória e prompts de sistema mais longos atuam todos no ní
 
 **O DSHRSI atua no nível do harness. O que ele aprende vira código nos pontos de extensão do próprio harness:**
 
-```mermaid
-flowchart LR
-  subgraph S1["1 · Observar"]
-    A["eventos da sessão"] --> B["16 detectores"]
-  end
-  subgraph S2["2 · Decidir"]
-    B --> C["assinatura do atrito<br/>+ biblioteca + sessões anteriores"]
-  end
-  subgraph S3["3 · Reescrever"]
-    C --> D["o modelo da sessão<br/>escreve uma adaptação"]
-    D --> E["gate de validação de 5 etapas"]
-    E -. "rejeitada, com os motivos" .-> D
-  end
-  subgraph S4["4 · Montar"]
-    E --> F["contexto node:vm isolado<br/>ativo antes da próxima requisição ao modelo"]
-  end
-  subgraph S5["5 · Manter e compartilhar"]
-    F --> G["biblioteca: promover · quarentena · revisar"]
-    G --> H[".dsh-rsi/ no repositório"]
-  end
-  G -. "a próxima sessão começa aqui" .-> A
-```
-
 | Etapa | Mecanismo | Efeito |
 | :--- | :--- | :--- |
-| **1. Observar** | 16 detectores leem eventos de sessão normalizados: chamadas que voltam a falhar, causas de falha que se repetem, tentativas às cegas, correções do usuário, turnos que terminam sem nada verificado. | O problema ganha uma assinatura estável entre sessões, como `bash:command-not-found:python`. |
+| **1. Observar** | 16 detectores leem eventos de sessão normalizados: chamadas que voltam a falhar, causas de falha que se repetem, tentativas às cegas, correções do usuário, turnos que terminam sem nada verificado. | O problema ganha uma assinatura que continua a mesma de uma sessão para a outra. |
 | **2. Reescrever** | O próprio modelo da sessão escreve uma adaptação em JavaScript sobre uma API de 10 capacidades. Código rejeitado volta com os motivos, no máximo duas vezes; depois, um template embutido assume. | A correção é código de harness, não mais um parágrafo de prompt. |
 | **3. Validar** | Estática → carga → replay → regressão → permissão. A adaptação precisa agir sobre as chamadas que a dispararam e não pode mexer em nenhuma chamada que deu certo nesta sessão. | Código que não faz nada, ou que quebra o que já funcionava, nunca é montado. |
-| **4. Montar** | A adaptação roda no seu próprio contexto `node:vm`, atrás de uma ponte JSON, com timeout em cada chamada, e passa a valer antes da próxima requisição ao modelo. | O turno que esbarrou no problema é o primeiro a se beneficiar. |
-| **5. Manter e compartilhar** | Uma biblioteca por máquina, com ledger e log de auditoria. O que funciona é promovido, o que lança exceção vai para a quarentena, o que não deu conta é reescrito de forma mais rígida, e as regras do projeto são gravadas em `.dsh-rsi/`. | A sessão seguinte já começa adaptada, e os colegas de time recebem as regras do projeto depois de um `dsh-rsi trust`. |
+| **4. Montar** | A adaptação roda no seu próprio contexto isolado, com timeout em cada chamada, e passa a valer antes da próxima requisição ao modelo. | O turno que esbarrou no problema é o primeiro a se beneficiar. |
+| **5. Manter e compartilhar** | Cada máquina mantém uma biblioteca de adaptações. O que funciona é promovido, o que lança exceção vai para a quarentena, o que não deu conta é reescrito de forma mais rígida, e as regras do projeto são gravadas no repositório. | A sessão seguinte já começa adaptada, e os colegas de time recebem as regras do projeto assim que as aceitam. |
 | **↻ De novo** | A sessão seguinte roda no harness que a etapa 5 deixou, e a etapa 1 a observa com todas as adaptações no lugar. | Aperfeiçoamento em cima de aperfeiçoamento. Essa é a recursão. |
 
 ---
@@ -199,46 +153,9 @@ Estes números vêm de um modelo real, o `mimo-v2.6-pro`, rodando em sessões re
 
 | Cenário | Sem o DSHRSI | Com o DSHRSI | O que o harness escreveu |
 | :--- | :--- | :--- | :--- |
-| **Comando ausente**: o README diz `python stats.py`, a máquina só tem `python3` | ❌ **5 / 5** sessões fizeram a chamada que falha | ✅ **0 / 7** sessões depois da adaptação (9 / 9 antes dela) | `deny` + `prompt`, escritos pelo modelo, passaram pelo gate na primeira tentativa |
-| **Uma regra que o usuário disse uma única vez**: "nunca modifique `notes.txt`, escreva em `notes.draft.txt`" | ❌ A sessão seguinte editou `notes.txt` | ✅ A sessão seguinte escreveu em `notes.draft.txt` sem ninguém pedir | `deny` + `prompt`, escritos pelo modelo logo depois da correção |
+| **Comando ausente**: as instruções dizem `python`, a máquina só tem `python3` | ❌ **5 / 5** sessões fizeram a chamada que falha | ✅ **0 / 7** sessões depois da adaptação (9 / 9 antes dela) | `deny` + `prompt`, escritos pelo modelo, passaram pelo gate na primeira tentativa |
+| **Uma regra que o usuário disse uma única vez**: nunca modificar um determinado arquivo, e sim escrever em um rascunho dele | ❌ A sessão seguinte editou o arquivo | ✅ A sessão seguinte escreveu no rascunho sem ninguém pedir | `deny` + `prompt`, escritos pelo modelo logo depois da correção |
 | **Uma correção que ninguém pediu para verificar** | não executado | ⚪ Nada escrito: o modelo verificou a própria correção em 3 / 3 sessões, então não havia o que aprender | nenhuma |
-
-O primeiro cenário foi executado três vezes com o plugin, sempre a partir de uma biblioteca vazia, mais uma execução de controle. O segundo foi executado uma vez com o plugin e uma vez sem.
-
-**Comando ausente, sessão por sessão** (chamadas de ferramenta com falha por sessão):
-
-| Execução | S1 | S2 | S3 | S4 | S5 | S6 |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Sem o DSHRSI** | ❌ 1 | ❌ 1 | ❌ 1 | ❌ 1 | ❌ 1 | |
-| **Com o DSHRSI · execução 1** | ❌ 1 | ❌ 1 | ❌ 1 → 🧬 | ✅ 0 | ✅ 0 | ✅ 0 |
-| **Com o DSHRSI · execução 2** | ❌ 1 | ❌ 1 | ❌ 1 → 🧬 | ✅ 0 | ✅ 0 | |
-| **Com o DSHRSI · execução 3** | ❌ 1 | ❌ 1 | ❌ 1 → 🧬 | ✅ 0 | ✅ 0 | |
-
-🧬 marca o turno em que o modelo escreveu a adaptação e o harness a montou. Em 3 das 7 sessões seguintes, o modelo ainda tentou `python`, e o harness recusou a chamada antes que ela fosse executada. Todas as sessões deste cenário terminaram com a resposta correta, com ou sem o plugin.
-
-Para reproduzir localmente:
-
-```bash
-MIMO_API_KEY=... npm run test:live -- python --sessions 6          # com o plugin
-MIMO_API_KEY=... npm run test:live -- python --sessions 5 --off    # execução de controle, sem ele
-```
-
-<details>
-<summary><strong>Não verificado nesta máquina (clique para expandir)</strong></summary>
-
-<br />
-
-Estes caminhos existem no código e são cobertos por testes unitários ou end-to-end com um modelo simulado, mas não foram observados em uma sessão real nem em um app real:
-
-| Área | Por que não foi verificado aqui |
-| :--- | :--- |
-| O app desktop do DeepSeek Harness | Não está instalado na máquina de desenvolvimento. Verificado no perfil `web` e no mecanismo de instalação que o app encapsula |
-| `negative-feedback`, `approval-denied`, `context-pressure`, `model-instability` | Testados apenas com eventos construídos, nunca disparados em uma sessão real |
-| Testes automatizados de navegador | Nenhum. A interface foi percorrida à mão na página real do `dsh web`, nos modos claro e escuro |
-| Perfis ACP e SDK | Não têm interface, e não foram verificados |
-| Modelos fora da família MiMo v2.6 | Nenhuma execução ainda. Os benchmarks usaram `mimo-v2.6-pro` e `mimo-v2.6-flash`; os três cenários acima usaram `mimo-v2.6-pro` |
-
-</details>
 
 ---
 
@@ -270,26 +187,17 @@ DeepSeek Harness puro contra DeepSeek Harness + DSHRSI, em 3,390 sessões reais 
 
 **O que o DSHRSI de fato fez, sem uma única dica, foi alterar a si mesmo.** Ao longo das oito execuções, os modelos escreveram **56 adaptações**; 15 delas agiram, e 10 dessas tinham sido ampliadas para a máquina inteira. Para cada uma das 10, pegamos as tarefas que começaram depois dela e comparamos com exatamente as mesmas tarefas no DSH puro:
 
-| Adaptação que o modelo escreveu | Falha a que ela responde | DSH puro | DSH + DSHRSI | p |
-| :--- | :--- | ---: | ---: | ---: |
-| *Stop inline python checks that abort on first mismatch* (MBPP, `mimo-v2.6-pro`) | Uma execução de testes que morre na primeira asserção que falha | 16 de 310 tarefas | **3 de 310** | 0.002 |
-| *Redirect missing lib.rs reads to a glob lookup* (Polyglot, `mimo-v2.6-flash`) | Ler `lib.rs` em um caminho que não existe | 7 de 151 tarefas | **1 de 151** | 0.07 |
-| As outras 8 | | nenhuma mudança mensurável | | |
+| Falha que o harness aprendeu sozinho a evitar | DSH puro | DSH + DSHRSI | p |
+| :--- | ---: | ---: | ---: |
+| Uma execução de testes que morre na primeira asserção que falha (MBPP, `mimo-v2.6-pro`) | 16 de 310 tarefas | **3 de 310** | 0.002 |
+| Ler um arquivo em um caminho que não existe (Polyglot, `mimo-v2.6-flash`) | 7 de 151 tarefas | **1 de 151** | 0.07 |
+| As outras 8 adaptações | nenhuma mudança mensurável | | |
 
-Nenhuma das duas fez mais tarefas passarem, e o plugin custou cerca de 8–9% a mais em tempo de agente e em tokens de entrada. As dez estão listadas em [`bench/README.md`](../../bench/README.md#did-those-adaptations-work).
+Nenhuma das duas fez mais tarefas passarem, e o plugin custou cerca de 8–9% a mais em tempo de agente e em tokens de entrada. As dez estão listadas nas [notas dos benchmarks](../../bench/README.md#did-those-adaptations-work).
 
 **O LiveCodeBench v6 foi interrompido antes do fim:** o saldo da conta do modelo acabou no meio do caminho. Nas tarefas que os dois lados já tinham terminado até ali, o DSH puro resolveu 94 e o DSHRSI 96 de 105 com `mimo-v2.6-pro`, e foram 42 contra 42 de 51 com `mimo-v2.6-flash`. Pelo mesmo motivo, a segunda passada, as mesmas tarefas de novo sobre a biblioteca que a primeira passada deixou, ainda não foi executada.
 
-Para reproduzir localmente:
-
-```bash
-bench/setup.sh                                                        # toolchains, datasets, código de avaliação
-MIMO_API_KEY=... node bench/run.mjs polyglot --arm dsh --run dsh-p1   # DeepSeek Harness puro
-MIMO_API_KEY=... node bench/run.mjs polyglot --arm rsi --run rsi-p1   # com o plugin
-node bench/report.mjs --write                                         # tabelas e bench/results/*.json
-```
-
-O protocolo, as tabelas de custo e de falhas e as limitações estão em [`bench/README.md`](../../bench/README.md); os resultados por tarefa estão em [`bench/results/`](../../bench/results).
+O protocolo, as tabelas de custo e de falhas, as limitações e os comandos para reproduzir tudo isso estão nas [notas dos benchmarks](../../bench/README.md).
 
 ---
 
@@ -297,26 +205,7 @@ O protocolo, as tabelas de custo e de falhas e as limitações estão em [`bench
 
 ## 🛡️ Detectores e capacidades
 
-**16 detectores** decidem quando o harness deve mudar. Os mesmos detectores rodam em uma sessão ao vivo e em uma sessão guardada em disco (`dsh-rsi mine`):
-
-| Detector | O que ele encontra | Resposta |
-| :--- | :--- | :---: |
-| `repeat-failing-call` | A mesma chamada falha de novo com os mesmos argumentos | adapta |
-| `failure-signature` | A mesma causa de falha continua voltando: comando ausente, dependência ausente, rede, permissão, porta em uso, caminho não encontrado, edição que não casa, argumentos inválidos, falta de memória | adapta |
-| `command-flailing` | O mesmo tipo de comando falha em sequência com argumentos que variam | adapta |
-| `read-thrash` | O mesmo arquivo, sem alterações, é lido repetidas vezes | adapta |
-| `edit-churn` | O mesmo arquivo é editado muitas vezes em um único turno | adapta |
-| `error-storm` | A maioria das chamadas de ferramenta recentes falhou | adapta |
-| `stall` | Falhas em sequência, sem nenhum sucesso no meio | adapta |
-| `timeout-recurrence` | O mesmo tipo de comando continua estourando o timeout | adapta |
-| `output-flood` | O mesmo tipo de comando continua gerando saída grande demais | adapta |
-| `approval-denied` / `denied-repeat` | O usuário continua negando o mesmo tipo de ação, ou uma chamada negada é repetida sem alteração | adapta |
-| `user-correction` | O usuário corrigiu o modelo, ou interrompeu e mudou de direção | adapta |
-| `premature-completion` | O código foi alterado e o turno está prestes a terminar sem que nenhuma verificação tenha rodado | adapta |
-| `negative-feedback` | O usuário marcou uma resposta como ruim e escreveu o motivo | adapta |
-| `user-interrupt` | O usuário interrompeu no meio do turno | registra |
-| `model-instability` | As requisições ao modelo continuam falhando, sendo repetidas ou batendo no limite de saída | registra |
-| `context-pressure` | O contexto foi compactado no meio da tarefa | registra |
+**16 detectores** decidem quando o harness deve mudar. A [lista completa](../../packages/dsh-rsi/README.md#detectors) está na referência do plugin.
 
 **10 capacidades** são tudo o que uma adaptação pode fazer. Ela só alcança o harness por meio delas:
 
@@ -360,17 +249,9 @@ Toda adaptação pertence a uma de três camadas. Cada camada pode ser desligada
 | :--- | :--- | :--- | :--- |
 | **`machine`** | Fatos sobre este computador | Não há `python`; uma porta está ocupada; um host interno não resolve | O workspace onde foi aprendida e, depois, a máquina inteira, assim que um segundo workspace esbarra no mesmo problema |
 | **`user`** | Como você quer ser tratado | Uma resposta marcada como ruim com o motivo "longa demais" | A máquina inteira |
-| **`project`** | As regras e os hábitos de um repositório | "Este repositório usa pnpm, sempre" | O workspace, e o próprio repositório por meio de `.dsh-rsi/` |
+| **`project`** | As regras e os hábitos de um repositório | "Este repositório usa pnpm, sempre" | O workspace, e o próprio repositório: as regras são commitadas junto com o código |
 
 **A camada de projeto viaja junto com o código:**
-
-```
-.dsh-rsi/
-  harness.json           marcador de formato e configurações no nível do projeto
-  adaptations/
-    remember-the-user-s-instruction-3f2a1c.js     aprendida, depois gravada aqui
-    no-force-push.js                              uma escrita à mão funciona do mesmo jeito
-```
 
 - **Faça commit para compartilhar, apague para desplugar.** Um arquivo é uma adaptação.
 - **Nada roda só porque foi clonado.** Cada máquina aceita o conteúdo exato dos arquivos com `dsh-rsi trust`, e aceita de novo quando eles mudam.
@@ -387,7 +268,7 @@ Toda adaptação pertence a uma de três camadas. Cada camada pode ser desligada
 - **Poder exige aprovação (`autonomy: tighten`)** — Adaptações que reescrevem resultados, adicionam ferramentas ou executam comandos ficam guardadas como `proposed` e esperam por `dsh-rsi approve <id>`.
 - **Invisível até ser necessário** — Sem atrito e sem nada montado, o prompt de sistema, a lista de ferramentas e as mensagens ficam inalterados, byte a byte. Um teste end-to-end garante isso.
 - **Falhas contidas** — Um handler que lança exceção nunca afeta a chamada de ferramenta a que está ligado. Depois de três erros, a adaptação vai para a quarentena.
-- **Tudo registrado** — Toda decisão fica em `audit.jsonl`; todo atrito, montagem e ação, em `ledger.jsonl`. `dsh-rsi disable`, `retire` e `rollback` tiram uma adaptação de cena ou a fazem voltar à versão anterior.
+- **Tudo registrado** — Toda decisão, atrito, montagem e ação fica no log. `dsh-rsi disable`, `retire` e `rollback` tiram uma adaptação de cena ou a fazem voltar à versão anterior.
 - **Três modos** — `adapt` monta direto (o padrão), `propose` gera e espera por você, `observe` só registra.
 
 ---
@@ -457,7 +338,6 @@ Ele é distribuído como um plugin de terceiros comum, com os metadados que as p
 - [🛠️ Linha de comando `dsh-rsi`](../../packages/dsh-rsi/README.md#command-line) · [⚙️ Configuração](../../packages/dsh-rsi/README.md#configuration)
 - [⚠️ Limitações conhecidas](../../packages/dsh-rsi/README.md#known-limits)
 - [📊 Protocolo e resultados dos benchmarks](../../bench/README.md)
-- [🌐 Código-fonte do site](../../website) — autoaperfeiçoamento recursivo, como funciona, como escrever adaptações, avaliação; abra `website/index.html` em um navegador
 - [🧱 DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) — o harness ao qual este plugin se conecta
 
 <a id="contributing"></a>
@@ -471,23 +351,6 @@ npm install && npm test    # 130 testes unitários, depois 29 testes end-to-end;
 ```
 
 Os testes end-to-end trocam o endpoint do modelo por um simulado. Todo o resto é real: o processo `dsh`, a execução de ferramentas, o log da sessão e a instalação do plugin.
-
-```
-packages/dsh-rsi/        o pacote do plugin (ESM puro, sem etapa de build)
-  index.js               metade do host: ligações com os pontos de extensão do DSH
-  client.js              metade do navegador: badge RSI e pílula de status
-  src/engine.js          observar → decidir → gerar → validar → montar → manter → compartilhar
-  src/signals.js         os 16 detectores
-  src/validate.js        o gate de validação
-  src/sandbox.js         onde o código das adaptações roda
-  src/project.js         o harness de projeto: <repositório>/.dsh-rsi
-  bin/rsi.js             o comando dsh-rsi
-market/index.json        um índice de plugins que pode ser adicionado ao DSH
-test/unit/  test/e2e/    testes unitários, e testes end-to-end em um processo dsh real
-test/live/               execuções contra um modelo real (precisam de MIMO_API_KEY)
-bench/                   benchmarks: DSH puro contra DSH + dsh-rsi
-website/                 o site (páginas estáticas, sem etapa de build)
-```
 
 ## 📄 Licença
 
