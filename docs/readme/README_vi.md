@@ -320,6 +320,12 @@ Nó được phát hành như một plugin bên thứ ba thông thường, kèm 
 </details>
 
 <details>
+<summary><strong>Nếu một cải tiến hóa ra là sai thì sao?</strong></summary>
+
+Lúc nào cũng có thể rút lại: code của chính harness không bao giờ bị đụng tới, và không phiên bản nào của một bản thích ứng bị xóa đi cả. Harness tự lùi lại khi một bản thích ứng liên tục thất bại, hoặc khi một lệnh gọi mà nó đã từ chối hóa ra lại chạy được. Bạn cũng có thể tự làm việc đó: `/rsi undo` rút lại thay đổi gần nhất, `dsh-rsi restore` đưa toàn bộ harness về một thời điểm trước đó, còn `/rsi off` chạy harness nguyên bản. Tất cả đều có hiệu lực ngay trong phiên đang chạy. [Việc lùi lại hoạt động như thế nào](../../packages/dsh-rsi/README.md#going-back).
+</details>
+
+<details>
 <summary><strong>Làm sao để xem, hoàn tác hoặc tắt những gì nó đã học?</strong></summary>
 
 Gõ `/rsi` trong một phiên, hoặc `dsh-rsi status` trong terminal. `dsh-rsi show <id>` in ra mã nguồn và báo cáo kiểm định của một bản thích ứng; `disable`, `retire` và `rollback` gỡ nó ra hoặc đưa nó về bản trước. Đặt `mode: observe` để chỉ ghi nhận mà không thay đổi gì.
