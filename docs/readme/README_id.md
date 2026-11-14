@@ -320,6 +320,12 @@ DSHRSI hadir sebagai plugin pihak ketiga biasa dengan metadata yang dibaca halam
 </details>
 
 <details>
+<summary><strong>Bagaimana jika sebuah perbaikan ternyata keliru?</strong></summary>
+
+Perbaikan itu selalu bisa ditarik kembali: kode milik harness itu sendiri tidak pernah disentuh, dan tidak ada versi adaptasi yang pernah dihapus. Harness mundur dengan sendirinya ketika sebuah adaptasi terus gagal, atau ketika pemanggilan yang ditolaknya ternyata berhasil. Anda juga bisa melakukannya: `/rsi undo` menarik kembali perubahan terakhir, `dsh-rsi restore` mengembalikan seluruh harness ke titik yang lebih awal, dan `/rsi off` menjalankan harness polos. Semua ini berlaku di sesi yang sudah berjalan. [Cara kerja proses mundur](../../packages/dsh-rsi/README.md#going-back).
+</details>
+
+<details>
 <summary><strong>Bagaimana cara melihat, membatalkan, atau mematikan apa yang sudah dipelajarinya?</strong></summary>
 
 `/rsi` di dalam sesi, atau `dsh-rsi status` di terminal. `dsh-rsi show <id>` mencetak kode sumber dan laporan validasi sebuah adaptasi; `disable`, `retire`, dan `rollback` mencabutnya atau memundurkannya. Setel `mode: observe` untuk mencatat tanpa mengubah apa pun.
