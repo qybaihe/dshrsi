@@ -226,7 +226,44 @@ This isolation guards against mistakes and casual misuse. **It is not a security
 - When the same friction occurs twice after its adaptation was mounted, a **revision** is triggered: the model gets the current source together with the fact that it did not hold, and is asked for a version that does. The old version stays in `versions/` and can be restored with `rollback`.
 - When the same friction is met in a second workspace, the adaptation's scope widens from the workspace to the whole machine; it is not learned a second time.
 - What the user has run `disable` or `retire` on is not learned again.
-- Every decision is recorded in `audit.jsonl`. Every friction, mount, action and error is recorded in `ledger.jsonl`.
+- Every decision is recorded in `audit.jsonl`. Every friction, mount, action and error is recorded in `ledger.jsonl`. Every change to what the harness runs is recorded in `timeline.jsonl`, which is what [going back](#going-back) reads.
+
+## Going back
+
+A harness that changes itself has to be able to change back. Three properties of the design make that possible:
+
+- **The harness's own code is never touched.** An adaptation is a separate script, mounted at run time. Take the mounts away and what is left is the stock harness, byte for byte.
+- **Nothing is deleted.** Every version of every adaptation stays on disk under its own number. A number is never used twice, so "version 2" names one script for good.
+- **Every change is a generation.** Whenever what the harness runs changes (an adaptation is written, rewritten, widened, switched off, taken back), one line goes into `timeline.jsonl`: what changed, who did it (the harness, you, or a project harness), in which session, and the whole state it left behind.
+
+### What the harness takes back by itself
+
+| What goes wrong | What happens |
+|---|---|
+| The adaptation's code throws or runs out of time, three times | If it is a rewrite, the version before it goes back to work. With no earlier version, the adaptation is quarantined. |
+| The adaptation refuses calls and the model keeps making them | After two refusals in one turn, the next call it would refuse is let through once, as the stock harness would run it. If the call works, the adaptation was wrong, or what it knew is no longer true (the missing tool has been installed since), and it is taken back. If the call fails, the refusals were right, and the adaptation is not checked again in that session. |
+| The adaptation never acts | Retired after 20 sessions. |
+| The adaptation does not stop the trouble | Rewritten (see [Lifecycle](#lifecycle)). |
+
+The check in the second row applies only to adaptations learned on this machine from a call that failed. What they claim is a fact, "this call fails here", and a fact can be tested by making the call. A refusal that stands for something you asked for, or that came from a project harness or an imported pack, is never set aside.
+
+A version that was taken back is remembered together with the reason. The next time the model writes for the same cause, it is shown that script and what it did wrong; the same script is not accepted a second time; and once two rewrites of one adaptation have been taken back, the adaptation is left as it is.
+
+### What you can take back
+
+| What | In a session | In a terminal |
+|---|---|---|
+| The last thing the harness put to work | `/rsi undo` | `dsh-rsi undo` |
+| One adaptation, to an earlier version | | `dsh-rsi rollback <id> [--to n]` |
+| The whole harness, as it was at a generation | | `dsh-rsi timeline`, then `dsh-rsi restore <generation>` |
+| Everything: the stock harness | `/rsi off` | `dsh-rsi off`, or `DSH_RSI=off` for one process |
+
+All of these reach sessions that are already running, before their next tool call: going back happens mid-turn, the way adapting does.
+
+- `undo` can be repeated to go further back, one change at a time.
+- `restore 0` is the harness before it learned anything. What a restore switches off stays on disk, and a restore is itself a generation, so `undo` takes a restore back too.
+- `off` changes no adaptation. Trouble is still recorded while it is off, so nothing is lost; `on` brings everything back.
+- The files of a project harness belong to the repository. Going back on your machine stops them from running here. To take one back for everyone, remove the file (`dsh-rsi project remove`, or a revert) and commit.
 
 ## Command line
 
@@ -236,9 +273,14 @@ dsh-rsi show <id>               one adaptation: record, source, validation, coun
 dsh-rsi approve <id>            let a proposed adaptation mount
 dsh-rsi disable|enable <id>     switch an adaptation off or back on
 dsh-rsi retire <id>             remove it for good (the cause is not re-learned)
-dsh-rsi rollback <id>           restore the previous version of a revised adaptation
 dsh-rsi scope <id> global|<dir> change where it applies
 dsh-rsi log [-n 20]             decisions the system took
+
+dsh-rsi undo                    take back the last thing the harness put to work
+dsh-rsi rollback <id> [--to n]  one adaptation: the version before, or exactly version n
+dsh-rsi timeline [-n 20]        every change to what the harness runs, numbered
+dsh-rsi restore <generation>    the whole harness as it was at that number (0: before it learned anything)
+dsh-rsi off | on                the stock harness, and back
 dsh-rsi mine <session.jsonl>    run the detectors over a stored session; --adapt proposes adaptations
 
 dsh-rsi project [dir]           the project harness of a repository, and what this machine has accepted of it
@@ -252,7 +294,7 @@ dsh-rsi import <file> [--scope global|<dir>] [--trust]
 
 The command is installed with the plugin, in the profile's own `node_modules`: `$DSH_HOME/profiles/<profile>/node_modules/.bin/dsh-rsi`, which is `~/.dsh/profiles/web/node_modules/.bin/dsh-rsi` for the Web UI when `DSH_HOME` is not set. In a checkout of this repository, `npm run rsi -- <command>` runs the same file.
 
-Inside a session, `/rsi` shows the part of this information that concerns the current session.
+Inside a session, `/rsi` shows the part of this information that concerns the current session, `/rsi undo` takes the last change back, and `/rsi off` and `/rsi on` switch to the stock harness and back.
 
 SECOND-HIT in `status` is the central metric: the share of sessions in which the friction still occurs, before and after the adaptation was mounted.
 
@@ -292,6 +334,7 @@ With adaptations, the model may see notes that begin with `[harness adaptation: 
 - `negative-feedback`, `approval-denied`, `context-pressure` and `model-instability` were tested with constructed events only and have not been triggered in a real session.
 - The automated end-to-end tests run on the `headless` profile. One more test installs the packed tarball into the `web` profile and confirms that the page loads the plugin's UI half. The UI itself was walked through by hand in the real `dsh web` page with a headless browser, in light and dark mode. There is no automated browser test.
 - The desktop app is not installed on the development machine, and the plugin **has not been verified in the real desktop app**. The app wraps the same Web pages and the same installation mechanism, so it should behave the same according to the documentation. The ACP and SDK profiles have no UI and were not verified either.
+- The check that lets a refused call through tests one claim: that the call fails. An adaptation that is wrong in another way (a misleading note, a turn kept open for nothing) is not caught by it. That is what `undo` is for.
 - Trust in a project harness is tied to the hash of a file's content. It guards against code that runs just because it was cloned. It does not review the code: read the files yourself before `dsh-rsi trust`.
 - The UI text exists in English and Chinese only.
 - The plugin is pinned to DSH `0.2.2-rc.3`, a developer preview whose extension points are still changing.
