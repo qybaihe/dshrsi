@@ -312,7 +312,7 @@ dsh-rsi import <文件> [--scope global|<目录>] [--trust]
 
 这个命令随插件一起装在 profile 自己的 `node_modules` 里：`$DSH_HOME/profiles/<profile>/node_modules/.bin/dsh-rsi`，未设置 `DSH_HOME` 时，Web 界面对应的是 `~/.dsh/profiles/web/node_modules/.bin/dsh-rsi`。在本仓库的检出目录里，`npm run rsi -- <命令>` 运行的是同一个文件。
 
-在会话里输入 `/rsi` 可以看到同样的信息里和当前会话有关的部分。
+在会话里输入 `/rsi` 可以看到同样的信息里和当前会话有关的部分；`/rsi undo` 撤回最近一次改动，`/rsi off` 和 `/rsi on` 切到原版 Harness 再切回来。
 
 `status` 里的 SECOND-HIT 是核心指标：装上适配之前和之后，有多大比例的会话里这个摩擦还会出现。
 
@@ -358,6 +358,7 @@ dsh-rsi import <文件> [--scope global|<目录>] [--trust]
 - `negative-feedback`、`approval-denied`、`context-pressure`、`model-instability` 只用构造的事件测过，没有在真实会话里触发过。
 - 端到端自动化用例跑在 `headless` profile 上，另有一条用例把打好的包装进 `web` profile 并确认页面加载了界面部分。界面本身是在真实的 `dsh web` 页面里用无头浏览器手工走查的（亮色和暗色），没有自动化的浏览器用例。
 - 开发用的机器上没有安装桌面 App，**没有在真实的桌面 App 里验证过**。它包的是同一套 Web 页面和同一套安装机制，按文档应当一致；ACP 和 SDK profile 没有界面，也没有验证。
+- 放行一次被拦调用的那个检验，只检验一件事：这个调用会不会失败。适配以别的方式出错（提醒有误导性、无缘无故不让一轮结束），它查不出来，这要靠 `undo`。
 - 项目 Harness 的“信任”认的是文件内容的哈希，防的是“克隆下来就自动执行”。它不审查代码好坏：`dsh-rsi trust` 之前请自己读一遍那些文件。
 - 界面文字目前只有英文和中文。
 - 钉在 DSH `0.2.2-rc.3`（开发者预览版）上，它的扩展点还在变。
