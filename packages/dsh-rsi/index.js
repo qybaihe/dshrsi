@@ -16,8 +16,9 @@ import { openLibrary } from './src/library.js'
 import { isMarked } from './src/marks.js'
 import { describeCall, describeOutcome } from './src/normalize.js'
 import { DEFAULT_SIGNALS } from './src/signals.js'
-import { projection, statusText } from './src/surface.js'
+import { projection, statusText, stockText, undoText } from './src/surface.js'
 import { DEFAULT_POLICY } from './src/trigger.js'
+import { inspectAdaptation } from './src/validate.js'
 
 export const name = 'dsh-rsi'
 export const inject = ['agents', 'tools']
@@ -65,7 +66,8 @@ function notice(text) {
 }
 
 export function apply(ctx, config) {
-  if (config.enabled === false) return
+  // DSH_RSI=off is the same switch for one process, without touching any configuration.
+  if (config.enabled === false || process.env.DSH_RSI === 'off') return
   if ((config.provider === undefined) !== (config.model === undefined)) {
     throw new Error('dsh-rsi: provider and model must be set together')
   }
@@ -154,7 +156,13 @@ export function apply(ctx, config) {
     },
   }
 
-  const library = openLibrary(home)
+  const library = openLibrary(home, {
+    // Versions stored before each kept its own description get it from their source.
+    describe(source) {
+      const inspected = inspectAdaptation(source)
+      return inspected.ok ? { title: inspected.meta.title, description: inspected.meta.description, capabilities: inspected.meta.capabilities, tier: inspected.tier } : undefined
+    },
+  })
   const engine = createEngine({
     library,
     host,
@@ -174,10 +182,18 @@ export function apply(ctx, config) {
   ctx.inject(['commands'], (inner) => {
     inner.commands.register({
       name: 'rsi',
-      description: 'Show how the harness has adapted itself in this session and on this machine',
+      description: 'Show how the harness has adapted itself; "/rsi undo" takes the last change back, "/rsi off" runs the stock harness',
       handler: (invocation) => {
         try {
-          return { kind: 'success', text: statusText({ session: byAgent.get(invocation.agent), library }) }
+          const session = byAgent.get(invocation.agent)
+          const [word, ...rest] = String(invocation.rawInput ?? '').trim().split(/\s+/).filter(Boolean)
+          if (word === undefined || word === 'status') return { kind: 'success', text: statusText({ session, library }) }
+          if (word === 'undo') return { kind: 'success', text: undoText(engine.undo({ sessionId: session?.sessionId })) }
+          if (word === 'off' || word === 'on') {
+            const changed = engine.setStock(word === 'off', { sessionId: session?.sessionId, reason: rest.join(' ') || undefined })
+            return { kind: 'success', text: stockText(word === 'off', changed, session?.mounted().length ?? 0) }
+          }
+          return { kind: 'error', text: `dsh-rsi: "/rsi ${word}" is not known; /rsi takes nothing, "undo", "off" or "on"` }
         } catch (error) {
           return { kind: 'error', text: `dsh-rsi: ${error?.message ?? error}` }
         }

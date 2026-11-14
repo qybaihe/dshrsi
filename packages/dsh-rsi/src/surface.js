@@ -9,6 +9,7 @@
 // refused, and the adaptation sections of the system prompt. Nothing extra is
 // logged for the sake of the display.
 import { layerOfRecord } from './layers.js'
+import { WITHDREW } from './marks.js'
 
 export const PROJECTION_KEY = 'dshRsi'
 
@@ -18,7 +19,7 @@ const EVOLVED = 'The harness adapted itself'
 const MAX_ADAPTATIONS = 40
 const TEXT_CAP = 320
 
-const EMPTY = Object.freeze({ v: 1, adaptations: [], counts: { evolved: 0, refused: 0, notes: 0 }, last: null })
+const EMPTY = Object.freeze({ v: 1, adaptations: [], counts: { evolved: 0, refused: 0, notes: 0, withdrawn: 0 }, last: null })
 
 const blockText = content => (Array.isArray(content) ? content.map(block => (block?.type === 'text' ? block.text : '')).join('\n') : '')
 const clip = text => (text.length > TEXT_CAP ? `${text.slice(0, TEXT_CAP - 1)}…` : text)
@@ -48,6 +49,11 @@ function act(state, event, type, title, text) {
   const next = { ...entry }
   if (type === 'evolved') {
     next.evolved = true
+    next.withdrawn = false
+    next.text = clip(text)
+  } else if (type === 'withdrawn') {
+    // Taken back by the harness itself; the entry stays, so that it can be seen that it was.
+    next.withdrawn = true
     next.text = clip(text)
   } else {
     if (type === 'refused') next.refused += 1
@@ -55,8 +61,9 @@ function act(state, event, type, title, text) {
     if (next.text === '') next.text = clip(text)
   }
   const adaptations = known ? state.adaptations.map(item => (item === known ? next : item)) : [...state.adaptations, next].slice(-MAX_ADAPTATIONS)
-  const key = type === 'evolved' ? 'evolved' : type === 'refused' ? 'refused' : 'notes'
-  return { ...state, adaptations, counts: { ...state.counts, [key]: state.counts[key] + 1 }, last: { seq: event.seq, type, title } }
+  const key = ['evolved', 'refused', 'withdrawn'].includes(type) ? type : 'notes'
+  // A state stored before withdrawals were counted has no such counter yet.
+  return { ...state, adaptations, counts: { ...state.counts, [key]: (state.counts[key] ?? 0) + 1 }, last: { seq: event.seq, type, title } }
 }
 
 /** The session-projection unit. State and view are the same plain value, so an unchanged state publishes nothing. */
@@ -85,6 +92,7 @@ export const projection = {
         const match = MARKED.exec(body)
         if (!match || match.index !== 0) return state
         const rest = body.slice(match[0].length)
+        if (rest.startsWith(WITHDREW)) return act(state, event, 'withdrawn', match[1], rest.slice(WITHDREW.length).replace(/^: /, ''))
         if (!rest.startsWith(EVOLVED)) return act(state, event, 'note', match[1], rest)
         // "The harness adapted itself after noticing that <what>. <what it does now>"
         const told = rest.indexOf('. ')
@@ -113,7 +121,9 @@ export function statusText({ session, library }) {
   const lines = []
   const records = library.list()
   const mounted = session?.mounted() ?? []
-  if (mounted.length === 0) lines.push('No adaptations are mounted in this session.')
+  const stock = library.stock()
+  if (stock) lines.push('The harness is OFF: it runs as stock, mounts nothing and writes nothing. Everything it learned is kept; "/rsi on" brings it back.')
+  else if (mounted.length === 0) lines.push('No adaptations are mounted in this session.')
   else {
     lines.push(`${mounted.length} adaptation(s) at work in this session:`)
     for (const mount of mounted) {
@@ -132,6 +142,22 @@ export function statusText({ session, library }) {
   lines.push('', `Library: ${count('active')} active, ${count('candidate')} on trial, ${proposed.length} waiting for approval, ${count('quarantined')} quarantined, ${count('disabled') + count('retired')} switched off.`)
   for (const entry of proposed.slice(0, 5)) lines.push(`  waiting: dsh-rsi approve ${entry.id}   # ${entry.title} [${(entry.capabilities ?? []).join(', ')}]`)
   if (session && session.mode !== 'adapt') lines.push(`Mode in this session: ${session.mode}.`)
-  lines.push('', 'Details and controls: dsh-rsi status | show <id> | disable <id> | project')
+  lines.push('', `Going back: /rsi undo takes back the last thing the harness put to work; ${stock ? '/rsi on ends stock mode' : '/rsi off runs the stock harness'}.`)
+  lines.push('Details and controls: dsh-rsi status | show <id> | disable <id> | timeline | restore <generation> | project')
   return lines.join('\n')
+}
+
+/** What "/rsi undo" answers. `result` is what the library's undo returned. */
+export function undoText(result) {
+  if (!result) return 'Nothing to undo: the harness has put nothing to work that is still in place.'
+  if (result.restored) return `Undone: ${result.restored.changes.length} adaptation(s) are back as they were before the last restore.`
+  const { record } = result
+  const now = ['candidate', 'active'].includes(record.status) ? `Version ${record.version} is at work again: "${record.title}".` : 'It no longer runs, and its cause will not be learned again unless you switch it back on.'
+  return `Undone (${result.change}): "${result.title}". ${now}\nThis holds from the next tool call on. Once more goes one step further back; "dsh-rsi timeline" shows every step.`
+}
+
+/** What "/rsi off" and "/rsi on" answer. */
+export function stockText(off, changed, atWork) {
+  if (off) return `${changed ? 'The harness now runs as stock' : 'The harness already runs as stock'}: nothing is mounted and nothing is written, from the next tool call on, in every session on this machine.\nEverything it learned is kept. "/rsi on" brings it back.`
+  return `${changed ? 'Adapting again' : 'The harness was not off'}: ${atWork} adaptation(s) at work in this session.`
 }
