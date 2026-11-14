@@ -21,14 +21,11 @@
 
 [![RSI](https://img.shields.io/badge/RSI-Recursive_Self--Improvement-4d6bfe?style=for-the-badge)](#rsi)
 [![DeepSeek Harness](https://img.shields.io/badge/DeepSeek_Harness-0.2.2--rc.3_plugin-7c5cff?style=for-the-badge)](https://github.com/deepseek-ai/deepseek-harness)
-[![Detectors](https://img.shields.io/badge/Detectors-16-12b5e5?style=for-the-badge)](#coverage)
 [![Validation](https://img.shields.io/badge/Validation-5--Stage_Gate-0ea5e9?style=for-the-badge)](#how-it-works)
-[![Layers](https://img.shields.io/badge/Layers-Machine_%C2%B7_User_%C2%B7_Project-0284c7?style=for-the-badge)](#project-harness)
 [![Benchmarks](https://img.shields.io/badge/Benchmarks-4_Suites_%C2%B7_2_Models-2563eb?style=for-the-badge)](#benchmarks)
-[![Tests](https://img.shields.io/badge/Tests-130_unit_%C2%B7_29_e2e-1d4ed8?style=for-the-badge)](#contributing)
 [![MIT License](https://img.shields.io/badge/License-MIT-38bdf8?style=for-the-badge)](../../LICENSE)
 
-**[🌐 웹사이트](https://qybaihe.github.io/dshrsi/) · [📖 플러그인 레퍼런스](../../packages/dsh-rsi/README.md) · [🧩 프로젝트 하네스](../../packages/dsh-rsi/README.md#layers-and-the-project-harness) · [🔬 검증 게이트](../../packages/dsh-rsi/README.md#the-validation-gate) · [⚠️ 알려진 한계](../../packages/dsh-rsi/README.md#known-limits) · [🐛 이슈](https://github.com/qybaihe/dshrsi/issues)**
+**[🌐 웹사이트](https://qybaihe.github.io/dshrsi/) · [📖 플러그인 레퍼런스](../../packages/dsh-rsi/README.md) · [🐛 이슈](https://github.com/qybaihe/dshrsi/issues)**
 
 [RSI의 의미](#rsi) · [빠른 시작](#quick-start) · [동작 원리](#how-it-works) · [실측 결과](#measured) · [벤치마크](#benchmarks) · [감지기와 기능](#coverage) · [프로젝트 하네스](#project-harness) · [안전 기본값](#security) · [자주 묻는 질문](#faq)
 
@@ -116,26 +113,6 @@ dsh web
 
 어느 세션에서든 `/rsi`를 입력하면 무엇이 마운트되어 있는지, 어느 레이어에 속하는지, 무엇이 승인을 기다리고 있는지 볼 수 있습니다.
 
-### 3. 저장소에 전용 하네스 달아 주기
-저장소에서 배운 규칙은 그 저장소 안에 둘 수 있습니다. 어댑테이션 하나에 파일 하나입니다:
-
-```bash
-# 이 명령은 플러그인과 함께 제공되며, 플러그인을 설치한 프로필 안에 있습니다
-alias dsh-rsi="$HOME/.dsh/profiles/web/node_modules/.bin/dsh-rsi"
-
-dsh-rsi project init      # 저장소에서 실행: .dsh-rsi/를 만듭니다. 그다음 커밋하세요
-dsh-rsi trust             # 다른 모든 머신에서 실행: 파일을 읽어 본 뒤 수락합니다
-```
-
-### 4. 소스에서 실행하기
-
-```bash
-git clone https://github.com/qybaihe/dshrsi.git && cd dshrsi
-npm install               # 버전이 고정된 dsh와, 그 dsh가 호출하는 pnpm을 가져옵니다
-npx dsh plugin --profile web add "$PWD/packages/dsh-rsi"
-npx dsh web
-```
-
 `desktop`과 `headless` 프로필, 플러그인 인덱스, 로컬 tarball, 단일 실행에만 로드하는 방법은 [플러그인 레퍼런스](../../packages/dsh-rsi/README.md#install)에서 다룹니다.
 
 ---
@@ -155,36 +132,13 @@ npx dsh web
 
 **DSHRSI는 하네스 수준에서 작동합니다. 배운 것은 하네스 자체의 확장 포인트에 올라가는 코드가 됩니다:**
 
-```mermaid
-flowchart LR
-  subgraph S1["1 · 관찰"]
-    A["세션 이벤트"] --> B["16개의 감지기"]
-  end
-  subgraph S2["2 · 판단"]
-    B --> C["마찰 시그니처<br/>+ 라이브러리 + 과거 세션"]
-  end
-  subgraph S3["3 · 재작성"]
-    C --> D["세션의 모델이<br/>어댑테이션을 작성"]
-    D --> E["5단계 검증 게이트"]
-    E -. "사유와 함께 반려" .-> D
-  end
-  subgraph S4["4 · 마운트"]
-    E --> F["독립된 node:vm 컨텍스트<br/>다음 모델 요청 전에 적용"]
-  end
-  subgraph S5["5 · 보관과 공유"]
-    F --> G["라이브러리: 승격 · 격리 · 개정"]
-    G --> H["저장소의 .dsh-rsi/"]
-  end
-  G -. "다음 세션은 여기서 시작" .-> A
-```
-
 | 단계 | 메커니즘 | 효과 |
 | :--- | :--- | :--- |
-| **1. 관찰** | 16개의 감지기가 정규화된 세션 이벤트를 읽습니다. 다시 실패하는 호출, 계속 되돌아오는 실패 원인, 갈팡질팡하는 시도, 사용자의 정정, 아무것도 검증하지 않은 채 끝나는 턴을 찾습니다. | 문제에 세션이 바뀌어도 변하지 않는 시그니처가 붙습니다. 예: `bash:command-not-found:python`. |
+| **1. 관찰** | 16개의 감지기가 정규화된 세션 이벤트를 읽습니다. 다시 실패하는 호출, 계속 되돌아오는 실패 원인, 갈팡질팡하는 시도, 사용자의 정정, 아무것도 검증하지 않은 채 끝나는 턴을 찾습니다. | 문제에 세션이 바뀌어도 변하지 않는 시그니처가 붙습니다. |
 | **2. 재작성** | 세션의 모델이 직접, 10가지 기능으로 이루어진 API에 맞춰 JavaScript 어댑테이션을 작성합니다. 반려된 코드는 사유와 함께 되돌아가며, 최대 두 번까지 그렇게 한 뒤에는 내장 템플릿이 넘겨받습니다. | 해결책은 프롬프트에 붙는 문단 하나가 아니라 하네스 코드입니다. |
 | **3. 검증** | 정적 검사 → 로드 → 리플레이 → 회귀 → 권한. 어댑테이션은 자신을 촉발한 호출에는 반드시 개입해야 하고, 이 세션에서 성공한 호출은 하나도 건드려서는 안 됩니다. | 아무 일도 하지 않는 코드, 이미 잘 되던 것을 망가뜨리는 코드는 절대 마운트되지 않습니다. |
-| **4. 마운트** | 어댑테이션은 JSON 브리지 뒤의 독립된 `node:vm` 컨텍스트에서 실행되고, 모든 호출에 타임아웃이 걸려 있으며, 다음 모델 요청 전에 효력이 생깁니다. | 문제를 겪은 바로 그 턴이 가장 먼저 혜택을 봅니다. |
-| **5. 보관과 공유** | 머신마다 원장과 감사 로그를 갖춘 라이브러리가 하나씩 있습니다. 효과가 있으면 승격되고, 예외를 던지면 격리되고, 문제를 막아 내지 못하면 더 엄격하게 다시 작성되며, 프로젝트 규칙은 `.dsh-rsi/`에 기록됩니다. | 다음 세션은 이미 적응된 상태로 시작하고, 팀원은 `dsh-rsi trust`를 거친 뒤 프로젝트의 규칙을 받습니다. |
+| **4. 마운트** | 어댑테이션은 자신만의 격리된 컨텍스트에서 실행되고, 모든 호출에 타임아웃이 걸려 있으며, 다음 모델 요청 전에 효력이 생깁니다. | 문제를 겪은 바로 그 턴이 가장 먼저 혜택을 봅니다. |
+| **5. 보관과 공유** | 머신마다 어댑테이션 라이브러리가 하나씩 있습니다. 효과가 있으면 승격되고, 예외를 던지면 격리되고, 문제를 막아 내지 못하면 더 엄격하게 다시 작성되며, 프로젝트 규칙은 저장소에 기록됩니다. | 다음 세션은 이미 적응된 상태로 시작하고, 팀원은 수락하고 나면 프로젝트의 규칙을 받습니다. |
 | **↻ 다시** | 다음 세션은 5번 단계가 남긴 하네스 위에서 실행되고, 1번 단계는 모든 어댑테이션이 적용된 상태에서 그 세션을 관찰합니다. | 개선 위에 개선이 쌓입니다. 이것이 재귀입니다. |
 
 ---
@@ -199,46 +153,9 @@ flowchart LR
 
 | 시나리오 | DSHRSI 없음 | DSHRSI 있음 | 하네스가 작성한 것 |
 | :--- | :--- | :--- | :--- |
-| **없는 명령**: README에는 `python stats.py`라고 적혀 있는데 머신에는 `python3`만 있습니다 | ❌ **5 / 5** 세션이 실패 호출을 했습니다 | ✅ 어댑테이션 이후 **0 / 7** 세션 (그 전에는 9 / 9) | `deny` + `prompt`. 모델이 작성했고, 첫 시도에 게이트를 통과했습니다 |
-| **사용자가 한 번 말한 규칙**: "`notes.txt`는 절대 수정하지 말고 `notes.draft.txt`에 쓸 것" | ❌ 다음 세션이 `notes.txt`를 수정했습니다 | ✅ 다음 세션이 시키지 않아도 `notes.draft.txt`에 썼습니다 | `deny` + `prompt`. 정정 직후에 모델이 작성했습니다 |
+| **없는 명령**: 안내문에는 `python`이라고 적혀 있는데 머신에는 `python3`만 있습니다 | ❌ **5 / 5** 세션이 실패 호출을 했습니다 | ✅ 어댑테이션 이후 **0 / 7** 세션 (그 전에는 9 / 9) | `deny` + `prompt`. 모델이 작성했고, 첫 시도에 게이트를 통과했습니다 |
+| **사용자가 한 번 말한 규칙**: 어떤 파일은 절대 수정하지 말고, 대신 그 파일의 초안에 쓸 것 | ❌ 다음 세션이 그 파일을 수정했습니다 | ✅ 다음 세션이 시키지 않아도 초안에 썼습니다 | `deny` + `prompt`. 정정 직후에 모델이 작성했습니다 |
 | **아무도 검증하라고 하지 않은 수정** | 실행하지 않음 | ⚪ 작성된 것 없음: 모델이 3 / 3 세션에서 스스로 수정을 검증했으므로 배울 것이 없었습니다 | 없음 |
-
-첫 번째 시나리오는 플러그인을 켠 상태로 세 번, 매번 빈 라이브러리에서 시작해 실행했고, 여기에 대조 실행을 한 번 더했습니다. 두 번째 시나리오는 플러그인을 켜고 한 번, 끄고 한 번 실행했습니다.
-
-**없는 명령 시나리오, 세션별 결과** (세션당 실패한 도구 호출 수):
-
-| 실행 | S1 | S2 | S3 | S4 | S5 | S6 |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **DSHRSI 없음** | ❌ 1 | ❌ 1 | ❌ 1 | ❌ 1 | ❌ 1 | |
-| **DSHRSI 있음 · 실행 1** | ❌ 1 | ❌ 1 | ❌ 1 → 🧬 | ✅ 0 | ✅ 0 | ✅ 0 |
-| **DSHRSI 있음 · 실행 2** | ❌ 1 | ❌ 1 | ❌ 1 → 🧬 | ✅ 0 | ✅ 0 | |
-| **DSHRSI 있음 · 실행 3** | ❌ 1 | ❌ 1 | ❌ 1 → 🧬 | ✅ 0 | ✅ 0 | |
-
-🧬는 모델이 어댑테이션을 작성하고 하네스가 그것을 마운트한 턴을 나타냅니다. 그 뒤의 세션 7개 중 3개에서 모델은 여전히 `python`을 시도했고, 하네스는 그 호출을 실행 전에 거부했습니다. 이 시나리오의 모든 세션은 플러그인이 있든 없든 올바른 답으로 끝났습니다.
-
-로컬에서 재현하기:
-
-```bash
-MIMO_API_KEY=... npm run test:live -- python --sessions 6          # 플러그인 사용
-MIMO_API_KEY=... npm run test:live -- python --sessions 5 --off    # 플러그인 없는 대조 실행
-```
-
-<details>
-<summary><strong>이 머신에서 검증되지 않은 것 (클릭해서 펼치기)</strong></summary>
-
-<br />
-
-아래 경로들은 소스 트리에 들어 있고, 시뮬레이션된 모델을 쓰는 단위 테스트나 엔드투엔드 테스트로 다뤄지지만, 실제 세션이나 실제 앱에서 관찰된 적은 없습니다:
-
-| 영역 | 여기서 검증되지 않은 이유 |
-| :--- | :--- |
-| DeepSeek Harness 데스크톱 앱 | 개발 머신에 설치되어 있지 않습니다. 앱이 감싸고 있는 `web` 프로필과 설치 메커니즘에서 검증했습니다 |
-| `negative-feedback`, `approval-denied`, `context-pressure`, `model-instability` | 직접 구성한 이벤트로만 테스트했고, 실제 세션에서 트리거된 적은 없습니다 |
-| 자동화된 브라우저 테스트 | 없습니다. UI는 실제 `dsh web` 페이지에서 라이트 모드와 다크 모드로 직접 손으로 따라가며 확인했습니다 |
-| ACP 및 SDK 프로필 | UI가 없고, 검증하지도 않았습니다 |
-| MiMo v2.6 계열 이외의 모델 | 아직 실행한 적이 없습니다. 벤치마크에는 `mimo-v2.6-pro`와 `mimo-v2.6-flash`를, 위의 세 시나리오에는 `mimo-v2.6-pro`를 사용했습니다 |
-
-</details>
 
 ---
 
@@ -270,26 +187,17 @@ MIMO_API_KEY=... npm run test:live -- python --sessions 5 --off    # 플러그�
 
 **DSHRSI가 실제로 한 일은, 힌트 하나 없이 스스로를 바꾼 것입니다.** 여덟 번의 실행에 걸쳐 모델들은 **56개의 어댑테이션**을 작성했습니다. 그중 15개가 실제로 개입했고, 그 가운데 10개는 머신 전체로 확장되었습니다. 이 10개 각각에 대해, 해당 어댑테이션이 생긴 뒤에 시작된 태스크를 골라 순정 DSH에서의 바로 그 태스크들과 비교했습니다:
 
-| 모델이 작성한 어댑테이션 | 대응하는 실패 | 순정 DSH | DSH + DSHRSI | p |
-| :--- | :--- | ---: | ---: | ---: |
-| *Stop inline python checks that abort on first mismatch* (MBPP, `mimo-v2.6-pro`) | 첫 번째로 실패한 assertion에서 죽어 버리는 테스트 실행 | 태스크 310개 중 16개 | **310개 중 3개** | 0.002 |
-| *Redirect missing lib.rs reads to a glob lookup* (Polyglot, `mimo-v2.6-flash`) | 존재하지 않는 경로에서 `lib.rs`를 읽으려는 시도 | 태스크 151개 중 7개 | **151개 중 1개** | 0.07 |
-| 나머지 8개 | | 측정 가능한 변화 없음 | | |
+| 하네스가 스스로 피하는 법을 배운 실패 | 순정 DSH | DSH + DSHRSI | p |
+| :--- | ---: | ---: | ---: |
+| 첫 번째로 실패한 assertion에서 죽어 버리는 테스트 실행 (MBPP, `mimo-v2.6-pro`) | 태스크 310개 중 16개 | **310개 중 3개** | 0.002 |
+| 존재하지 않는 경로에서 파일을 읽으려는 시도 (Polyglot, `mimo-v2.6-flash`) | 태스크 151개 중 7개 | **151개 중 1개** | 0.07 |
+| 나머지 어댑테이션 8개 | 측정 가능한 변화 없음 | | |
 
-둘 중 어느 것도 통과하는 태스크 수를 늘리지는 못했고, 플러그인은 에이전트 시간과 입력 토큰을 약 8–9% 더 썼습니다. 열 개 전부는 [`bench/README.md`](../../bench/README.md#did-those-adaptations-work)에 정리되어 있습니다.
+둘 중 어느 것도 통과하는 태스크 수를 늘리지는 못했고, 플러그인은 에이전트 시간과 입력 토큰을 약 8–9% 더 썼습니다. 열 개 전부는 [벤치마크 문서](../../bench/README.md#did-those-adaptations-work)에 정리되어 있습니다.
 
 **LiveCodeBench v6는 중간에 끊겼습니다:** 도중에 모델 계정의 잔액이 바닥났습니다. 그때까지 양쪽이 모두 끝낸 태스크만 보면, `mimo-v2.6-pro`에서는 105개 중 순정 DSH가 94개, DSHRSI가 96개를 해결했고, `mimo-v2.6-flash`에서는 51개 중 42개 대 42개였습니다. 같은 이유로 두 번째 패스, 즉 첫 번째 패스가 남긴 라이브러리 위에서 같은 태스크를 다시 돌리는 실행은 아직 하지 못했습니다.
 
-로컬에서 재현하기:
-
-```bash
-bench/setup.sh                                                        # 툴체인, 데이터셋, 채점 코드
-MIMO_API_KEY=... node bench/run.mjs polyglot --arm dsh --run dsh-p1   # 순정 DeepSeek Harness
-MIMO_API_KEY=... node bench/run.mjs polyglot --arm rsi --run rsi-p1   # 플러그인 사용
-node bench/report.mjs --write                                         # 표와 bench/results/*.json
-```
-
-프로토콜, 비용 표와 실패 표, 한계는 [`bench/README.md`](../../bench/README.md)에 있고, 태스크별 결과는 [`bench/results/`](../../bench/results)에 있습니다.
+프로토콜, 비용 표와 실패 표, 한계, 그리고 이 모든 것을 재현하는 명령은 [벤치마크 문서](../../bench/README.md)에 있습니다.
 
 ---
 
@@ -297,26 +205,7 @@ node bench/report.mjs --write                                         # 표와 b
 
 ## 🛡️ 감지기와 기능
 
-하네스가 언제 바뀌어야 하는지는 **16개의 감지기**가 판단합니다. 같은 감지기가 진행 중인 세션에서도, 디스크에 저장된 세션에서도 실행됩니다(`dsh-rsi mine`):
-
-| 감지기 | 찾아내는 것 | 대응 |
-| :--- | :--- | :---: |
-| `repeat-failing-call` | 같은 호출이 같은 인자로 다시 실패합니다 | 적응 |
-| `failure-signature` | 같은 실패 원인이 계속 되돌아옵니다: 없는 명령, 없는 의존성, 네트워크, 권한, 사용 중인 포트, 찾을 수 없는 경로, 편집 불일치, 잘못된 인자, 메모리 부족 | 적응 |
-| `command-flailing` | 같은 종류의 명령이 인자만 바꿔 가며 연달아 실패합니다 | 적응 |
-| `read-thrash` | 바뀌지 않은 같은 파일을 읽고 또 읽습니다 | 적응 |
-| `edit-churn` | 한 턴 안에서 같은 파일을 여러 번 편집합니다 | 적응 |
-| `error-storm` | 최근 도구 호출의 대부분이 실패했습니다 | 적응 |
-| `stall` | 중간에 성공 한 번 없이 실패가 이어집니다 | 적응 |
-| `timeout-recurrence` | 같은 종류의 명령이 계속 타임아웃됩니다 | 적응 |
-| `output-flood` | 같은 종류의 명령이 계속 지나치게 큰 출력을 쏟아냅니다 | 적응 |
-| `approval-denied` / `denied-repeat` | 사용자가 같은 종류의 동작을 계속 거부하거나, 거부된 호출이 그대로 다시 시도됩니다 | 적응 |
-| `user-correction` | 사용자가 모델을 바로잡았거나, 중단시키고 방향을 바꿨습니다 | 적응 |
-| `premature-completion` | 코드를 바꿨는데 아무 검사도 돌리지 않은 채 턴이 끝나려 합니다 | 적응 |
-| `negative-feedback` | 사용자가 응답을 나쁨으로 표시하고 이유를 적었습니다 | 적응 |
-| `user-interrupt` | 사용자가 턴 도중에 중단시켰습니다 | 기록만 |
-| `model-instability` | 모델 요청이 계속 실패하거나, 재시도되거나, 출력 한도에 걸립니다 | 기록만 |
-| `context-pressure` | 작업 도중에 컨텍스트가 압축되었습니다 | 기록만 |
+하네스가 언제 바뀌어야 하는지는 **16개의 감지기**가 판단합니다. [전체 목록](../../packages/dsh-rsi/README.md#detectors)은 플러그인 레퍼런스에 있습니다.
 
 어댑테이션이 할 수 있는 일은 **10가지 기능**이 전부입니다. 어댑테이션은 오직 이 기능들을 통해서만 하네스에 닿습니다:
 
@@ -360,17 +249,9 @@ define({
 | :--- | :--- | :--- | :--- |
 | **`machine`** | 이 컴퓨터에 관한 사실 | `python`이 없다, 포트가 이미 사용 중이다, 내부 호스트가 해석되지 않는다 | 배운 워크스페이스. 두 번째 워크스페이스에서도 같은 문제를 만나면 머신 전체 |
 | **`user`** | 사용자가 어떻게 대해 주기를 바라는지 | "너무 길다"는 이유와 함께 나쁨으로 표시된 응답 | 머신 전체 |
-| **`project`** | 한 저장소의 규칙과 습관 | "이 저장소는 언제나 pnpm을 쓴다" | 워크스페이스, 그리고 `.dsh-rsi/`를 통해 저장소 자체 |
+| **`project`** | 한 저장소의 규칙과 습관 | "이 저장소는 언제나 pnpm을 쓴다" | 워크스페이스, 그리고 저장소 자체: 규칙이 코드와 함께 커밋됩니다 |
 
 **프로젝트 레이어는 코드와 함께 이동합니다:**
-
-```
-.dsh-rsi/
-  harness.json           형식 표시와 프로젝트 수준 설정
-  adaptations/
-    remember-the-user-s-instruction-3f2a1c.js     학습된 뒤 여기에 기록된 것
-    no-force-push.js                              손으로 직접 쓴 것도 똑같이 동작합니다
-```
 
 - **커밋하면 공유, 삭제하면 해제.** 파일 하나가 어댑테이션 하나입니다.
 - **클론했다는 이유만으로 실행되는 것은 없습니다.** 각 머신은 `dsh-rsi trust`로 파일의 정확한 내용을 수락하고, 파일이 바뀌면 다시 수락합니다.
@@ -387,7 +268,7 @@ define({
 - **강력한 기능은 승인 필요 (`autonomy: tighten`)** — 결과를 재작성하거나, 도구를 추가하거나, 명령을 실행하는 어댑테이션은 `proposed` 상태로 저장되어 `dsh-rsi approve <id>`를 기다립니다.
 - **필요할 때까지 보이지 않음** — 마찰이 없고 마운트된 것도 없으면 시스템 프롬프트, 도구 목록, 메시지는 바이트 하나까지 그대로입니다. 엔드투엔드 테스트가 이를 지킵니다.
 - **실패는 번지지 않음** — 핸들러가 예외를 던져도, 그 핸들러가 붙어 있는 도구 호출에는 절대 영향을 주지 않습니다. 오류가 세 번 나면 그 어댑테이션은 격리됩니다.
-- **모든 것이 기록으로 남음** — 모든 결정은 `audit.jsonl`에, 모든 마찰과 마운트와 개입은 `ledger.jsonl`에 남습니다. `dsh-rsi disable`, `retire`, `rollback`으로 어댑테이션을 빼거나 이전으로 되돌립니다.
+- **모든 것이 기록으로 남음** — 모든 결정과 마찰, 마운트, 개입이 로그에 남습니다. `dsh-rsi disable`, `retire`, `rollback`으로 어댑테이션을 빼거나 이전으로 되돌립니다.
 - **세 가지 모드** — `adapt`는 바로 마운트하고(기본값), `propose`는 생성한 뒤 사용자를 기다리며, `observe`는 기록만 합니다.
 
 ---
@@ -457,7 +338,6 @@ define({
 - [🛠️ `dsh-rsi` 명령줄](../../packages/dsh-rsi/README.md#command-line) · [⚙️ 설정](../../packages/dsh-rsi/README.md#configuration)
 - [⚠️ 알려진 한계](../../packages/dsh-rsi/README.md#known-limits)
 - [📊 벤치마크 프로토콜과 결과](../../bench/README.md)
-- [🌐 웹사이트 소스](../../website) — 재귀적 자기 개선, 동작 원리, 어댑테이션 작성법, 평가. 브라우저에서 `website/index.html`을 열어 보세요
 - [🧱 DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) — 이 플러그인이 꽂히는 하네스
 
 <a id="contributing"></a>
@@ -471,23 +351,6 @@ npm install && npm test    # 단위 테스트 130개, 이어서 엔드투엔드 
 ```
 
 엔드투엔드 테스트는 모델 엔드포인트를 시뮬레이션된 것으로 바꿉니다. 나머지는 모두 실제입니다. `dsh` 프로세스, 도구 실행, 세션 로그, 플러그인 설치까지 전부 그렇습니다.
-
-```
-packages/dsh-rsi/        플러그인 번들 (순수 ESM, 빌드 단계 없음)
-  index.js               호스트 쪽 절반: DSH 확장 포인트에 대한 바인딩
-  client.js              브라우저 쪽 절반: RSI 배지와 상태 pill
-  src/engine.js          관찰 → 판단 → 생성 → 검증 → 마운트 → 보관 → 공유
-  src/signals.js         16개의 감지기
-  src/validate.js        검증 게이트
-  src/sandbox.js         어댑테이션 코드가 실행되는 곳
-  src/project.js         프로젝트 하네스: <저장소>/.dsh-rsi
-  bin/rsi.js             dsh-rsi 명령
-market/index.json        DSH에 추가할 수 있는 플러그인 인덱스
-test/unit/  test/e2e/    단위 테스트, 그리고 실제 dsh 프로세스에서 도는 엔드투엔드 테스트
-test/live/               실제 모델을 대상으로 한 실행 (MIMO_API_KEY 필요)
-bench/                   벤치마크: 순정 DSH 대 DSH + dsh-rsi
-website/                 웹사이트 (정적 페이지, 빌드 단계 없음)
-```
 
 ## 📄 라이선스
 
