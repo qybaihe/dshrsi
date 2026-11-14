@@ -23,9 +23,9 @@
       <span lang="en">This is not a scripted demo. Every time, every call and every line of code below comes from the session logs of a benchmark run and from the plugin's own audit log: the 30 Rust exercises of Aider Polyglot, on <code>mimo-v2.6-flash</code>, with no hint given to the plugin.</span>
     </p>
     <figure class="reel">
-      <img lang="zh" src="assets/img/rsi-trace.zh.gif" width="1280" height="720" loading="lazy" alt="动画：原版 Harness 在 30 个会话里有 12 个去读不存在的 lib.rs；装上 DSHRSI 后，第三次撞上时模型给 Harness 写了一段代码，36.9 秒后挂载，之后的 22 个会话只再出现 1 次">
-      <img lang="en" src="assets/img/rsi-trace.gif" width="1280" height="720" loading="lazy" alt="Animation: on the stock harness 12 of 30 sessions read a lib.rs that is not there; with DSHRSI the model writes harness code the third time it happens, it is mounted 36.9 seconds later, and the next 22 sessions hit it once">
-      <figcaption><span lang="zh">动画里的名字、时间和数字都取自同一份数据，和下面的内容一一对应。</span><span lang="en">The names, times and counts in the animation come from the same data as everything below.</span></figcaption>
+      <picture lang="zh"><source media="(prefers-color-scheme: dark)" srcset="assets/img/rsi-trace.zh.dark.gif"><img src="assets/img/rsi-trace.zh.gif" width="1280" height="720" loading="lazy" alt="动画：原版 Harness 在 30 个会话里有 12 个去读不存在的 lib.rs；装上 DSHRSI 后，第三次撞上时模型给 Harness 写了一段代码，36.9 秒后挂载，之后的 22 个会话只再出现 1 次"></picture>
+      <picture lang="en"><source media="(prefers-color-scheme: dark)" srcset="assets/img/rsi-trace.dark.gif"><img src="assets/img/rsi-trace.gif" width="1280" height="720" loading="lazy" alt="Animation: on the stock harness 12 of 30 sessions read a lib.rs that is not there; with DSHRSI the model writes harness code the third time it happens, it is mounted 36.9 seconds later, and the next 22 sessions hit it once"></picture>
+      <figcaption><span lang="zh">动画是按日志重画的回放（评测本身无界面运行），不是屏幕录像；里面的名字、时间和数字都取自同一份数据，和下面的内容一一对应。</span><span lang="en">The animation is a replay redrawn from the logs (the benchmark itself ran headless), not a screen recording; its names, times and counts come from the same data as everything below.</span></figcaption>
     </figure>
   </div>
 </div>

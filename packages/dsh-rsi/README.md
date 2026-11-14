@@ -45,7 +45,7 @@ The scenario was run three times, each with an empty library. Before the adaptat
 
 | Source | What to enter |
 |---|---|
-| Release package | `https://github.com/qybaihe/dshrsi/releases/download/v0.1.0/dsh-rsi-0.1.0.tgz` |
+| Release package | `https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz` |
 | Local tarball | Run `npm pack` in `packages/dsh-rsi` and enter the absolute path of the resulting `.tgz` |
 | Local folder | The absolute path of `packages/dsh-rsi` |
 

@@ -10,7 +10,12 @@
 
 ### **Gözlemle → Geliştir → Üzerine İnşa Et → Yeniden. Giderek daha çok sizin olan bir harness.**
 
-<img src="../../assets/rsi-trace.gif" alt="Gerçek bir çalıştırmanın animasyonlu izi: standart harness'te 30 oturumun 12'si aynı başarısız çağrıyı yapıyor; DSHRSI ile harness üçüncü seferde kendini geliştiriyor ve sonraki 22 oturumda bu yalnızca bir kez yaşanıyor" width="960" />
+<a href="https://qybaihe.github.io/dshrsi/trace.html">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/rsi-trace.dark.gif" />
+    <img src="../../assets/rsi-trace.gif" alt="Gerçek bir çalıştırmanın animasyonlu izi: standart harness'te 30 oturumun 12'si aynı başarısız çağrıyı yapıyor; DSHRSI ile harness üçüncü seferde kendini geliştiriyor ve sonraki 22 oturumda bu yalnızca bir kez yaşanıyor" width="960" />
+  </picture>
+</a>
 
 **RSI, Recursive Self-Improvement, yani Özyinelemeli Kendini Geliştirme demek; DSHRSI de bunu DeepSeek Harness için gerçeğe dönüştüren açık kaynaklı plugin. Harness kendi çalışmasını izler, bulduğu sorunlar için oturumun kendi modeline harness kodu yazdırır, bu kodun işe yaradığını 5 aşamalı bir kapıda kanıtlar ve tur bitmeden mount eder. Ardından kendini geliştirmiş harness bir sonraki oturumu yürütür ve bir kez daha gelişir. Fine-tuning yok. Prompt yığını yok. Ölçülen, saklanan, yeniden yazılan ya da çöpe atılan kod var.**
 
@@ -23,7 +28,7 @@
 [![Tests](https://img.shields.io/badge/Tests-130_unit_%C2%B7_29_e2e-1d4ed8?style=for-the-badge)](#contributing)
 [![MIT License](https://img.shields.io/badge/License-MIT-38bdf8?style=for-the-badge)](../../LICENSE)
 
-**[📖 Plugin Referansı](../../packages/dsh-rsi/README.md) · [🧩 Proje Harness'i](../../packages/dsh-rsi/README.md#layers-and-the-project-harness) · [🔬 Doğrulama Kapısı](../../packages/dsh-rsi/README.md#the-validation-gate) · [⚠️ Bilinen Sınırlar](../../packages/dsh-rsi/README.md#known-limits) · [🐛 Issue'lar](https://github.com/qybaihe/dshrsi/issues)**
+**[🌐 Web Sitesi](https://qybaihe.github.io/dshrsi/) · [📖 Plugin Referansı](../../packages/dsh-rsi/README.md) · [🧩 Proje Harness'i](../../packages/dsh-rsi/README.md#layers-and-the-project-harness) · [🔬 Doğrulama Kapısı](../../packages/dsh-rsi/README.md#the-validation-gate) · [⚠️ Bilinen Sınırlar](../../packages/dsh-rsi/README.md#known-limits) · [🐛 Issue'lar](https://github.com/qybaihe/dshrsi/issues)**
 
 [RSI Ne Demek](#rsi) · [Hızlı Başlangıç](#quick-start) · [Nasıl Çalışır](#how-it-works) · [Ölçülen Sonuçlar](#measured) · [Benchmark'lar](#benchmarks) · [Dedektörler ve Yetenekler](#coverage) · [Proje Harness'i](#project-harness) · [Güvenlik Varsayılanları](#security) · [SSS](#faq)
 
@@ -92,13 +97,13 @@ Bilerek özyinelemeli **olmayan** kısım: modelin ağırlıkları asla değişm
 DeepSeek Harness masaüstü uygulamasında ya da Web arayüzünde **Plugins → Add plugin → Install a third-party plugin** yolunu izleyin, sürüm paketinin adresini yapıştırın, önce **Install**'ı, ardından **Enable now**'ı seçin:
 
 ```text
-https://github.com/qybaihe/dshrsi/releases/download/v0.1.0/dsh-rsi-0.1.0.tgz
+https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
 ```
 
 Ya da komut satırından. Her profil kendi plugin'lerini ayrı tutar; `dsh plugin add` ise `pnpm`'i çağırır, onun da `PATH` üzerinde olması gerekir:
 
 ```bash
-dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.0/dsh-rsi-0.1.0.tgz
+dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
 dsh web
 ```
 
@@ -248,7 +253,10 @@ Bu yollar kod tabanında mevcut ve simüle edilmiş bir modelle çalışan birim
 <!-- bench:table:end -->
 
 <div align="center">
-<img src="../../assets/bench-flash.png" alt="mimo-v2.6-flash, DSH → DSH + DSHRSI: Aider Polyglot 220 → 223 / 225 (+3), HumanEval 162 → 162 / 164, HumanEval+ 153 → 153 / 164, MBPP 368 → 369 / 378 (+1), MBPP+ 308 → 315 / 378 (+7). Rust lib.rs: 12 / 30 → 5 / 30, 7 / 22 → 1 / 22" width="960" />
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../../assets/bench-flash.dark.png" />
+  <img src="../../assets/bench-flash.png" alt="mimo-v2.6-flash, DSH → DSH + DSHRSI: Aider Polyglot 220 → 223 / 225 (+3), HumanEval 162 → 162 / 164, HumanEval+ 153 → 153 / 164, MBPP 368 → 369 / 378 (+1), MBPP+ 308 → 315 / 378 (+7). Rust lib.rs: 12 / 30 → 5 / 30, 7 / 22 → 1 / 22" width="960" />
+</picture>
 </div>
 
 > **Nasıl okunmalı:** çözülen görev sayısı bakımından iki harness **birbirinden ayırt edilemiyor**. En büyük kazanç +7 (`mimo-v2.6-flash` ile MBPP+), en büyük kayıp −3 (`mimo-v2.6-pro` ile MBPP); aynı görevler üzerinde yapılan kesin McNemar testinde hiçbir fark ayakta kalmıyor (en küçük p = 0.17). Ajan kendi kodunu çalıştırabildiğinde bu setler her iki model için de tavana yakın; üstelik her görev yepyeni, temiz bir dizin: harness'in ders çıkarabileceği, tekrar eden çok az şey var.

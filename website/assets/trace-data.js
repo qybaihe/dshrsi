@@ -651,11 +651,37 @@ window.DSHRSI_TRACE = {
   "earlier": [
    {
     "task": "react",
-    "startedAt": "18:57:39"
+    "startedAt": "18:57:39",
+    "head": "# Instructions Implement a basic reactive system.",
+    "opening": [
+     {
+      "tool": "glob",
+      "what": "**/*",
+      "ok": true
+     },
+     {
+      "tool": "read",
+      "what": "lib.rs",
+      "ok": false
+     }
+    ]
    },
    {
     "task": "nucleotide-codons",
-    "startedAt": "19:02:47"
+    "startedAt": "19:02:47",
+    "head": "# Instructions Write a function that returns the name of an amino acid a particular codon,",
+    "opening": [
+     {
+      "tool": "glob",
+      "what": "**/*",
+      "ok": true
+     },
+     {
+      "tool": "read",
+      "what": "lib.rs",
+      "ok": false
+     }
+    ]
    }
   ],
   "writtenIn": {

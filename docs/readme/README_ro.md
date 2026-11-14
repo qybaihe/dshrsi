@@ -10,7 +10,12 @@
 
 ### **Observă → Îmbunătățește → Clădește pe asta → Din nou. Un harness care se pricepe tot mai bine să fie al tău.**
 
-<img src="../../assets/rsi-trace.gif" alt="Animație cu urma unei rulări reale: cu harness-ul original, 12 sesiuni din 30 fac același apel eșuat; cu DSHRSI, a treia oară harness-ul se îmbunătățește singur, iar în următoarele 22 de sesiuni se întâmplă o singură dată" width="960" />
+<a href="https://qybaihe.github.io/dshrsi/trace.html">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/rsi-trace.dark.gif" />
+    <img src="../../assets/rsi-trace.gif" alt="Animație cu urma unei rulări reale: cu harness-ul original, 12 sesiuni din 30 fac același apel eșuat; cu DSHRSI, a treia oară harness-ul se îmbunătățește singur, iar în următoarele 22 de sesiuni se întâmplă o singură dată" width="960" />
+  </picture>
+</a>
 
 **RSI înseamnă Recursive Self-Improvement, auto-îmbunătățire recursivă, iar DSHRSI este plugin-ul open-source care o face realitate pentru DeepSeek Harness. Harness-ul își urmărește propriile rulări, pune chiar modelul sesiunii să scrie cod de harness pentru problemele de care dă, pune acel cod la probă într-o poartă de validare în 5 etape și îl montează înainte ca tura să se termine. Apoi harness-ul îmbunătățit rulează sesiunea următoare și se îmbunătățește din nou. Fără fine-tuning. Fără un morman de prompt-uri. Cod care e măsurat, păstrat, rescris sau aruncat.**
 
@@ -23,7 +28,7 @@
 [![Tests](https://img.shields.io/badge/Tests-130_unit_%C2%B7_29_e2e-1d4ed8?style=for-the-badge)](#contributing)
 [![MIT License](https://img.shields.io/badge/License-MIT-38bdf8?style=for-the-badge)](../../LICENSE)
 
-**[📖 Referința plugin-ului](../../packages/dsh-rsi/README.md) · [🧩 Harness de proiect](../../packages/dsh-rsi/README.md#layers-and-the-project-harness) · [🔬 Poarta de validare](../../packages/dsh-rsi/README.md#the-validation-gate) · [⚠️ Limite cunoscute](../../packages/dsh-rsi/README.md#known-limits) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
+**[🌐 Site web](https://qybaihe.github.io/dshrsi/) · [📖 Referința plugin-ului](../../packages/dsh-rsi/README.md) · [🧩 Harness de proiect](../../packages/dsh-rsi/README.md#layers-and-the-project-harness) · [🔬 Poarta de validare](../../packages/dsh-rsi/README.md#the-validation-gate) · [⚠️ Limite cunoscute](../../packages/dsh-rsi/README.md#known-limits) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
 
 [Ce înseamnă RSI](#rsi) · [Pornire rapidă](#quick-start) · [Cum funcționează](#how-it-works) · [Rezultate măsurate](#measured) · [Benchmark-uri](#benchmarks) · [Detectoare și capabilități](#coverage) · [Harness de proiect](#project-harness) · [Setări implicite de siguranță](#security) · [Întrebări frecvente](#faq)
 
@@ -92,13 +97,13 @@ Ce **nu** e recursiv, în mod deliberat: ponderile modelului nu se schimbă nici
 În aplicația desktop DeepSeek Harness sau în interfața web, deschide **Plugins → Add plugin → Install a third-party plugin**, lipește pachetul de release, alege **Install**, apoi **Enable now**:
 
 ```text
-https://github.com/qybaihe/dshrsi/releases/download/v0.1.0/dsh-rsi-0.1.0.tgz
+https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
 ```
 
 Sau din linia de comandă. Fiecare profil își ține propriile plugin-uri, iar `dsh plugin add` apelează `pnpm`, care trebuie să fie în `PATH`:
 
 ```bash
-dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.0/dsh-rsi-0.1.0.tgz
+dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
 dsh web
 ```
 
@@ -248,7 +253,10 @@ DeepSeek Harness standard contra DeepSeek Harness + DSHRSI, în 3,390 de sesiuni
 <!-- bench:table:end -->
 
 <div align="center">
-<img src="../../assets/bench-flash.png" alt="mimo-v2.6-flash, DSH → DSH + DSHRSI: Aider Polyglot 220 → 223 / 225 (+3), HumanEval 162 → 162 / 164, HumanEval+ 153 → 153 / 164, MBPP 368 → 369 / 378 (+1), MBPP+ 308 → 315 / 378 (+7). Rust lib.rs: 12 / 30 → 5 / 30, 7 / 22 → 1 / 22" width="960" />
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../../assets/bench-flash.dark.png" />
+  <img src="../../assets/bench-flash.png" alt="mimo-v2.6-flash, DSH → DSH + DSHRSI: Aider Polyglot 220 → 223 / 225 (+3), HumanEval 162 → 162 / 164, HumanEval+ 153 → 153 / 164, MBPP 368 → 369 / 378 (+1), MBPP+ 308 → 315 / 378 (+7). Rust lib.rs: 12 / 30 → 5 / 30, 7 / 22 → 1 / 22" width="960" />
+</picture>
 </div>
 
 > **Cum se citește:** la task-uri rezolvate, cele două harness-uri **nu pot fi deosebite**. Cel mai mare câștig este +7 (MBPP+ cu `mimo-v2.6-flash`), cea mai mare pierdere este −3 (MBPP cu `mimo-v2.6-pro`) și nicio diferență nu rezistă la un test McNemar exact pe aceleași task-uri (cel mai mic p = 0.17). Când agentul își poate rula propriul cod, suitele acestea sunt aproape de plafon pentru ambele modele, iar fiecare task e un director nou și curat: revin foarte puține lucruri din care un harness să poată învăța.

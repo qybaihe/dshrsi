@@ -2,176 +2,426 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>DSHRSI trace, frame by frame</title>
-<!-- The animation at the top of the README. scripts/hero/render.mjs opens this page, asks for one frame after
-     another and turns the screenshots into a GIF. Every name, time and count on it comes from
-     website/assets/trace-data.js, which bench/trace.mjs lifts out of the raw logs of the benchmark run. -->
+<title>DSHRSI, one real self-improvement</title>
+<!-- The animation at the top of the README. scripts/hero/render.mjs opens this page, asks for the picture at one
+     moment after another (window.render(ms)) and turns the screenshots into a GIF.
+
+     The interface is drawn after the look of the DeepSeek Harness web UI: a session list, tool calls as rows, a side
+     panel, a status strip under the conversation. It is a replay, not a screen recording: the benchmark ran headless.
+     Every name, time, error text, line of code and count comes from website/assets/trace-data.js, which bench/trace.mjs
+     lifts out of the raw logs of the run.
+
+     ?lang=zh for Chinese, ?theme=dark for the dark picture, ?t=<ms> to look at one moment. -->
 <style>
-  :root { --bg: #0d1117; --panel: #161b22; --line: #30363d; --text: #f0f6fc; --dim: #9198a1; --bad: #ff7b72; --good: #3fb950; --brand: #7b93ff; --warm: #f0883e; }
+  :root {
+    --canvas: #eef1f7; --win: #ffffff; --side: #f7f8fa; --line: #e2e5ea; --text: #0f1115; --text-2: #4b5057; --text-3: #858a92;
+    --accent: #4176e6; --accent-soft: #edf3fe; --accent-line: #b7c8fe; --bubble: #e8effe; --sel: #e9ecf1;
+    --bad: #e5383b; --bad-soft: #fdeeee; --bad-line: #f5c4c5; --good: #16a34a; --good-soft: #e7f6ec; --good-line: #b1e0c1;
+    --chip: #f1f3f5; --idle: #dde1e8; --idle-plugin: #c9d8fd; --code: #0f1115; --code-line: #0f1115;
+    --shadow: 0 1px 2px rgba(16, 24, 40, .05), 0 14px 30px rgba(16, 24, 40, .08);
+    --k: #c4a7ff; --s: #9ad88a; --r: #ffb86b; --f: #7fb4ff; --p: #e6e9ef; --d: #7f8794;
+  }
+  html[data-theme="dark"] {
+    --canvas: #0a0b0d; --win: #151517; --side: #1a1a1c; --line: #2b2c30; --text: #f9fafb; --text-2: #cfd3d6; --text-3: #8d939c;
+    --accent: #6590ff; --accent-soft: #18213c; --accent-line: #34467d; --bubble: #26272a; --sel: #28292d;
+    --bad: #f25a5a; --bad-soft: #321a1c; --bad-line: #5e2b2e; --good: #4ed17e; --good-soft: #14281c; --good-line: #235a37;
+    --chip: #232426; --idle: #2d2f34; --idle-plugin: #253768; --code: #0c0d10; --code-line: #2b2c30;
+    --shadow: 0 16px 34px rgba(0, 0, 0, .45);
+  }
   * { box-sizing: border-box; }
-  html, body { margin: 0; background: var(--bg); }
-  body { width: 1280px; height: 720px; overflow: hidden; color: var(--text); font: 30px/1.3 "SF Pro Display", -apple-system, "Helvetica Neue", "PingFang SC", sans-serif; -webkit-font-smoothing: antialiased; }
-  .mono { font-family: "SF Mono", Menlo, Monaco, "PingFang SC", monospace; }
-  .bar { display: flex; align-items: center; gap: 16px; height: 68px; padding: 0 44px; border-bottom: 2px solid var(--line); font-size: 23px; color: var(--dim); }
-  .bar .mark { display: inline-flex; align-items: center; gap: 12px; color: var(--text); font-weight: 700; font-size: 27px; letter-spacing: .02em; }
-  .bar .mark i { width: 18px; height: 18px; border-radius: 50%; background: var(--brand); }
-  .bar .grow { flex: 1; }
-  .bar .tag { padding: 5px 16px; border-radius: 100px; border: 2px solid var(--line); color: var(--text); font-weight: 600; font-size: 21px; letter-spacing: .04em; }
-  .bar .tag.on { border-color: var(--brand); color: var(--brand); }
-  .scene { position: absolute; inset: 68px 0 0; padding: 30px 44px 0; }
-  h1 { margin: 0 0 22px; font-size: 46px; line-height: 1.15; font-weight: 700; letter-spacing: -.01em; }
-  h1 b { color: var(--brand); font-weight: 700; }
-  .rows { display: grid; gap: 6px; }
-  .row { display: grid; grid-template-columns: 118px 330px 1fr; align-items: baseline; font-size: 30px; line-height: 44px; white-space: nowrap; }
-  .row .t { color: var(--dim); }
-  .row .bad { color: var(--bad); } .row .good { color: var(--good); }
-  .row.more { color: var(--dim); }
-  .foot { position: absolute; left: 44px; right: 44px; bottom: 34px; font-size: 34px; line-height: 1.25; font-weight: 600; }
-  .foot .bad { color: var(--bad); } .foot .good { color: var(--good); } .foot b { color: var(--brand); }
-  .box { margin: 14px 0 12px; padding: 16px 24px; border: 2px solid var(--brand); border-radius: 18px; background: #10162b; display: grid; gap: 4px; }
-  .box .l { display: flex; align-items: baseline; gap: 18px; font-size: 29px; line-height: 44px; white-space: nowrap; }
-  .box .l .k { color: var(--brand); font-weight: 700; min-width: 40px; }
-  .box .bad { color: var(--bad); } .box .good { color: var(--good); } .box .dim { color: var(--dim); }
-  .box .stage { margin-right: 14px; }
-  .strip { display: grid; grid-template-columns: 150px 1fr 150px; align-items: center; margin-top: 30px; font-size: 30px; }
-  .strip .who { font-weight: 700; }
-  .strip .cells { display: flex; gap: 7px; }
-  .strip .cells i { width: 32px; height: 60px; border-radius: 8px; background: #21262d; }
-  .strip .cells i.clean { background: var(--brand); }
-  .strip .cells i.hit { background: var(--bad); }
-  .strip.stock .cells i.clean { background: #3d444d; }
-  .strip .n { text-align: right; font-weight: 700; font-size: 38px; white-space: nowrap; }
-  .strip .n small { font-size: 22px; font-weight: 500; color: var(--dim); }
-  .note { margin-top: 26px; color: var(--dim); font-size: 25px; }
-  .end { display: grid; gap: 44px; margin-top: 26px; }
-  .stat { display: grid; grid-template-columns: 380px 1fr; align-items: center; gap: 28px; }
-  .stat .v { font-size: 92px; line-height: 1; font-weight: 800; letter-spacing: -.02em; white-space: nowrap; }
-  .stat .v span { color: var(--dim); font-weight: 500; }
-  .stat .v b { color: var(--brand); }
-  .stat .w { font-size: 33px; line-height: 1.25; }
-  .stat .w small { display: block; font-size: 24px; color: var(--dim); }
-  .hidden { visibility: hidden; }
-  .pill { position: absolute; left: 44px; right: 44px; bottom: 30px; display: flex; align-items: center; gap: 18px; padding: 16px 24px; border-radius: 18px; background: #10162b; border: 2px solid var(--brand); font-size: 30px; font-weight: 700; }
-  .pill span { font-weight: 500; color: var(--dim); font-size: 25px; }
+  html, body { margin: 0; background: var(--canvas); }
+  body { position: relative; width: 1280px; height: 720px; overflow: hidden; color: var(--text); font: 20px/1.4 -apple-system, "SF Pro Text", "Helvetica Neue", "PingFang SC", sans-serif; -webkit-font-smoothing: antialiased; }
+  .mono { font-family: ui-monospace, "SF Mono", Menlo, "PingFang SC", monospace; }
+  svg { display: block; flex: none; }
+
+  /* ---------- the line above the window ---------- */
+  .kick { position: absolute; left: 40px; right: 40px; top: 20px; height: 28px; display: flex; align-items: center; gap: 10px; font-size: 17px; color: var(--text-3); white-space: nowrap; }
+  .kick strong { color: var(--text); font-size: 19px; font-weight: 700; letter-spacing: .03em; margin-right: 4px; }
+  .kick .grow { flex: 1; }
+  .kick .seg { width: 54px; height: 5px; border-radius: 3px; background: var(--idle); overflow: hidden; }
+  .kick .seg i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 3px; }
+  .cap { position: absolute; left: 40px; right: 40px; top: 53px; height: 54px; }
+  .cap div { position: absolute; inset: 0; font-size: 40px; line-height: 54px; font-weight: 700; letter-spacing: -.012em; white-space: nowrap; opacity: 0; }
+  .cap b { color: var(--accent); font-weight: 700; }
+  .cap b.bad { color: var(--bad); }
+
+  /* ---------- the window ---------- */
+  .win { position: absolute; left: 36px; top: 122px; width: 1208px; height: 570px; display: flex; overflow: hidden; border-radius: 20px; background: var(--win); border: 1px solid var(--line); box-shadow: var(--shadow); }
+  .side { flex: none; width: 276px; overflow: hidden; background: var(--side); border-right: 1px solid var(--line); }
+  .side .in { width: 275px; height: 100%; padding: 14px 12px; display: flex; flex-direction: column; }
+  .new { height: 44px; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--line); border-radius: 12px; background: var(--win); font-size: 18px; font-weight: 500; }
+  .label { margin: 20px 10px 8px; font-size: 13.5px; font-weight: 600; letter-spacing: .07em; color: var(--text-3); white-space: nowrap; }
+  .sess { height: 41px; display: flex; align-items: center; gap: 10px; padding: 0 10px; border-radius: 10px; font-size: 18px; white-space: nowrap; }
+  .sess.on { background: var(--sel); font-weight: 500; }
+  .sess .dot { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--idle); }
+  .sess .dot.hit { background: var(--bad); }
+  .sess .dot.run { background: none; border: 2.5px solid var(--accent); border-right-color: transparent; }
+  .sess .name { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+  .sess .time { font-size: 14.5px; color: var(--text-3); font-weight: 400; }
+  .side .key { margin-top: auto; padding: 0 10px 4px; display: flex; align-items: center; gap: 9px; font-size: 14.5px; color: var(--text-3); white-space: nowrap; }
+  .side .key i { width: 10px; height: 10px; border-radius: 50%; background: var(--bad); }
+
+  .pane { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .head { flex: none; height: 56px; display: flex; align-items: center; gap: 12px; padding: 0 24px 0 28px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  .head .title { font-size: 21px; font-weight: 600; }
+  .head .when { font-size: 16px; color: var(--text-3); }
+  .head .grow { flex: 1; }
+  .badge { display: flex; align-items: center; gap: 7px; height: 34px; padding: 0 13px; border-radius: 100px; border: 1px solid var(--line); font-size: 16px; font-weight: 700; letter-spacing: .03em; color: var(--text-2); }
+  .badge.live { border-color: var(--accent); background: var(--accent-soft); color: var(--text); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .badge svg { color: var(--accent); }
+  .badge .n { font-weight: 500; }
+  .chat { position: relative; flex: 1; min-height: 0; overflow: hidden; }
+  .act { position: absolute; inset: 0; padding: 18px 28px 0; }
+  .bubble { margin: 0 0 14px auto; width: fit-content; max-width: 452px; padding: 11px 18px; border-radius: 18px; background: var(--bubble); font-size: 19.5px; line-height: 1.45; }
+  .bubble .dim { color: var(--text-3); }
+  .bubble .top { color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bubble code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 18.5px; padding: 1px 7px; border-radius: 7px; background: var(--win); border: 1px solid var(--accent-line); color: var(--accent); font-weight: 600; }
+  .row { height: 36px; display: flex; align-items: center; gap: 10px; font-size: 19.5px; color: var(--text-2); white-space: nowrap; }
+  .row svg { color: var(--text-3); }
+  .row .sep { color: var(--text-3); }
+  .row .what { min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: 18px; }
+  .row.rsi, .row.rsi svg { color: var(--accent); }
+  .row.rsi { font-weight: 500; }
+  .row.dim, .row.dim svg { color: var(--text-3); }
+  .row.won { color: var(--text); font-weight: 600; }
+  .row.won svg, .row .ok svg { color: var(--good); }
+  .chipx { flex: none; display: inline-flex; align-items: center; gap: 7px; height: 27px; padding: 0 11px; border-radius: 100px; background: var(--chip); font-size: 16px; color: var(--text); }
+  .chipx i { width: 8px; height: 8px; border-radius: 50%; background: var(--bad); }
+  .err { margin: 2px 0 6px 30px; width: fit-content; max-width: calc(100% - 30px); padding: 6px 13px; border-radius: 10px; background: var(--bad-soft); border: 1px solid var(--bad-line); color: var(--bad); font-size: 16.5px; line-height: 1.5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .status { flex: none; height: 50px; display: flex; align-items: center; gap: 12px; padding: 0 20px 0 28px; border-top: 1px solid var(--line); font-size: 16px; color: var(--text-3); white-space: nowrap; }
+  .status .grow { flex: 1; }
+  .pill { display: flex; align-items: center; gap: 8px; height: 34px; padding: 0 14px; border-radius: 100px; border: 1px solid var(--accent-line); background: var(--accent-soft); color: var(--text); font-size: 16.5px; font-weight: 600; opacity: 0; }
+  .pill svg { color: var(--accent); }
+  .pill .more { font-weight: 400; color: var(--text-3); }
+
+  /* ---------- the side panel ---------- */
+  .panel { flex: none; width: 0; overflow: hidden; border-left: 1px solid var(--line); background: var(--win); }
+  .panel .in { width: 640px; height: 100%; display: flex; flex-direction: column; }
+  .panel .head { padding: 0 24px; }
+  .panel .head svg { color: var(--accent); }
+  .timer { font-size: 18px; font-weight: 600; color: var(--accent); min-width: 68px; text-align: right; }
+  .body { flex: 1; padding: 16px 24px 0; }
+  .draft { height: 30px; display: flex; align-items: center; gap: 12px; white-space: nowrap; }
+  .draft .n { font-size: 18.5px; font-weight: 650; }
+  .draft .by { font-size: 15.5px; color: var(--text-3); }
+  .draft .grow { flex: 1; }
+  .tag { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 11px; border-radius: 100px; font-size: 15px; font-weight: 600; }
+  .tag.no { background: var(--bad-soft); color: var(--bad); border: 1px solid var(--bad-line); }
+  .tag.yes { background: var(--good-soft); color: var(--good); border: 1px solid var(--good-line); }
+  .why { height: 24px; margin-bottom: 14px; font-size: 15px; line-height: 24px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .code { margin: 8px 0 14px; padding: 13px 18px; height: 236px; border-radius: 12px; background: var(--code); border: 1px solid var(--code-line); color: var(--p); font-size: 16.5px; line-height: 26px; overflow: hidden; }
+  .code div { height: 26px; white-space: pre; overflow: hidden; text-overflow: ellipsis; }
+  .code .k { color: var(--k); } .code .s { color: var(--s); } .code .r { color: var(--r); } .code .f { color: var(--f); } .code .d { color: var(--d); }
+  .code .caret { display: inline-block; width: 9px; height: 19px; margin-left: 1px; vertical-align: -3px; background: var(--f); }
+  .gate { height: 34px; display: flex; align-items: center; gap: 6px; margin-bottom: 14px; white-space: nowrap; }
+  .gate .l { font-size: 13.5px; font-weight: 600; letter-spacing: .07em; color: var(--text-3); margin-right: 4px; }
+  .stage { display: inline-flex; align-items: center; gap: 5px; height: 30px; padding: 0 10px; border-radius: 100px; border: 1px solid var(--line); font-size: 15px; color: var(--text-3); }
+  .stage i { width: 10px; font-style: normal; font-weight: 700; text-align: center; }
+  .stage.now { border-color: var(--accent); color: var(--accent); }
+  .stage.ok { border-color: var(--good-line); background: var(--good-soft); color: var(--good); }
+  .done { height: 50px; display: flex; align-items: center; gap: 10px; padding: 0 16px; border-radius: 12px; background: var(--accent-soft); border: 1px solid var(--accent-line); font-size: 19px; font-weight: 650; white-space: nowrap; }
+  .done svg { color: var(--accent); }
+  .done span { font-weight: 400; color: var(--text-2); font-size: 16.5px; }
+
+  /* ---------- what came of it ---------- */
+  .after { position: absolute; left: 36px; top: 122px; width: 1208px; height: 570px; }
+  .lanes { height: 252px; padding: 24px 30px 0; border-radius: 20px; background: var(--win); border: 1px solid var(--line); box-shadow: var(--shadow); }
+  .lanes .t { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; font-size: 18px; color: var(--text-2); white-space: nowrap; }
+  .lanes .t .grow { flex: 1; }
+  .lanes .t i { width: 13px; height: 13px; border-radius: 4px; background: var(--bad); }
+  .lane { display: grid; grid-template-columns: 178px 836px 1fr; align-items: center; height: 66px; }
+  .lane .who { font-size: 19px; font-weight: 600; white-space: nowrap; }
+  .cells { display: grid; grid-template-columns: repeat(30, 24px); gap: 4px; }
+  .cells i { height: 52px; border-radius: 6px; background: var(--idle); opacity: .35; }
+  .lane.plugin .cells i { background: var(--idle-plugin); }
+  .cells i.lit { opacity: 1; }
+  .cells i.lit.hit { background: var(--bad); }
+  .lane .n { text-align: right; font-size: 32px; font-weight: 800; letter-spacing: -.01em; white-space: nowrap; }
+  .lane .n small { font-size: 18px; font-weight: 500; color: var(--text-3); letter-spacing: 0; }
+  .lane.plugin .n b { color: var(--accent); }
+  .marks { display: grid; grid-template-columns: repeat(30, 24px); gap: 4px; margin-left: 178px; height: 34px; font-size: 16px; color: var(--accent); white-space: nowrap; }
+  .marks span { padding: 4px 0 0 8px; border-left: 2px solid var(--accent); }
+  .marks span.wide { border-top: 2px solid var(--accent); border-top-left-radius: 7px; }
+  .tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 16px; }
+  .tile { height: 218px; padding: 28px 28px 0; border-radius: 20px; background: var(--win); border: 1px solid var(--line); box-shadow: var(--shadow); }
+  .tile .v { display: flex; align-items: baseline; gap: 16px; height: 76px; font-size: 70px; line-height: 76px; font-weight: 800; letter-spacing: -.025em; white-space: nowrap; }
+  .tile .v span { color: var(--text-3); font-weight: 400; }
+  .tile .v b { color: var(--accent); font-weight: 800; }
+  .tile .v small { font-size: 36px; line-height: 40px; font-weight: 600; color: var(--text-3); letter-spacing: 0; margin-left: -4px; }
+  .tile .w { margin-top: 10px; font-size: 20px; font-weight: 600; white-space: nowrap; }
+  .tile .x { margin-top: 3px; font-size: 16px; color: var(--text-3); white-space: nowrap; }
+  .sign { display: flex; align-items: center; gap: 12px; height: 84px; padding: 0 6px; font-size: 19px; color: var(--text-2); white-space: nowrap; }
+  .sign strong { color: var(--text); font-size: 21px; letter-spacing: .03em; }
+  .sign svg { color: var(--accent); }
+  .sign .grow { flex: 1; }
+  .sign .url { color: var(--text-3); font-size: 17.5px; }
 </style>
 </head>
 <body>
-<div class="bar"><span class="mark"><i></i>DSHRSI</span><span id="where"></span><span class="grow"></span><span class="tag" id="tag"></span></div>
-<div class="scene" id="scene"></div>
+<div class="kick" id="kick"></div>
+<div class="cap" id="cap"></div>
+<div class="win" id="win">
+  <aside class="side" id="side"><div class="in" id="side-in"></div></aside>
+  <section class="pane">
+    <div class="head"><span class="title" id="title"></span><span class="when mono" id="when"></span><span class="grow"></span><span class="badge" id="badge"></span></div>
+    <div class="chat" id="chat"></div>
+    <div class="status"><span id="steps"></span><span class="grow"></span><span class="pill" id="pill"></span></div>
+  </section>
+  <section class="panel" id="panel"><div class="in" id="panel-in"></div></section>
+</div>
+<div class="after" id="after"></div>
 <script src="../../website/assets/trace-data.js"></script>
 <script>
 const T = window.DSHRSI_TRACE
-const zh = new URLSearchParams(location.search).get('lang') === 'zh'
+const query = new URLSearchParams(location.search)
+const zh = query.get('lang') === 'zh'
+document.documentElement.dataset.theme = query.get('theme') === 'dark' ? 'dark' : 'light'
+document.documentElement.lang = zh ? 'zh-CN' : 'en'
 const t = (en, inChinese) => (zh ? inChinese : en)
-const hm = clock => clock.slice(0, 5)
 const esc = text => String(text).replace(/[&<>]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[char]))
-const row = (session, file, ok) => `<div class="row mono"><span class="t">${hm(session.startedAt)}</span><span>${esc(session.task)}</span><span>read ${file} <span class="${ok ? 'good' : 'bad'}">${ok ? '✓' : `✗ ${t('not found', '找不到')}`}</span></span></div>`
+const $ = id => document.getElementById(id)
 
-const stock = T.arms.dsh, plugin = T.arms.rsi, made = T.adaptation
-const stockHits = stock.sessions.filter(session => session.failed > 0)
-const pluginHits = plugin.sessions.filter(session => session.failed > 0 && session.startedMs <= made.widenedAtMs)
-const origin = plugin.sessions.find(session => session.task === made.writtenIn.task)
-const afterTasks = plugin.sessions.filter(session => session.startedMs > made.widenedAtMs).map(session => session.task)
-const cells = arm => afterTasks.map(task => (arm.sessions.find(session => session.task === task).failed > 0 ? 'hit' : 'clean'))
-const gate = T.session.events.find(event => event.kind === 'gate').stages.map(stage => stage.stage)
-const drafts = T.session.events.filter(event => event.kind === 'draft')
-const rejected = drafts.find(draft => !draft.ok)
-
-// A scene is a title and a list of pieces that appear one after another. `hold` is how long the frame that
-// first shows a piece stays up, in milliseconds.
-const shownStock = [...stockHits.slice(0, 5), stockHits[stockHits.length - 1]]
-const scenes = [
-  {
-    tag: t('STOCK HARNESS', '原版 HARNESS'), on: false,
-    title: t('The task says <b>lib.rs</b>. The file is <b>src/lib.rs</b>.', '题目写的是 <b>lib.rs</b>，文件其实在 <b>src/lib.rs</b>'),
-    wrap: 'rows',
-    pieces: [
-      ...shownStock.slice(0, 5).map(session => ({ html: row(session, 'lib.rs', false), hold: 330 })),
-      { html: `<div class="row mono more"><span class="t">…</span><span>${t(`${stockHits.length - 6} more sessions`, `还有 ${stockHits.length - 6} 个会话`)}</span><span></span></div>`, hold: 330 },
-      { html: row(shownStock[5], 'lib.rs', false), hold: 500 },
-    ],
-    foot: { html: t(`<span class="bad">${stock.hit} of ${stock.sessions.length}</span> sessions made the same failed call. Nothing was learned.`, `${stock.sessions.length} 个会话里有 <span class="bad">${stock.hit} 个</span>撞上同一个失败调用，什么都没学到。`), hold: 2000 },
-  },
-  {
-    tag: t('WITH DSHRSI', '装上 DSHRSI'), on: true,
-    title: t('Third time, <b>the harness improves itself</b>', '第三次撞上，<b>Harness 改进了自己</b>'),
-    pieces: [
-      ...pluginHits.slice(0, 3).map((session, index) => ({ html: row(session, 'lib.rs', false), hold: index === 2 ? 700 : 380 })),
-      { open: '<div class="box mono">' },
-      { html: `<div class="l"><span class="k">⚡</span><span>${t('same failure, 3rd session', '同一个失败，第 3 个会话')} <span class="dim">→ ${t('the model writes harness code', '会话里的模型给 Harness 写代码')}</span></span></div>`, hold: 900 },
-      { html: `<div class="l"><span class="k">✎</span><span>${t('draft 1', '第 1 稿')} <span class="bad">✗ ${t(`rejected at the gate (${rejected.failedAt})`, `被校验打回（${rejected.failedAt}）`)}</span></span></div>`, hold: 800 },
-      { html: `<div class="l"><span class="k">✎</span><span>${t('draft 2', '第 2 稿')} ${gate.map(stage => `<span class="stage">${stage} <span class="good">✓</span></span>`).join('')}</span></div>`, hold: 1000 },
-      { html: `<div class="l"><span class="k">▸</span><span>${t(`mounted in <b style="color:var(--text)">${made.secondsToMount} s</b>, before the turn is over`, `<b style="color:var(--text)">${made.secondsToMount} 秒</b>后挂载，这一轮还没结束`)}</span></div>`, hold: 1000 },
-      { close: '</div>' },
-      { html: row({ ...origin, startedAt: T.session.events.find(event => event.kind === 'call' && event.what === 'src/lib.rs').time }, 'src/lib.rs', true), hold: 1900 },
-    ],
-  },
-  {
-    tag: t(`NEXT ${afterTasks.length} SESSIONS`, `之后的 ${afterTasks.length} 个会话`), on: true,
-    title: t('The fix goes <b>machine-wide</b>, and it holds', '改动升级为<b>全机生效</b>，而且管用'),
-    pieces: [
-      { html: `<div class="row mono" style="grid-template-columns:118px 1fr"><span class="t">${hm(made.widenedAt)}</span><span>${t(`seen in ${made.widenedAfter.length} workspaces → widened to the whole machine`, `在 ${made.widenedAfter.length} 个工作目录里见过 → 升级为全机生效`)}</span></div>`, hold: 1100 },
-      { strip: 'plugin', who: 'DSHRSI', cells: cells(plugin), total: `${plugin.afterWidening.hit} <small>/ ${afterTasks.length}</small>` },
-      { strip: 'stock', who: t('Stock', '原版'), cells: cells(stock), total: `${stock.afterWidening.hit} <small>/ ${afterTasks.length}</small>` },
-      { html: `<div class="note">${t('One square is one session, the same tasks in both rows. Red: the read of lib.rs failed again.', '一格是一个会话，上下两行是同样的题。红色：又去读了不存在的 lib.rs。')}</div>`, hold: 1000 },
-    ],
-    foot: { html: t('Learned once. <b>Every later session starts from there.</b>', '学一次，<b>后面的每个会话都从这里出发。</b>'), hold: 2300 },
-  },
-  {
-    tag: t('MEASURED', '实测'), on: true,
-    title: '',
-    wrap: 'end',
-    pieces: [
-      { html: `<div class="stat"><div class="v">${stock.hit} <span>→</span> <b>${plugin.hit}</b></div><div class="w">${t('sessions that hit the same failed call', '撞上同一个失败调用的会话')}<small>${t(`${stock.sessions.length} Rust tasks, stock harness → with DSHRSI`, `${stock.sessions.length} 道 Rust 题，原版 → 装上 DSHRSI`)}</small></div></div>`, hold: 900 },
-      { html: `<div class="stat"><div class="v">${stock.afterWidening.hit} <span>→</span> <b>${plugin.afterWidening.hit}</b></div><div class="w">${t('once the fix was machine-wide', '改动全机生效之后')}<small>${t(`the same ${afterTasks.length} tasks on both sides`, `两边是同样的 ${afterTasks.length} 道题`)}</small></div></div>`, hold: 900 },
-      { html: `<div class="stat"><div class="v"><b>${made.secondsToMount}</b> <span>s</span></div><div class="w">${t('from the failed call to the mounted fix', '从失败的调用到修好挂载')}<small>${t('written by the session\'s own model, checked by a 5-stage gate', '会话里的模型自己写的，过了五道校验')}</small></div></div>`, hold: 1100 },
-    ],
-    pill: { html: `⚡ ${t('The harness just improved itself', 'Harness 刚刚改进了自己')} <span>· ${esc(made.title)}</span>`, hold: 3800 },
-  },
-]
-
-// ---------- frames ----------
-const frames = []
-scenes.forEach((scene, sceneIndex) => {
-  const steps = []
-  scene.pieces.forEach((piece, index) => {
-    if (piece.html) steps.push({ upTo: index, part: 1, hold: piece.hold })
-    // A strip fills in a few squares at a time.
-    if (piece.strip) for (let part = 1; part <= 6; part += 1) steps.push({ upTo: index, part: part / 6, hold: part === 6 ? 600 : 110 })
-  })
-  frames.push({ scene: sceneIndex, upTo: -1, part: 1, extra: false, hold: sceneIndex === 3 ? 250 : 800 })
-  for (const step of steps) frames.push({ scene: sceneIndex, ...step, extra: false })
-  const last = scene.foot ?? scene.pill
-  if (last) frames.push({ scene: sceneIndex, upTo: scene.pieces.length, part: 1, extra: true, hold: last.hold })
-})
-
-function show(index) {
-  const frame = frames[index]
-  const scene = scenes[frame.scene]
-  document.getElementById('where').textContent = t(`real trace · Aider Polyglot / Rust · ${T.model}`, `真实运行记录 · Aider Polyglot / Rust · ${T.model}`)
-  const tag = document.getElementById('tag')
-  tag.textContent = scene.tag
-  tag.className = `tag${scene.on ? ' on' : ''}`
-  const hide = pieceIndex => (pieceIndex > frame.upTo ? ' hidden' : '')
-  const body = scene.pieces.map((piece, pieceIndex) => {
-    if (piece.open) return piece.open.replace('class="', `class="${frame.upTo > pieceIndex ? '' : 'hidden '}`)
-    if (piece.close) return piece.close
-    if (piece.strip) {
-      const lit = pieceIndex < frame.upTo ? piece.cells.length : pieceIndex === frame.upTo ? Math.round(piece.cells.length * frame.part) : 0
-      const done = lit === piece.cells.length
-      return `<div class="strip ${piece.strip}${hide(pieceIndex)}"><span class="who">${piece.who}</span><span class="cells">${piece.cells.map((cell, cellIndex) => `<i class="${cellIndex < lit ? cell : ''}"></i>`).join('')}</span><span class="n${done ? '' : ' hidden'}">${piece.total}</span></div>`
-    }
-    return piece.html.replace('class="', `class="${hide(pieceIndex).trim()} `)
-  }).join('')
-  const wrapped = scene.wrap ? `<div class="${scene.wrap}">${body}</div>` : `<div class="rows">${body}</div>`
-  const foot = scene.foot ? `<div class="foot${frame.extra ? '' : ' hidden'}">${scene.foot.html}</div>` : ''
-  const pill = scene.pill ? `<div class="pill${frame.extra ? '' : ' hidden'}">${scene.pill.html}</div>` : ''
-  document.getElementById('scene').innerHTML = `${scene.title ? `<h1>${scene.title}</h1>` : ''}${wrapped}${foot}${pill}`
-  return frame.hold
+// ---------- icons: plain strokes, drawn for this page ----------
+const icon = (body, size = 20) => `<svg width="${size}" height="${size}" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${body}</svg>`
+const ICON = {
+  bolt: (size = 18) => `<svg width="${size}" height="${size}" viewBox="0 0 20 20" fill="currentColor"><path d="M11.6 1.6 4.2 11.4h4.5l-1 7 7.9-10.2h-4.7l.7-6.6Z"/></svg>`,
+  mark: (size = 24) => `<svg width="${size}" height="${size}" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M28.63 15.15A11 11 0 1 1 24.47 9.1"/><path d="M23.2 4.4 24.6 9.2 19.6 9.5"/><path d="M19.2 11.4 13.6 19h3.8l-.9 5.6L22.4 17h-4l.8-5.6Z" fill="currentColor" stroke="none"/></svg>`,
+  read: icon('<path d="M5 2.8h6.6L15 6.2v11H5z"/><path d="M11.4 2.8v3.6H15M7.6 10h4.8M7.6 13h4.8"/>'),
+  glob: icon('<circle cx="8.8" cy="8.8" r="5"/><path d="m12.6 12.6 4.2 4.2"/>'),
+  bash: icon('<path d="m3.6 6 4.4 4-4.4 4M10.4 14.4h6"/>'),
+  write: icon('<path d="M12.6 3.6 16.4 7.4 7.6 16.2H3.8v-3.8z"/>'),
+  inject: icon('<path d="M4 9.6v6.6h12V9.6M10 2.8v8.6M6.8 8.4l3.2 3.2 3.2-3.2"/>'),
+  more: icon('<circle cx="4.6" cy="10" r=".7"/><circle cx="10" cy="10" r=".7"/><circle cx="15.4" cy="10" r=".7"/>'),
+  check: icon('<circle cx="10" cy="10" r="7.4"/><path d="m6.6 10.2 2.4 2.4 4.4-5"/>', 22),
+  tick: icon('<path d="m4.6 10.6 3.6 3.6 7.2-8.4"/>', 19),
+  plus: icon('<circle cx="10" cy="10" r="7.2"/><path d="M10 6.8v6.4M6.8 10h6.4"/>', 19),
 }
-window.frameCount = frames.length
-window.show = show
-show(Number(new URLSearchParams(location.search).get('frame') ?? frames.length - 1))
+ICON.edit = ICON.write
+
+// ---------- what the logs say ----------
+const made = T.adaptation, stock = T.arms.dsh, plugin = T.arms.rsi
+const events = T.session.events
+const calls = events.filter(event => event.kind === 'call')
+const origin = plugin.sessions.find(session => session.task === made.writtenIn.task)
+const listed = plugin.sessions.filter(session => session.startedMs <= origin.startedMs)
+const firstFail = calls.findIndex(call => !call.ok && call.tool === 'read')
+const taskTail = events.find(event => event.kind === 'task').tail.split('\n')[0]
+const errorText = calls[firstFail].result
+const rejected = events.find(event => event.kind === 'draft' && !event.ok)
+const stages = events.find(event => event.kind === 'gate').stages.map(stage => stage.stage)
+const mounted = events.find(event => event.kind === 'mounted')
+const afterMount = calls.slice(firstFail + 1)
+const lastTest = afterMount.findLastIndex(call => call.tool === 'bash' && call.ok)
+const end = events.find(event => event.kind === 'end')
+const hm = clock => clock.slice(0, 5)
+const Name = tool => tool[0].toUpperCase() + tool.slice(1)
+
+// ---------- the moments, in milliseconds ----------
+const ACT = [300, 2100, 3900]            // the three sessions that hit the failure
+const TRIGGER = 6200, PANEL = 6700, DRAFT1 = 7500, DRAFT2 = 9100, TYPE = [9300, 11600], GATE = 11800, MOUNT = 13500
+const NEXT = 15000, AFTER = 19000, LANES = 19600, TILES = 21900, END = 27200
+const SCENES = [0, TRIGGER - 100, NEXT, AFTER, END]
+
+// ---------- above the window ----------
+$('kick').innerHTML = `<span style="color:var(--accent)">${ICON.mark(24)}</span><strong>DSHRSI</strong><span>${t('replay of a real session', '真实会话回放')} · Aider Polyglot · Rust · ${esc(T.model)}</span><span class="grow"></span>${SCENES.slice(1).map(() => '<span class="seg"><i></i></span>').join('')}`
+const CAPTIONS = [
+  [0, ACT[2], t('The task says <b>lib.rs</b>. The file is <b>src/lib.rs</b>.', '题目写的是 <b>lib.rs</b>，文件其实在 <b>src/lib.rs</b>')],
+  [ACT[2], TRIGGER - 100, t('Third session, <b class="bad">the same failed call</b>.', '第三个会话，<b class="bad">又是同一个失败调用</b>')],
+  [TRIGGER - 100, NEXT, t('So <b>the harness improves itself</b>, mid-turn.', '于是 <b>Harness 改进了自己</b>，就在这一轮里')],
+  [NEXT, AFTER, t('Same turn, next call: <b>the right file</b>.', '还是这一轮，下一次调用：<b>读对了文件</b>')],
+  [AFTER, Infinity, t('Learned once. <b>Every later session starts from there.</b>', '学一次，<b>后面的每个会话都从这里出发</b>')],
+]
+// One line leaves before the next one comes in, so the two are never read on top of each other.
+$('cap').innerHTML = CAPTIONS.map(([start, stop, html]) => `<div data-at="${start && start + 170}" data-out="${stop}" data-dy="8">${html}</div>`).join('')
+
+// ---------- the session list ----------
+const ACTS = [...made.earlier.map(session => ({ ...session, calls: session.opening })), { task: origin.task, startedAt: origin.startedAt, head: events.find(event => event.kind === 'task').head, calls: calls.slice(0, firstFail + 1) }]
+const actOf = task => ACTS.findIndex(act => act.task === task)
+// A session appears in the list when its turn comes: the ones before the first failing session are there from the start.
+const listedAt = listed.map((session, index) => {
+  const next = ACTS.findIndex(act => listed.findIndex(item => item.task === act.task) >= index)
+  return next <= 0 ? 0 : ACT[next] - (actOf(session.task) === next ? 0 : 130)
+})
+$('side-in').innerHTML = `<div class="new">${ICON.plus}${t('New Session', '新会话')}</div><div class="label">AIDER POLYGLOT · RUST</div>${listed.map((session, index) => `<div class="sess" data-task="${esc(session.task)}"${listedAt[index] ? ` data-at="${listedAt[index]}" data-dy="6"` : ''}><span class="dot"></span><span class="name">${esc(session.task)}</span><span class="time">${hm(session.startedAt)}</span></div>`).join('')}<div class="key" data-at="${ACT[0] + 1100}" data-out="${AFTER}"><i></i><span class="mono">read lib.rs</span> ${t('not found', 'not found')}</div>`
+
+// ---------- the conversation ----------
+const row = (call, at, extra = '') => `<div class="row" data-at="${at}">${ICON[call.tool] ?? ICON.bash}<span>${Name(call.tool)}</span><span class="sep">·</span><span class="what mono">${esc(call.what)}</span>${extra}</div>`
+const bubble = (act, at) => `<div class="bubble" data-at="${at}"><div class="top">${esc(act.head)}</div><span class="dim">…</span> ${esc(taskTail).replace(/lib\.rs$/, '<code>lib.rs</code>')}</div>`
+const opening = (act, start, tight) => {
+  let at = start + (tight ? 450 : 500)
+  return bubble(act, start + 150) + act.calls.map((call) => {
+    const html = call.ok
+      ? row(call, at)
+      : `${row(call, at, `<span class="chipx" data-at="${at + 250}" data-dy="0"><i></i>not found</span>`)}<div class="err mono" data-at="${at + 350}" data-dy="6">${esc(errorText)}</div>`
+    at += 350
+    return html
+  }).join('')
+}
+const more = lastTest - 2
+const laterRows = [
+  `<div class="row rsi" data-at="${TRIGGER}">${ICON.bolt(19)}<span>dsh-rsi</span><span class="sep">·</span><span class="what">${t(`same failure, session ${made.earlier.length + 1}`, `同一个失败，第 ${made.earlier.length + 1} 个会话`)}</span></div>`,
+  `<div class="row" data-at="${MOUNT + 400}">${ICON.inject}<span>${t('Context injection', '上下文注入')}</span><span class="sep">·</span><span class="what">dsh-rsi</span></div>`,
+  row(afterMount[0], NEXT + 300, `<span class="ok" data-at="${NEXT + 520}" data-dy="0">${ICON.tick}</span>`),
+  row(afterMount[1], NEXT + 680, `<span class="ok" data-at="${NEXT + 900}" data-dy="0">${ICON.tick}</span>`),
+  `<div class="row dim" data-at="${NEXT + 1180}">${ICON.more}<span>${t(`${more} more calls`, `另外 ${more} 次调用`)}</span></div>`,
+  row(afterMount[lastTest], NEXT + 1680, `<span class="ok" data-at="${NEXT + 1900}" data-dy="0">${ICON.tick}</span>`),
+  `<div class="row won" data-at="${NEXT + 2350}">${ICON.check}<span>${t('Solved on the first try', '一次通过')}</span><span class="sep" style="font-weight:400">· ${t(`${T.session.steps} steps, ${T.session.calls} calls`, `${T.session.steps} 步，${T.session.calls} 次调用`)}</span></div>`,
+]
+$('chat').innerHTML = ACTS.map((act, index) => `<div class="act" id="act-${index}" data-at="${ACT[index]}" data-out="${index < 2 ? ACT[index + 1] - 130 : Infinity}" data-dy="0"><div class="scroll">${opening(act, ACT[index], index < 2)}${index === 2 ? laterRows.join('') : ''}</div></div>`).join('')
+
+// ---------- the side panel ----------
+const SHOWN = 8
+const source = made.source.split('\n').slice(0, SHOWN)
+const TOKEN = /('(?:\\.|[^'\\])*'|"(?:\\.|[^"\\])*")|((?<=[:(!]\s?)\/(?:\\.|\[(?:\\.|[^\]\\])*\]|[^/\\\n[])+\/[a-z]*)|\b(if|return|undefined)\b|(\b[A-Za-z_]\w*(?=\())|(\b[A-Za-z_]\w*(?=:))/g
+const tokens = source.map((line) => {
+  const out = []
+  let last = 0
+  for (const match of line.matchAll(TOKEN)) {
+    if (match.index > last) out.push(['', line.slice(last, match.index)])
+    out.push([match[1] ? 's' : match[2] ? 'r' : match[3] ? 'k' : match[4] ? 'f' : 'd', match[0]])
+    last = match.index + match[0].length
+  }
+  if (last < line.length) out.push(['', line.slice(last)])
+  return out
+})
+// A line longer than the box is cut off by it, so only the part that shows takes time to type.
+const SEEN = 58
+const typed = source.map(line => Math.min(line.length, SEEN))
+const typedTotal = typed.reduce((sum, count) => sum + count, 0)
+$('panel-in').innerHTML = `
+  <div class="head">${ICON.bolt(20)}<span class="title">${t('Harness adaptation', 'Harness 适配')}</span><span class="grow"></span><span class="timer mono" id="timer"></span></div>
+  <div class="body">
+    <div class="draft" data-at="${DRAFT1}"><span class="n">${t('Draft 1', '第 1 稿')}</span><span class="by">${t(`written by ${T.model}`, `由 ${T.model} 写出`)}</span><span class="grow"></span><span class="tag no" data-at="${DRAFT1 + 750}" data-dy="0">✗ ${t(`rejected at ${rejected.failedAt}`, `校验打回 · ${rejected.failedAt}`)}</span></div>
+    <div class="why mono" data-at="${DRAFT1 + 950}" data-dy="4">${esc(rejected.problems[0])}</div>
+    <div class="draft" data-at="${DRAFT2}"><span class="n">${t('Draft 2', '第 2 稿')}</span><span class="by">${t('rewritten with the error in hand', '带着报错重写')}</span><span class="grow"></span><span class="tag yes" data-at="${GATE + 300 * stages.length + 100}" data-dy="0">✓ ${t('passed the gate', '通过校验')}</span></div>
+    <div class="code mono" data-at="${DRAFT2 + 100}" data-dy="6">${source.map((_, index) => `<div id="line-${index}"></div>`).join('')}</div>
+    <div class="gate" data-at="${GATE - 100}"><span class="l">${t('GATE', '校验')}</span>${stages.map(stage => `<span class="stage mono" data-stage><i>·</i>${esc(stage)}</span>`).join('')}</div>
+    <div class="done" data-at="${MOUNT}">${ICON.bolt(20)}${t('Mounted mid-turn', '已挂载，这一轮还没结束')}<span>· ${t(`${made.secondsToMount} s after the failed call`, `距失败的调用 ${made.secondsToMount} 秒`)}</span></div>
+  </div>`
+
+// ---------- what came of it ----------
+const wroteAt = plugin.sessions.findIndex(session => session.task === made.writtenIn.task) + 1
+const wideAt = plugin.sessions.findIndex(session => session.startedMs > made.widenedAtMs) + 1
+const lane = (arm, who, cls) => `<div class="lane ${cls}"><div class="who">${who}</div><div class="cells">${arm.sessions.map(session => `<i class="${session.failed > 0 ? 'hit' : ''}"></i>`).join('')}</div><div class="n" data-at="${LANES + 1600}" data-dy="0">${cls === 'plugin' ? `<b>${arm.hit}</b>` : arm.hit} <small>/ ${arm.sessions.length}</small></div></div>`
+const tile = (at, value, label, note) => `<div class="tile" data-at="${at}" data-dy="10" data-length="200"><div class="v">${value}</div><div class="w">${label}</div><div class="x">${note}</div></div>`
+$('after').innerHTML = `
+  <div class="lanes" data-at="${AFTER + 200}" data-dy="10" data-length="200">
+    <div class="t"><span>${t(`${stock.sessions.length} Rust tasks, in the order they started`, `${stock.sessions.length} 道 Rust 题，按开始顺序`)}</span><span class="grow"></span><i></i><span>${t('read a lib.rs that is not there', '去读了不存在的 lib.rs')}</span><span style="color:var(--accent);margin-left:14px">✎ ${t('the model wrote the fix', '模型写出适配')}</span></div>
+    ${lane(stock, t('Stock DSH', '原版 DSH'), 'stock')}${lane(plugin, 'DSH + DSHRSI', 'plugin')}
+    <div class="marks" data-at="${LANES + 1900}" data-dy="0"><span style="grid-column:${wroteAt} / ${wideAt}">✎</span><span class="wide" style="grid-column:${wideAt} / -1">${t(`machine-wide from ${hm(made.widenedAt)} →`, `${hm(made.widenedAt)} 起全机生效 →`)}</span></div>
+  </div>
+  <div class="tiles">
+    ${tile(TILES, `${stock.hit} <span>→</span> <b>${plugin.hit}</b>`, t('sessions that made the failed call', '撞上这个失败调用的会话'), t(`${stock.sessions.length} Rust tasks · stock → with DSHRSI`, `${stock.sessions.length} 道 Rust 题 · 原版 → 装上 DSHRSI`))}
+    ${tile(TILES + 450, `${stock.afterWidening.hit} <span>→</span> <b>${plugin.afterWidening.hit}</b>`, t('once the fix was machine-wide', '适配全机生效之后'), t(`the same ${plugin.afterWidening.total} tasks on both sides`, `两边是同样的 ${plugin.afterWidening.total} 道题`))}
+    ${tile(TILES + 900, `<b>${made.secondsToMount}</b> <small>${t('s', '秒')}</small>`, t('from failed call to mounted fix', '从失败的调用到挂载'), t(`the session's own model wrote it`, `会话里的模型自己写的 · ${stages.length} 道校验`))}
+  </div>
+  <div class="sign" data-at="${TILES + 1500}" data-dy="0">${ICON.mark(28)}<strong>DSHRSI</strong><span>${t('Recursive Self-Improvement for DeepSeek Harness', 'DeepSeek Harness 上的递归自我改进')}</span><span class="grow"></span><span class="url mono">github.com/qybaihe/dshrsi</span></div>`
+
+// ---------- one moment ----------
+const clamp = value => Math.min(1, Math.max(0, value))
+const ease = value => 1 - (1 - value) ** 3
+const span = (now, start, length) => clamp((now - start) / length)
+const step = (now, pairs) => pairs.reduce((value, [at, next]) => (now >= at ? next : value), pairs[0][1])
+const put = (element, html) => { if (element.dataset.html !== html) { element.dataset.html = html; element.innerHTML = html } }
+const faders = [...document.querySelectorAll('[data-at]')].map(element => ({
+  element, at: Number(element.dataset.at), out: element.dataset.out === undefined ? Infinity : Number(element.dataset.out), dy: Number(element.dataset.dy ?? 9), length: Number(element.dataset.length ?? 260),
+}))
+const sessionRows = [...document.querySelectorAll('.sess')]
+const stageChips = [...document.querySelectorAll('[data-stage]')]
+const segments = [...document.querySelectorAll('.seg i')]
+const laneCells = [...document.querySelectorAll('.lane .cells')].map(cells => [...cells.children])
+const scroller = document.querySelector('#act-2 .scroll')
+const viewport = () => $('chat').clientHeight - 14
+const failAt = index => ACT[index] + (index < 2 ? 450 : 500) + 350 * (ACTS[index].calls.length - 1) + 250
+const clockAt = [[0, ACTS[0].startedAt], [ACT[1], ACTS[1].startedAt], [ACT[2], origin.startedAt], [ACT[2] + 500, calls[0].time], [MOUNT, mounted.time], [NEXT + 300, afterMount[0].time], [NEXT + 1680, afterMount[lastTest].time], [NEXT + 2350, end.time]]
+// The step a call belongs to is the model message just before it in the log.
+const stepOf = call => events.slice(0, events.indexOf(call)).findLast(event => event.kind === 'model').step
+const stepsAt = [[0, 1], [NEXT + 300, stepOf(afterMount[0])], [NEXT + 1180, stepOf(afterMount[lastTest - 1])], [NEXT + 1680, stepOf(afterMount[lastTest])], [NEXT + 2350, T.session.steps]]
+
+function render(now) {
+  for (const { element, at, out, dy, length } of faders) {
+    const shown = at <= 0 ? 1 : ease(span(now, at, length)), gone = out === Infinity ? 0 : ease(span(now, out, 200))
+    const opacity = shown * (1 - gone)
+    element.style.opacity = opacity.toFixed(3)
+    element.style.transform = shown >= 1 || dy === 0 ? '' : `translateY(${((1 - shown) * dy).toFixed(2)}px)`
+  }
+  // the bars that say how far along this is
+  segments.forEach((bar, index) => { bar.style.width = `${(100 * span(now, SCENES[index], SCENES[index + 1] - SCENES[index] - (index === 3 ? 3000 : 0))).toFixed(1)}%` })
+
+  // the session list: which one is open, which ones failed
+  const current = step(now, [[0, 0], [ACT[1], 1], [ACT[2], 2]])
+  for (const element of sessionRows) {
+    const index = actOf(element.dataset.task)
+    element.classList.toggle('on', index === current)
+    const dot = element.firstElementChild
+    dot.className = `dot${index >= 0 && now >= failAt(index) ? ' hit' : index === current ? ' run' : ''}`
+  }
+  put($('title'), esc(ACTS[current].task))
+  put($('when'), `${step(now, clockAt)} UTC`)
+  const count = now < ACT[current] + 500 ? 0 : current < 2 ? 1 : step(now, stepsAt)
+  put($('steps'), t(`1 turn · ${count} ${count === 1 ? 'step' : 'steps'}`, `1 轮 · ${count} 步`))
+
+  // the badge and the pill are the plugin's own two lights
+  const live = now >= MOUNT
+  $('badge').className = `badge${live ? ' live' : ''}`
+  put($('badge'), `${ICON.bolt(16)}RSI${live ? ' <span class="n">1</span>' : ''}`)
+  $('pill').style.opacity = ease(span(now, TRIGGER, 260)).toFixed(3)
+  put($('pill'), `${ICON.bolt(16)}${live ? `${t('The harness just improved itself', 'Harness 刚刚改进了自己')}<span class="more">· ${t('1 at work', '1 个在生效')}</span>` : t('The harness is improving itself…', 'Harness 正在改进自己…')}`)
+
+  // the list makes room, the panel comes in; the window leaves at the end
+  $('side').style.width = `${(276 * (1 - ease(span(now, PANEL, 420)))).toFixed(1)}px`
+  $('panel').style.width = `${(640 * ease(span(now, PANEL + 50, 480))).toFixed(1)}px`
+  const leaving = ease(span(now, AFTER, 200))
+  $('win').style.opacity = (1 - leaving).toFixed(3)
+  $('win').style.transform = leaving > 0 ? `scale(${(1 - 0.012 * leaving).toFixed(4)})` : ''
+  $('win').style.visibility = leaving >= 1 ? 'hidden' : ''
+
+  // the conversation follows its last row
+  let scroll = 0
+  for (const element of scroller.children) {
+    const at = Number(element.dataset.at)
+    const overflow = element.offsetTop + element.offsetHeight - viewport()
+    if (overflow > 0) scroll = Math.max(scroll, overflow * ease(span(now, at - 60, 320)))
+  }
+  scroller.style.transform = scroll > 0 ? `translateY(${-scroll.toFixed(1)}px)` : ''
+
+  // the timer runs from the failed call to the mount
+  const seconds = made.secondsToMount * span(now, TRIGGER, MOUNT - TRIGGER)
+  put($('timer'), `${seconds.toFixed(1)} s`)
+
+  // the code is typed, a line at a time
+  let budget = Math.round(typedTotal * span(now, TYPE[0], TYPE[1] - TYPE[0]))
+  let caret = now >= TYPE[0] && now < TYPE[1]
+  tokens.forEach((line, index) => {
+    const mine = Math.min(budget, typed[index])
+    const complete = mine >= typed[index]
+    let left = complete ? Infinity : mine
+    let html = line.map(([cls, text]) => {
+      const part = text.slice(0, left)
+      left -= part.length
+      return part ? (cls ? `<span class="${cls}">${esc(part)}</span>` : esc(part)) : ''
+    }).join('')
+    // the caret sits on the first line that is not finished
+    if (caret && !complete) { html += '<span class="caret"></span>'; caret = false }
+    put($(`line-${index}`), html)
+    budget -= mine
+  })
+
+  // the gate, a stage at a time
+  stageChips.forEach((chip, index) => {
+    const passed = now >= GATE + 300 * (index + 1), checking = !passed && now >= GATE + 300 * index
+    chip.className = `stage mono${passed ? ' ok' : checking ? ' now' : ''}`
+    put(chip.firstElementChild, passed ? '✓' : checking ? '›' : '·')
+  })
+
+  // the two rows of sessions fill in start order
+  laneCells.forEach((cells) => {
+    cells.forEach((cell, index) => cell.classList.toggle('lit', now >= LANES + 50 * index))
+  })
+}
+window.DURATION = END
+window.render = render
+render(Number(query.get('t') ?? END))
 </script>
 </body>
 </html>

@@ -10,7 +10,12 @@
 
 ### **Amati → Perbaiki → Bangun di Atasnya → Ulangi Lagi. Harness yang makin lama makin menjadi milik Anda.**
 
-<img src="../../assets/rsi-trace.gif" alt="Animasi jejak dari run sungguhan: pada harness bawaan, 12 dari 30 sesi melakukan pemanggilan gagal yang sama; dengan DSHRSI, pada kali ketiga harness memperbaiki dirinya sendiri, dan pada 22 sesi berikutnya hal itu hanya terjadi sekali" width="960" />
+<a href="https://qybaihe.github.io/dshrsi/trace.html">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/rsi-trace.dark.gif" />
+    <img src="../../assets/rsi-trace.gif" alt="Animasi jejak dari run sungguhan: pada harness bawaan, 12 dari 30 sesi melakukan pemanggilan gagal yang sama; dengan DSHRSI, pada kali ketiga harness memperbaiki dirinya sendiri, dan pada 22 sesi berikutnya hal itu hanya terjadi sekali" width="960" />
+  </picture>
+</a>
 
 **RSI adalah singkatan dari Recursive Self-Improvement (Perbaikan Diri Rekursif), dan DSHRSI adalah plugin open-source yang mewujudkannya untuk DeepSeek Harness. Harness mengamati eksekusinya sendiri, meminta model dari sesi itu sendiri menulis kode harness untuk masalah yang ditemukannya, membuktikan kode itu lewat gerbang 5 tahap, lalu memasangnya sebelum giliran berakhir. Setelah itu, harness yang sudah diperbaiki menjalankan sesi berikutnya, dan memperbaiki diri lagi. Tanpa fine-tuning. Tanpa tumpukan prompt. Yang ada adalah kode yang diukur, dipertahankan, ditulis ulang, atau dibuang.**
 
@@ -23,7 +28,7 @@
 [![Tests](https://img.shields.io/badge/Tests-130_unit_%C2%B7_29_e2e-1d4ed8?style=for-the-badge)](#contributing)
 [![MIT License](https://img.shields.io/badge/License-MIT-38bdf8?style=for-the-badge)](../../LICENSE)
 
-**[📖 Referensi Plugin](../../packages/dsh-rsi/README.md) · [🧩 Harness Proyek](../../packages/dsh-rsi/README.md#layers-and-the-project-harness) · [🔬 Gerbang Validasi](../../packages/dsh-rsi/README.md#the-validation-gate) · [⚠️ Batasan yang Diketahui](../../packages/dsh-rsi/README.md#known-limits) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
+**[🌐 Situs web](https://qybaihe.github.io/dshrsi/) · [📖 Referensi Plugin](../../packages/dsh-rsi/README.md) · [🧩 Harness Proyek](../../packages/dsh-rsi/README.md#layers-and-the-project-harness) · [🔬 Gerbang Validasi](../../packages/dsh-rsi/README.md#the-validation-gate) · [⚠️ Batasan yang Diketahui](../../packages/dsh-rsi/README.md#known-limits) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
 
 [Apa Itu RSI](#rsi) · [Mulai Cepat](#quick-start) · [Cara Kerja](#how-it-works) · [Hasil Terukur](#measured) · [Benchmark](#benchmarks) · [Detektor & Kapabilitas](#coverage) · [Harness Proyek](#project-harness) · [Default Keamanan](#security) · [FAQ](#faq)
 
@@ -92,13 +97,13 @@ Yang sengaja **tidak** rekursif: bobot model tidak pernah berubah, dan detektor,
 Di aplikasi desktop atau Web UI DeepSeek Harness, buka **Plugins → Add plugin → Install a third-party plugin**, tempelkan alamat paket rilis, pilih **Install**, lalu **Enable now**:
 
 ```text
-https://github.com/qybaihe/dshrsi/releases/download/v0.1.0/dsh-rsi-0.1.0.tgz
+https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
 ```
 
 Atau lewat command line. Setiap profile menyimpan plugin-nya sendiri, dan `dsh plugin add` memanggil `pnpm`, yang harus tersedia di `PATH`:
 
 ```bash
-dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.0/dsh-rsi-0.1.0.tgz
+dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
 dsh web
 ```
 
@@ -248,7 +253,10 @@ DeepSeek Harness polos melawan DeepSeek Harness + DSHRSI, dalam 3,390 sesi `dsh`
 <!-- bench:table:end -->
 
 <div align="center">
-<img src="../../assets/bench-flash.png" alt="mimo-v2.6-flash, DSH → DSH + DSHRSI: Aider Polyglot 220 → 223 / 225 (+3), HumanEval 162 → 162 / 164, HumanEval+ 153 → 153 / 164, MBPP 368 → 369 / 378 (+1), MBPP+ 308 → 315 / 378 (+7). Rust lib.rs: 12 / 30 → 5 / 30, 7 / 22 → 1 / 22" width="960" />
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../../assets/bench-flash.dark.png" />
+  <img src="../../assets/bench-flash.png" alt="mimo-v2.6-flash, DSH → DSH + DSHRSI: Aider Polyglot 220 → 223 / 225 (+3), HumanEval 162 → 162 / 164, HumanEval+ 153 → 153 / 164, MBPP 368 → 369 / 378 (+1), MBPP+ 308 → 315 / 378 (+7). Rust lib.rs: 12 / 30 → 5 / 30, 7 / 22 → 1 / 22" width="960" />
+</picture>
 </div>
 
 > **Cara membacanya:** dari sisi jumlah tugas yang berhasil diselesaikan, kedua harness **tidak bisa dibedakan**. Kenaikan terbesar adalah +7 (MBPP+ dengan `mimo-v2.6-flash`), penurunan terbesar adalah −3 (MBPP dengan `mimo-v2.6-pro`), dan tidak ada selisih yang bertahan dalam uji McNemar eksak pada tugas yang sama (p terkecil = 0.17). Ketika agen bisa menjalankan kodenya sendiri, suite-suite ini sudah mendekati batas atasnya untuk kedua model, dan setiap tugas adalah direktori baru yang bersih: sangat sedikit hal yang muncul kembali untuk bisa dipelajari harness.

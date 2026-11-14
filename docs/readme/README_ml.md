@@ -10,7 +10,12 @@
 
 ### **നിരീക്ഷിക്കുക → മെച്ചപ്പെടുത്തുക → അതിന്മേൽ പണിയുക → വീണ്ടും. ഓരോ തവണയും കൂടുതൽ നിങ്ങളുടേതായി മാറുന്ന harness.**
 
-<img src="../../assets/rsi-trace.gif" alt="ഒരു യഥാർത്ഥ run-ന്റെ animation: സാധാരണ harness-ൽ 30 sessions-ൽ 12 എണ്ണം അതേ പരാജയപ്പെട്ട call നടത്തുന്നു; DSHRSI ഉള്ളപ്പോൾ മൂന്നാം തവണ harness സ്വയം മെച്ചപ്പെടുത്തുന്നു, തുടർന്നുള്ള 22 sessions-ൽ ഇത് ഒരു തവണ മാത്രം സംഭവിക്കുന്നു" width="960" />
+<a href="https://qybaihe.github.io/dshrsi/trace.html">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/rsi-trace.dark.gif" />
+    <img src="../../assets/rsi-trace.gif" alt="ഒരു യഥാർത്ഥ run-ന്റെ animation: സാധാരണ harness-ൽ 30 sessions-ൽ 12 എണ്ണം അതേ പരാജയപ്പെട്ട call നടത്തുന്നു; DSHRSI ഉള്ളപ്പോൾ മൂന്നാം തവണ harness സ്വയം മെച്ചപ്പെടുത്തുന്നു, തുടർന്നുള്ള 22 sessions-ൽ ഇത് ഒരു തവണ മാത്രം സംഭവിക്കുന്നു" width="960" />
+  </picture>
+</a>
 
 **RSI എന്നാൽ Recursive Self-Improvement, അഥവാ ആവർത്തിത സ്വയം-മെച്ചപ്പെടുത്തൽ. DeepSeek Harness-ൽ അത് യാഥാർഥ്യമാക്കുന്ന open-source plugin ആണ് DSHRSI. Harness സ്വന്തം runs നിരീക്ഷിക്കുന്നു, കണ്ടെത്തുന്ന പ്രശ്നങ്ങൾക്ക് ആ session-ലെ model-നെക്കൊണ്ടു തന്നെ harness കോഡ് എഴുതിക്കുന്നു, ആ കോഡ് 5 ഘട്ടങ്ങളുള്ള gate-ൽ തെളിയിക്കുന്നു, turn തീരും മുമ്പേ അത് mount ചെയ്യുന്നു. പിന്നെ മെച്ചപ്പെട്ട harness അടുത്ത session ഓടിക്കുന്നു, വീണ്ടും മെച്ചപ്പെടുന്നു. Fine-tuning ഇല്ല. Prompts-ന്റെ കൂമ്പാരമില്ല. ഉള്ളത് കോഡ് ആണ്: അതിനെ അളക്കും, നിലനിർത്തും, മാറ്റിയെഴുതും, അല്ലെങ്കിൽ കളയും.**
 
@@ -23,7 +28,7 @@
 [![Tests](https://img.shields.io/badge/Tests-130_unit_%C2%B7_29_e2e-1d4ed8?style=for-the-badge)](#contributing)
 [![MIT License](https://img.shields.io/badge/License-MIT-38bdf8?style=for-the-badge)](../../LICENSE)
 
-**[📖 Plugin Reference](../../packages/dsh-rsi/README.md) · [🧩 Project Harness](../../packages/dsh-rsi/README.md#layers-and-the-project-harness) · [🔬 Validation Gate](../../packages/dsh-rsi/README.md#the-validation-gate) · [⚠️ അറിയാവുന്ന പരിമിതികൾ](../../packages/dsh-rsi/README.md#known-limits) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
+**[🌐 വെബ്സൈറ്റ്](https://qybaihe.github.io/dshrsi/) · [📖 Plugin Reference](../../packages/dsh-rsi/README.md) · [🧩 Project Harness](../../packages/dsh-rsi/README.md#layers-and-the-project-harness) · [🔬 Validation Gate](../../packages/dsh-rsi/README.md#the-validation-gate) · [⚠️ അറിയാവുന്ന പരിമിതികൾ](../../packages/dsh-rsi/README.md#known-limits) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
 
 [RSI എന്നാൽ എന്ത്](#rsi) · [Quick Start](#quick-start) · [പ്രവർത്തിക്കുന്ന വിധം](#how-it-works) · [അളന്ന ഫലങ്ങൾ](#measured) · [Benchmarks](#benchmarks) · [Detectors-ഉം Capabilities-ഉം](#coverage) · [Project Harness](#project-harness) · [സുരക്ഷാ defaults](#security) · [FAQ](#faq)
 
@@ -92,13 +97,13 @@
 DeepSeek Harness desktop app-ലോ Web UI-യിലോ **Plugins → Add plugin → Install a third-party plugin** തുറക്കുക, താഴെയുള്ള release package paste ചെയ്യുക, **Install** തിരഞ്ഞെടുക്കുക, പിന്നെ **Enable now**:
 
 ```text
-https://github.com/qybaihe/dshrsi/releases/download/v0.1.0/dsh-rsi-0.1.0.tgz
+https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
 ```
 
 അല്ലെങ്കിൽ command line-ൽ നിന്ന്. ഓരോ profile-നും സ്വന്തം plugins ഉണ്ട്; `dsh plugin add` വിളിക്കുന്നത് `pnpm` ആണ്, അത് `PATH`-ൽ ഉണ്ടായിരിക്കണം:
 
 ```bash
-dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.0/dsh-rsi-0.1.0.tgz
+dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
 dsh web
 ```
 
@@ -248,7 +253,10 @@ Stock (മാറ്റമൊന്നും വരുത്താത്ത) Deep
 <!-- bench:table:end -->
 
 <div align="center">
-<img src="../../assets/bench-flash.png" alt="mimo-v2.6-flash, DSH → DSH + DSHRSI: Aider Polyglot 220 → 223 / 225 (+3), HumanEval 162 → 162 / 164, HumanEval+ 153 → 153 / 164, MBPP 368 → 369 / 378 (+1), MBPP+ 308 → 315 / 378 (+7). Rust lib.rs: 12 / 30 → 5 / 30, 7 / 22 → 1 / 22" width="960" />
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../../assets/bench-flash.dark.png" />
+  <img src="../../assets/bench-flash.png" alt="mimo-v2.6-flash, DSH → DSH + DSHRSI: Aider Polyglot 220 → 223 / 225 (+3), HumanEval 162 → 162 / 164, HumanEval+ 153 → 153 / 164, MBPP 368 → 369 / 378 (+1), MBPP+ 308 → 315 / 378 (+7). Rust lib.rs: 12 / 30 → 5 / 30, 7 / 22 → 1 / 22" width="960" />
+</picture>
 </div>
 
 > **ഇത് എങ്ങനെ വായിക്കണം:** solve ചെയ്ത tasks-ന്റെ എണ്ണത്തിൽ രണ്ട് harness-കളെയും **തമ്മിൽ വേർതിരിക്കാനാവില്ല**. ഏറ്റവും വലിയ നേട്ടം +7 (`mimo-v2.6-flash`-ൽ MBPP+), ഏറ്റവും വലിയ നഷ്ടം −3 (`mimo-v2.6-pro`-ൽ MBPP); അതേ tasks-ൽ നടത്തിയ exact McNemar test-ൽ ഒരു വ്യത്യാസവും നിലനിൽക്കുന്നില്ല (ഏറ്റവും ചെറിയ p = 0.17). Agent-ന് സ്വന്തം കോഡ് ഓടിക്കാൻ കഴിയുമ്പോൾ രണ്ട് models-നും ഈ suites ഏതാണ്ട് ceiling-ൽ എത്തിനിൽക്കുന്നു; ഓരോ task-ഉം പുതിയ, വൃത്തിയുള്ള ഒരു directory ആണ്: harness-ന് പഠിക്കാനായി ആവർത്തിച്ചു വരുന്നത് വളരെ കുറച്ചു മാത്രം.

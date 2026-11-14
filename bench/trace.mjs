@@ -25,6 +25,10 @@ const CASE = {
 const runDir = run => path.join(BENCH_HOME, 'runs', CASE.bench, run)
 const jsonl = file => fs.readFileSync(file, 'utf8').split('\n').filter(Boolean).map(line => JSON.parse(line))
 const clock = time => new Date(time).toISOString().slice(11, 19)
+/** Whether a tool result reads as a success. */
+/** The first two lines of a task, which is how a session shows it. */
+const headOf = text => { const head = text.split('\n').filter(Boolean).slice(0, 2).join(' '); return head.length > 150 ? `${head.slice(0, 150).trimEnd()} …` : head }
+const succeeded = text => !/^Error:/.test(text) && !/\[exit code: [1-9]/.test(text) && !/^error:/m.test(text) && !/FAILED/.test(text)
 
 /** Everything up to and including the exercise directory goes; what is left is the path as the agent meant it. */
 function tidy(text, run, task) {
@@ -50,12 +54,16 @@ function sessionsOf(run) {
       const calls = lines.filter(line => line.type === 'tool/call').map((line) => {
         let args = {}
         try { args = JSON.parse(line.data.arguments) } catch { /* arguments the model did not finish */ }
-        return { id: line.data.callId, name: line.data.name, file: args.file_path === undefined ? undefined : tidy(args.file_path, run, task) }
+        return { id: line.data.callId, name: line.data.name, file: args.file_path === undefined ? undefined : tidy(args.file_path, run, task), what: tidy(args.file_path ?? args.command ?? args.pattern ?? '', run, task) }
       })
+      // How the session opened: every call up to and including the first one that failed this way.
+      const firstFailure = calls.findIndex(call => CASE.failure(call, results.get(call.id) ?? ''))
+      const opening = calls.slice(0, firstFailure + 1).map(call => ({ tool: call.name, what: call.what.length > 120 ? `${call.what.slice(0, 120).trimEnd()} …` : call.what, ok: succeeded(results.get(call.id) ?? '') }))
+      const asked = lines.map(line => (line.type === 'user/message' ? line.data.content?.[0]?.text ?? '' : '')).find(text => text && !/^<system-reminder>/.test(text)) ?? ''
       const row = scored.get(`${CASE.language}/${task}`)
       rows.push({
         task, id: session, file, lines, startedMs: lines[0].createdAt, startedAt: clock(lines[0].createdAt),
-        failed: calls.filter(call => CASE.failure(call, results.get(call.id) ?? '')).length,
+        failed: calls.filter(call => CASE.failure(call, results.get(call.id) ?? '')).length, opening, head: headOf(tidy(asked, run, task)),
         calls: calls.length, steps: lines.filter(line => line.type === 'step/start').length,
         passed1: row?.passed1 ?? null, passed2: row?.passed2 ?? null,
       })
@@ -93,7 +101,7 @@ for (const line of origin.lines) {
     else if ((userMessages += 1) === 1) {
       // The exercise text is Exercism's; the last lines are the instruction the benchmark adds, which name the file.
       const tail = text.slice(text.lastIndexOf('####') + 4).trim()
-      events.push({ at: at(line.time), time: clock(line.time), kind: 'task', head: short(text.split('\n').filter(Boolean).slice(0, 2).join(' '), 150), characters: text.length, tail })
+      events.push({ at: at(line.time), time: clock(line.time), kind: 'task', head: headOf(text), characters: text.length, tail })
     }
   } else if (line.type === 'assistant/message') {
     const parts = data.message.content
@@ -109,7 +117,7 @@ for (const line of origin.lines) {
     const text = tidy(data.message.content?.[0]?.text ?? '', CASE.runs.rsi, origin.task)
     const call = events.find(event => event.kind === 'call' && event.id === data.message.toolCallId)
     if (call) {
-      call.ok = !/^Error:/.test(text) && !/\[exit code: [1-9]/.test(text) && !/^error:/m.test(text) && !/FAILED/.test(text)
+      call.ok = succeeded(text)
       call.result = short(text.replace(/<\/?(path|type|content)>/g, ' ').replace(/\s+/g, ' ').trim(), 150)
     }
   } else if (line.type === 'turn/end') {
@@ -147,7 +155,7 @@ const trace = {
   }])),
   adaptation: {
     id: record.id, title: record.title, description: record.description, capabilities: record.capabilities, tier: record.tier, source,
-    earlier: arms.rsi.filter(session => session.failed > 0 && session.startedMs < origin.startedMs).map(session => ({ task: session.task, startedAt: session.startedAt })),
+    earlier: arms.rsi.filter(session => session.failed > 0 && session.startedMs < origin.startedMs).map(session => ({ task: session.task, startedAt: session.startedAt, head: session.head, opening: session.opening })),
     writtenIn: { task: origin.task, startedAt: origin.startedAt }, triggeredAt: clock(trigger.time), mountedAt: clock(created.time),
     secondsToMount: Number(((created.time - trigger.time) / 1000).toFixed(1)), drafts: generation.attempts.length,
     widenedAt: clock(generalize.time), widenedAtMs: generalize.time, widenedAfter: generalize.workspaces.map(taskOf),

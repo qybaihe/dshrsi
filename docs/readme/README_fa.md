@@ -10,7 +10,12 @@
 
 ### **مشاهده ← بهبود ← ساختن روی همان بهبود ← و باز از نو. یک harness که روزبه‌روز بیشتر مال خودتان می‌شود.**
 
-<img src="../../assets/rsi-trace.gif" alt="پویانمایی از ردِ یک اجرای واقعی: با harness اصلی، 12 نشست از 30 نشست همان فراخوانی ناموفق را انجام می‌دهند؛ با DSHRSI، بار سوم harness خودش را بهبود می‌دهد و در 22 نشست بعدی فقط یک بار تکرار می‌شود" width="960" />
+<a href="https://qybaihe.github.io/dshrsi/trace.html">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/rsi-trace.dark.gif" />
+    <img src="../../assets/rsi-trace.gif" alt="پویانمایی از ردِ یک اجرای واقعی: با harness اصلی، 12 نشست از 30 نشست همان فراخوانی ناموفق را انجام می‌دهند؛ با DSHRSI، بار سوم harness خودش را بهبود می‌دهد و در 22 نشست بعدی فقط یک بار تکرار می‌شود" width="960" />
+  </picture>
+</a>
 
 **عبارت RSI مخفف Recursive Self-Improvement است، یعنی خودبهبودی بازگشتی؛ و DSHRSI پلاگین متن‌بازی است که آن را برای DeepSeek Harness به واقعیت تبدیل می‌کند. خودِ harness اجراهایش را زیر نظر می‌گیرد، از مدلِ همان نشست می‌خواهد برای دردسری که پیدا کرده کد harness بنویسد، درستی آن کد را در یک دروازه‌ی 5 مرحله‌ای ثابت می‌کند و پیش از تمام شدن نوبت آن را سوار (mount) می‌کند. بعد harness بهبودیافته نشست بعدی را اجرا می‌کند و باز هم بهتر می‌شود. نه فاین‌تیون. نه کوهی از پرامپت. کد؛ کدی که سنجیده می‌شود و بعد یا می‌ماند، یا بازنویسی می‌شود، یا دور ریخته می‌شود.**
 
@@ -23,7 +28,7 @@
 [![Tests](https://img.shields.io/badge/Tests-130_unit_%C2%B7_29_e2e-1d4ed8?style=for-the-badge)](#contributing)
 [![MIT License](https://img.shields.io/badge/License-MIT-38bdf8?style=for-the-badge)](../../LICENSE)
 
-**[📖 مرجع پلاگین](../../packages/dsh-rsi/README.md) · [🧩 harness پروژه](../../packages/dsh-rsi/README.md#layers-and-the-project-harness) · [🔬 دروازه‌ی اعتبارسنجی](../../packages/dsh-rsi/README.md#the-validation-gate) · [⚠️ محدودیت‌های شناخته‌شده](../../packages/dsh-rsi/README.md#known-limits) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
+**[🌐 وب‌سایت](https://qybaihe.github.io/dshrsi/) · [📖 مرجع پلاگین](../../packages/dsh-rsi/README.md) · [🧩 harness پروژه](../../packages/dsh-rsi/README.md#layers-and-the-project-harness) · [🔬 دروازه‌ی اعتبارسنجی](../../packages/dsh-rsi/README.md#the-validation-gate) · [⚠️ محدودیت‌های شناخته‌شده](../../packages/dsh-rsi/README.md#known-limits) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
 
 [معنای RSI](#rsi) · [شروع سریع](#quick-start) · [سازوکار](#how-it-works) · [نتایج اندازه‌گیری‌شده](#measured) · [بنچمارک‌ها](#benchmarks) · [آشکارسازها و قابلیت‌ها](#coverage) · [harness پروژه](#project-harness) · [پیش‌فرض‌های ایمنی](#security) · [پرسش‌های متداول](#faq)
 
@@ -92,13 +97,13 @@
 در اپ دسکتاپ DeepSeek Harness یا رابط وب آن، **Plugins → Add plugin → Install a third-party plugin** را باز کنید، نشانی بسته‌ی انتشار را بچسبانید، **Install** و بعد **Enable now** را انتخاب کنید:
 
 ```text
-https://github.com/qybaihe/dshrsi/releases/download/v0.1.0/dsh-rsi-0.1.0.tgz
+https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
 ```
 
 یا از خط فرمان. هر پروفایل پلاگین‌های خودش را دارد و `dsh plugin add` هم `pnpm` را صدا می‌زند که باید در `PATH` باشد:
 
 ```bash
-dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.0/dsh-rsi-0.1.0.tgz
+dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
 dsh web
 ```
 
@@ -248,7 +253,10 @@ MIMO_API_KEY=... npm run test:live -- python --sessions 5 --off    # اجرای 
 <!-- bench:table:end -->
 
 <div align="center">
-<img src="../../assets/bench-flash.png" alt="mimo-v2.6-flash, DSH → DSH + DSHRSI: Aider Polyglot 220 → 223 / 225 (+3), HumanEval 162 → 162 / 164, HumanEval+ 153 → 153 / 164, MBPP 368 → 369 / 378 (+1), MBPP+ 308 → 315 / 378 (+7). Rust lib.rs: 12 / 30 → 5 / 30, 7 / 22 → 1 / 22" width="960" />
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../../assets/bench-flash.dark.png" />
+  <img src="../../assets/bench-flash.png" alt="mimo-v2.6-flash, DSH → DSH + DSHRSI: Aider Polyglot 220 → 223 / 225 (+3), HumanEval 162 → 162 / 164, HumanEval+ 153 → 153 / 164, MBPP 368 → 369 / 378 (+1), MBPP+ 308 → 315 / 378 (+7). Rust lib.rs: 12 / 30 → 5 / 30, 7 / 22 → 1 / 22" width="960" />
+</picture>
 </div>
 
 > **این را چطور بخوانید:** از نظر تعداد تسک‌های حل‌شده، این دو harness را **نمی‌شود از هم تشخیص داد**. بزرگ‌ترین بهبود +7 است (MBPP+, `mimo-v2.6-flash`)، بزرگ‌ترین افت −3 (MBPP, `mimo-v2.6-pro`)، و هیچ تفاوتی در آزمون دقیق McNemar روی همان تسک‌ها دوام نمی‌آورد (کوچک‌ترین p = 0.17). وقتی ایجنت می‌تواند کد خودش را اجرا کند، این مجموعه‌ها برای هر دو مدل به سقف‌شان نزدیک‌اند، و هر تسک هم یک پوشه‌ی تازه و تمیز است: چیز زیادی تکرار نمی‌شود که harness از آن یاد بگیرد.

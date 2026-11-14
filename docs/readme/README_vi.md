@@ -10,7 +10,12 @@
 
 ### **Quan sát → Cải tiến → Xây tiếp trên đó → Lặp lại. Một harness càng dùng càng là của riêng bạn.**
 
-<img src="../../assets/rsi-trace.gif" alt="Ảnh động ghi lại một lần chạy thật: với harness gốc, 12 trên 30 phiên thực hiện cùng một lệnh gọi thất bại; với DSHRSI, đến lần thứ ba harness tự cải tiến chính nó, và 22 phiên sau đó chỉ gặp lại một lần" width="960" />
+<a href="https://qybaihe.github.io/dshrsi/trace.html">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/rsi-trace.dark.gif" />
+    <img src="../../assets/rsi-trace.gif" alt="Ảnh động ghi lại một lần chạy thật: với harness gốc, 12 trên 30 phiên thực hiện cùng một lệnh gọi thất bại; với DSHRSI, đến lần thứ ba harness tự cải tiến chính nó, và 22 phiên sau đó chỉ gặp lại một lần" width="960" />
+  </picture>
+</a>
 
 **RSI là Recursive Self-Improvement, tức Tự cải tiến đệ quy, và DSHRSI là plugin mã nguồn mở biến điều đó thành hiện thực trên DeepSeek Harness. Harness tự quan sát các lần chạy của chính nó, để chính mô hình của phiên viết code harness cho những trục trặc mà nó phát hiện, kiểm chứng đoạn code đó qua một cổng kiểm định 5 giai đoạn, rồi gắn nó vào trước khi lượt kết thúc. Sau đó, harness đã được cải tiến chạy phiên tiếp theo, và lại cải tiến thêm lần nữa. Không fine-tune. Không chồng chất prompt. Chỉ có code: được đo lường, rồi được giữ lại, viết lại hoặc vứt bỏ.**
 
@@ -23,7 +28,7 @@
 [![Tests](https://img.shields.io/badge/Tests-130_unit_%C2%B7_29_e2e-1d4ed8?style=for-the-badge)](#contributing)
 [![MIT License](https://img.shields.io/badge/License-MIT-38bdf8?style=for-the-badge)](../../LICENSE)
 
-**[📖 Tài liệu tham khảo plugin](../../packages/dsh-rsi/README.md) · [🧩 Harness dự án](../../packages/dsh-rsi/README.md#layers-and-the-project-harness) · [🔬 Cổng kiểm định](../../packages/dsh-rsi/README.md#the-validation-gate) · [⚠️ Giới hạn đã biết](../../packages/dsh-rsi/README.md#known-limits) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
+**[🌐 Trang web](https://qybaihe.github.io/dshrsi/) · [📖 Tài liệu tham khảo plugin](../../packages/dsh-rsi/README.md) · [🧩 Harness dự án](../../packages/dsh-rsi/README.md#layers-and-the-project-harness) · [🔬 Cổng kiểm định](../../packages/dsh-rsi/README.md#the-validation-gate) · [⚠️ Giới hạn đã biết](../../packages/dsh-rsi/README.md#known-limits) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
 
 [RSI nghĩa là gì](#rsi) · [Bắt đầu nhanh](#quick-start) · [Cách hoạt động](#how-it-works) · [Kết quả đo thực tế](#measured) · [Benchmark](#benchmarks) · [Bộ phát hiện & năng lực](#coverage) · [Harness dự án](#project-harness) · [Mặc định an toàn](#security) · [Câu hỏi thường gặp](#faq)
 
@@ -92,13 +97,13 @@ Phần được cố ý để **không** đệ quy: trọng số của mô hình
 Trong ứng dụng desktop hoặc giao diện Web của DeepSeek Harness, mở **Plugins → Add plugin → Install a third-party plugin**, dán đường dẫn gói phát hành vào, chọn **Install**, rồi **Enable now**:
 
 ```text
-https://github.com/qybaihe/dshrsi/releases/download/v0.1.0/dsh-rsi-0.1.0.tgz
+https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
 ```
 
 Hoặc cài từ dòng lệnh. Mỗi profile giữ bộ plugin riêng của nó, và `dsh plugin add` gọi `pnpm`, công cụ này phải có trên `PATH`:
 
 ```bash
-dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.0/dsh-rsi-0.1.0.tgz
+dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
 dsh web
 ```
 
@@ -248,7 +253,10 @@ DeepSeek Harness nguyên bản so với DeepSeek Harness + DSHRSI, qua 3,390 phi
 <!-- bench:table:end -->
 
 <div align="center">
-<img src="../../assets/bench-flash.png" alt="mimo-v2.6-flash, DSH → DSH + DSHRSI: Aider Polyglot 220 → 223 / 225 (+3), HumanEval 162 → 162 / 164, HumanEval+ 153 → 153 / 164, MBPP 368 → 369 / 378 (+1), MBPP+ 308 → 315 / 378 (+7). Rust lib.rs: 12 / 30 → 5 / 30, 7 / 22 → 1 / 22" width="960" />
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../../assets/bench-flash.dark.png" />
+  <img src="../../assets/bench-flash.png" alt="mimo-v2.6-flash, DSH → DSH + DSHRSI: Aider Polyglot 220 → 223 / 225 (+3), HumanEval 162 → 162 / 164, HumanEval+ 153 → 153 / 164, MBPP 368 → 369 / 378 (+1), MBPP+ 308 → 315 / 378 (+7). Rust lib.rs: 12 / 30 → 5 / 30, 7 / 22 → 1 / 22" width="960" />
+</picture>
 </div>
 
 > **Cách đọc bảng này:** xét về số task giải được, hai harness **không thể phân biệt được với nhau**. Mức tăng lớn nhất là +7 (MBPP+ với `mimo-v2.6-flash`), mức giảm lớn nhất là −3 (MBPP với `mimo-v2.6-pro`), và không khác biệt nào đứng vững trong kiểm định McNemar chính xác trên cùng các task (p nhỏ nhất = 0.17). Khi agent có thể tự chạy code của mình, các bộ benchmark này đã gần chạm trần với cả hai mô hình, và mỗi task là một thư mục mới tinh, sạch sẽ: rất ít thứ lặp lại để một harness có thể học từ đó.

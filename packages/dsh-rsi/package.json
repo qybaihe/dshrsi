@@ -1,6 +1,6 @@
 {
   "name": "dsh-rsi",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "DSHRSI: Recursive Self-Improvement for DeepSeek Harness. A plugin through which the harness improves itself around its machine, its user and its project, and builds on each improvement",
   "type": "module",
   "main": "index.js",
@@ -36,7 +36,7 @@
   ],
   "author": "qybaihe",
   "license": "MIT",
-  "homepage": "https://github.com/qybaihe/dshrsi#readme",
+  "homepage": "https://qybaihe.github.io/dshrsi/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/qybaihe/dshrsi.git",

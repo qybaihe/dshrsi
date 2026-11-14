@@ -10,7 +10,12 @@
 
 ### **راقِب ← حسِّن ← ابنِ على التحسين ← ثم من جديد. harness يصير لك أنت أكثر فأكثر.**
 
-<img src="../../assets/rsi-trace.gif" alt="تسجيل متحرك لتشغيل حقيقي: مع الـ harness الأصلي، 12 جلسة من 30 تنفّذ الاستدعاء الفاشل نفسه؛ ومع DSHRSI يحسّن الـ harness نفسه عند المرة الثالثة، ولا يتكرر ذلك في الجلسات الـ 22 التالية إلا مرة واحدة" width="960" />
+<a href="https://qybaihe.github.io/dshrsi/trace.html">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/rsi-trace.dark.gif" />
+    <img src="../../assets/rsi-trace.gif" alt="تسجيل متحرك لتشغيل حقيقي: مع الـ harness الأصلي، 12 جلسة من 30 تنفّذ الاستدعاء الفاشل نفسه؛ ومع DSHRSI يحسّن الـ harness نفسه عند المرة الثالثة، ولا يتكرر ذلك في الجلسات الـ 22 التالية إلا مرة واحدة" width="960" />
+  </picture>
+</a>
 
 **يرمز RSI إلى Recursive Self-Improvement، أي التحسين الذاتي التكراري؛ أما DSHRSI فهو الإضافة (plugin) مفتوحة المصدر التي تجعله واقعًا في DeepSeek Harness. الـ harness (الكود الذي يشغّل النموذج وأدواته) يراقب تشغيلاته هو نفسه، ويجعل نموذج الجلسة نفسها يكتب كود harness لما يجده من مشكلات، ويثبت صحة ذلك الكود في بوابة تحقق من 5 مراحل، ثم يركّبه قبل أن تنتهي الجولة. بعدها يتولى الـ harness المحسَّن الجلسة التالية، ويتحسّن من جديد. بلا ضبط دقيق للنموذج (fine-tuning). وبلا أكوام من الموجّهات (prompts). بل كود يُقاس، فيُحتفظ به أو تُعاد كتابته أو يُرمى.**
 
@@ -23,7 +28,7 @@
 [![Tests](https://img.shields.io/badge/Tests-130_unit_%C2%B7_29_e2e-1d4ed8?style=for-the-badge)](#contributing)
 [![MIT License](https://img.shields.io/badge/License-MIT-38bdf8?style=for-the-badge)](../../LICENSE)
 
-**[📖 مرجع الإضافة](../../packages/dsh-rsi/README.md) · [🧩 harness المشروع](../../packages/dsh-rsi/README.md#layers-and-the-project-harness) · [🔬 بوابة التحقق](../../packages/dsh-rsi/README.md#the-validation-gate) · [⚠️ القيود المعروفة](../../packages/dsh-rsi/README.md#known-limits) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
+**[🌐 الموقع](https://qybaihe.github.io/dshrsi/) · [📖 مرجع الإضافة](../../packages/dsh-rsi/README.md) · [🧩 harness المشروع](../../packages/dsh-rsi/README.md#layers-and-the-project-harness) · [🔬 بوابة التحقق](../../packages/dsh-rsi/README.md#the-validation-gate) · [⚠️ القيود المعروفة](../../packages/dsh-rsi/README.md#known-limits) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
 
 [ما معنى RSI](#rsi) · [البداية السريعة](#quick-start) · [كيف يعمل](#how-it-works) · [نتائج القياس](#measured) · [اختبارات الـ benchmark](#benchmarks) · [الكواشف والقدرات](#coverage) · [harness المشروع](#project-harness) · [إعدادات الأمان الافتراضية](#security) · [الأسئلة الشائعة](#faq)
 
@@ -92,13 +97,13 @@
 في تطبيق سطح المكتب لـ DeepSeek Harness أو في واجهة الويب، افتح **Plugins → Add plugin → Install a third-party plugin**، والصق رابط حزمة الإصدار، ثم اختر **Install** وبعدها **Enable now**:
 
 ```text
-https://github.com/qybaihe/dshrsi/releases/download/v0.1.0/dsh-rsi-0.1.0.tgz
+https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
 ```
 
 أو من سطر الأوامر. لكل profile (ملف تعريف) إضافاته الخاصة، والأمر `dsh plugin add` يستدعي `pnpm`، فيجب أن يكون موجودًا في `PATH`:
 
 ```bash
-dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.0/dsh-rsi-0.1.0.tgz
+dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
 dsh web
 ```
 
@@ -248,7 +253,10 @@ MIMO_API_KEY=... npm run test:live -- python --sessions 5 --off    # تشغيل 
 <!-- bench:table:end -->
 
 <div align="center">
-<img src="../../assets/bench-flash.png" alt="mimo-v2.6-flash, DSH → DSH + DSHRSI: Aider Polyglot 220 → 223 / 225 (+3), HumanEval 162 → 162 / 164, HumanEval+ 153 → 153 / 164, MBPP 368 → 369 / 378 (+1), MBPP+ 308 → 315 / 378 (+7). Rust lib.rs: 12 / 30 → 5 / 30, 7 / 22 → 1 / 22" width="960" />
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../../assets/bench-flash.dark.png" />
+  <img src="../../assets/bench-flash.png" alt="mimo-v2.6-flash, DSH → DSH + DSHRSI: Aider Polyglot 220 → 223 / 225 (+3), HumanEval 162 → 162 / 164, HumanEval+ 153 → 153 / 164, MBPP 368 → 369 / 378 (+1), MBPP+ 308 → 315 / 378 (+7). Rust lib.rs: 12 / 30 → 5 / 30, 7 / 22 → 1 / 22" width="960" />
+</picture>
 </div>
 
 > **كيف تقرأ هذا:** من حيث المهام المحلولة، نسختا الـ harness **لا يمكن التفريق بينهما**. أكبر مكسب +7 (MBPP+، `mimo-v2.6-flash`)، وأكبر خسارة −3 (MBPP، `mimo-v2.6-pro`)، ولا يصمد أي فرق أمام اختبار McNemar الدقيق على المهام نفسها (أصغر p = 0.17). حين يستطيع الوكيل أن يشغّل كوده بنفسه، تكون هذه المجموعات قريبة من سقفها عند النموذجين كليهما، وكل مهمة مجلد جديد نظيف: فلا يكاد يتكرر شيء يتعلم منه الـ harness.

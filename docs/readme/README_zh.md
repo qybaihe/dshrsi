@@ -10,7 +10,12 @@
 
 ### **观察 → 改进 → 在改进之上再改进。一份越用越懂你的 Harness。**
 
-<img src="../../assets/rsi-trace.zh.gif" alt="一次真实运行的动画记录：原版 Harness 的 30 次会话里有 12 次发出同一个失败调用；装上 DSHRSI 后，第三次撞上时 Harness 改进了自己，之后的 22 次会话只再出现 1 次" width="960" />
+<a href="https://qybaihe.github.io/dshrsi/trace.html">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/rsi-trace.zh.dark.gif" />
+    <img src="../../assets/rsi-trace.zh.gif" alt="一次真实运行的动画记录：原版 Harness 的 30 次会话里有 12 次发出同一个失败调用；装上 DSHRSI 后，第三次撞上时 Harness 改进了自己，之后的 22 次会话只再出现 1 次" width="960" />
+  </picture>
+</a>
 
 **RSI 是 Recursive Self-Improvement，递归自我改进。DSHRSI 是把它在 DeepSeek Harness 上做成现实的开源插件：Harness 盯着自己的每一次运行，让会话里的模型为发现的麻烦写一段 Harness 代码，过五道校验，在这一轮结束之前挂上去。然后，改进过的 Harness 去跑下一次会话，再改进一次。不微调模型，不堆提示词。是代码，会被度量，留下、改写或者扔掉。**
 
@@ -23,7 +28,7 @@
 [![Tests](https://img.shields.io/badge/Tests-130_unit_%C2%B7_29_e2e-1d4ed8?style=for-the-badge)](#contributing)
 [![MIT License](https://img.shields.io/badge/License-MIT-38bdf8?style=for-the-badge)](../../LICENSE)
 
-**[📖 插件参考文档](../../packages/dsh-rsi/README.zh.md) · [🧩 项目 Harness](../../packages/dsh-rsi/README.zh.md#layers-and-the-project-harness) · [🔬 校验关](../../packages/dsh-rsi/README.zh.md#the-validation-gate) · [⚠️ 已知限制](../../packages/dsh-rsi/README.zh.md#known-limits) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
+**[🌐 官网](https://qybaihe.github.io/dshrsi/) · [📖 插件参考文档](../../packages/dsh-rsi/README.zh.md) · [🧩 项目 Harness](../../packages/dsh-rsi/README.zh.md#layers-and-the-project-harness) · [🔬 校验关](../../packages/dsh-rsi/README.zh.md#the-validation-gate) · [⚠️ 已知限制](../../packages/dsh-rsi/README.zh.md#known-limits) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
 
 [RSI 是什么](#rsi) · [快速开始](#quick-start) · [工作原理](#how-it-works) · [实测结果](#measured) · [基准评测](#benchmarks) · [判断点与能力](#coverage) · [项目 Harness](#project-harness) · [安全默认值](#security) · [常见问题](#faq)
 
@@ -92,13 +97,13 @@
 在 DeepSeek Harness 桌面 App 或 Web 界面里，打开 **Plugins → Add plugin → Install a third-party plugin**，粘贴发布包地址，点 **Install**，再点 **Enable now**：
 
 ```text
-https://github.com/qybaihe/dshrsi/releases/download/v0.1.0/dsh-rsi-0.1.0.tgz
+https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
 ```
 
 也可以用命令行。每个 profile 有自己的一套插件；`dsh plugin add` 会调用 `pnpm`，它需要在 `PATH` 上：
 
 ```bash
-dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.0/dsh-rsi-0.1.0.tgz
+dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
 dsh web
 ```
 
@@ -248,7 +253,10 @@ MIMO_API_KEY=... npm run test:live -- python --sessions 5 --off    # 对照组�
 <!-- bench:table:end -->
 
 <div align="center">
-<img src="../../assets/bench-flash.zh.png" alt="mimo-v2.6-flash, DSH → DSH + DSHRSI: Aider Polyglot 220 → 223 / 225 (+3), HumanEval 162 → 162 / 164, HumanEval+ 153 → 153 / 164, MBPP 368 → 369 / 378 (+1), MBPP+ 308 → 315 / 378 (+7). Rust lib.rs: 12 / 30 → 5 / 30, 7 / 22 → 1 / 22" width="960" />
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../../assets/bench-flash.zh.dark.png" />
+  <img src="../../assets/bench-flash.zh.png" alt="mimo-v2.6-flash, DSH → DSH + DSHRSI: Aider Polyglot 220 → 223 / 225 (+3), HumanEval 162 → 162 / 164, HumanEval+ 153 → 153 / 164, MBPP 368 → 369 / 378 (+1), MBPP+ 308 → 315 / 378 (+7). Rust lib.rs: 12 / 30 → 5 / 30, 7 / 22 → 1 / 22" width="960" />
+</picture>
 </div>
 
 > **怎么读这张表：** 论解出的题数，两套 Harness **分不出高下**。最大的正差是 +7（`mimo-v2.6-flash` 的 MBPP+），最大的负差是 −3（`mimo-v2.6-pro` 的 MBPP），在同一批题上做精确 McNemar 检验，没有一项差别站得住（最小的 p = 0.17）。智能体可以自己跑代码时，这几个基准对两个模型都已接近到顶；而且每道题都是一个全新的干净目录，很少有麻烦会重复出现，Harness 没有多少可学的。

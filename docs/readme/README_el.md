@@ -10,7 +10,12 @@
 
 ### **Παρατηρεί → Βελτιώνεται → Χτίζει πάνω σε αυτό → Ξανά. Ένα harness που γίνεται όλο και πιο δικό σου.**
 
-<img src="../../assets/rsi-trace.gif" alt="Κινούμενη αποτύπωση μιας πραγματικής εκτέλεσης: με το αρχικό harness, 12 συνεδρίες στις 30 κάνουν την ίδια αποτυχημένη κλήση· με το DSHRSI, την τρίτη φορά το harness βελτιώνει τον εαυτό του, και στις επόμενες 22 συνεδρίες αυτό συμβαίνει μία φορά" width="960" />
+<a href="https://qybaihe.github.io/dshrsi/trace.html">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/rsi-trace.dark.gif" />
+    <img src="../../assets/rsi-trace.gif" alt="Κινούμενη αποτύπωση μιας πραγματικής εκτέλεσης: με το αρχικό harness, 12 συνεδρίες στις 30 κάνουν την ίδια αποτυχημένη κλήση· με το DSHRSI, την τρίτη φορά το harness βελτιώνει τον εαυτό του, και στις επόμενες 22 συνεδρίες αυτό συμβαίνει μία φορά" width="960" />
+  </picture>
+</a>
 
 **RSI σημαίνει Recursive Self-Improvement, αναδρομική αυτοβελτίωση, και το DSHRSI είναι το plugin ανοιχτού κώδικα που την κάνει πράξη στο DeepSeek Harness. Το harness παρακολουθεί τις δικές του εκτελέσεις, βάζει το ίδιο το μοντέλο της συνεδρίας να γράψει κώδικα harness για τα προβλήματα που βρίσκει, επικυρώνει αυτόν τον κώδικα σε μια πύλη 5 σταδίων και τον προσαρτά πριν τελειώσει ο γύρος. Έπειτα το βελτιωμένο harness τρέχει την επόμενη συνεδρία και βελτιώνεται ξανά. Χωρίς fine-tuning. Χωρίς σωρό από prompts. Κώδικας που μετριέται, κρατιέται, ξαναγράφεται ή πετιέται.**
 
@@ -23,7 +28,7 @@
 [![Tests](https://img.shields.io/badge/Tests-130_unit_%C2%B7_29_e2e-1d4ed8?style=for-the-badge)](#contributing)
 [![MIT License](https://img.shields.io/badge/License-MIT-38bdf8?style=for-the-badge)](../../LICENSE)
 
-**[📖 Οδηγός αναφοράς του plugin](../../packages/dsh-rsi/README.md) · [🧩 Harness του project](../../packages/dsh-rsi/README.md#layers-and-the-project-harness) · [🔬 Πύλη επικύρωσης](../../packages/dsh-rsi/README.md#the-validation-gate) · [⚠️ Γνωστοί περιορισμοί](../../packages/dsh-rsi/README.md#known-limits) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
+**[🌐 Ιστότοπος](https://qybaihe.github.io/dshrsi/) · [📖 Οδηγός αναφοράς του plugin](../../packages/dsh-rsi/README.md) · [🧩 Harness του project](../../packages/dsh-rsi/README.md#layers-and-the-project-harness) · [🔬 Πύλη επικύρωσης](../../packages/dsh-rsi/README.md#the-validation-gate) · [⚠️ Γνωστοί περιορισμοί](../../packages/dsh-rsi/README.md#known-limits) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
 
 [Τι σημαίνει RSI](#rsi) · [Γρήγορη εκκίνηση](#quick-start) · [Πώς δουλεύει](#how-it-works) · [Μετρημένα αποτελέσματα](#measured) · [Benchmarks](#benchmarks) · [Ανιχνευτές & δυνατότητες](#coverage) · [Harness του project](#project-harness) · [Προεπιλογές ασφαλείας](#security) · [Συχνές ερωτήσεις](#faq)
 
@@ -92,13 +97,13 @@
 Στην εφαρμογή desktop ή στο Web UI του DeepSeek Harness, άνοιξε **Plugins → Add plugin → Install a third-party plugin**, επικόλλησε τη διεύθυνση του πακέτου της έκδοσης, πάτησε **Install** και μετά **Enable now**:
 
 ```text
-https://github.com/qybaihe/dshrsi/releases/download/v0.1.0/dsh-rsi-0.1.0.tgz
+https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
 ```
 
 Ή από τη γραμμή εντολών. Κάθε προφίλ κρατά τα δικά του plugins, και το `dsh plugin add` καλεί το `pnpm`, που πρέπει να βρίσκεται στο `PATH`:
 
 ```bash
-dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.0/dsh-rsi-0.1.0.tgz
+dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
 dsh web
 ```
 
@@ -248,7 +253,10 @@ MIMO_API_KEY=... npm run test:live -- python --sessions 5 --off    # εκτέλ�
 <!-- bench:table:end -->
 
 <div align="center">
-<img src="../../assets/bench-flash.png" alt="mimo-v2.6-flash, DSH → DSH + DSHRSI: Aider Polyglot 220 → 223 / 225 (+3), HumanEval 162 → 162 / 164, HumanEval+ 153 → 153 / 164, MBPP 368 → 369 / 378 (+1), MBPP+ 308 → 315 / 378 (+7). Rust lib.rs: 12 / 30 → 5 / 30, 7 / 22 → 1 / 22" width="960" />
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../../assets/bench-flash.dark.png" />
+  <img src="../../assets/bench-flash.png" alt="mimo-v2.6-flash, DSH → DSH + DSHRSI: Aider Polyglot 220 → 223 / 225 (+3), HumanEval 162 → 162 / 164, HumanEval+ 153 → 153 / 164, MBPP 368 → 369 / 378 (+1), MBPP+ 308 → 315 / 378 (+7). Rust lib.rs: 12 / 30 → 5 / 30, 7 / 22 → 1 / 22" width="960" />
+</picture>
 </div>
 
 > **Πώς να το διαβάσεις:** στις εργασίες που λύθηκαν, τα δύο harness **δεν διακρίνονται το ένα από το άλλο**. Το μεγαλύτερο κέρδος είναι +7 (MBPP+ με `mimo-v2.6-flash`), η μεγαλύτερη απώλεια είναι −3 (MBPP με `mimo-v2.6-pro`), και καμία διαφορά δεν στέκει σε ακριβή έλεγχο McNemar πάνω στις ίδιες εργασίες (μικρότερο p = 0.17). Όταν ο agent μπορεί να τρέξει τον δικό του κώδικα, αυτές οι σουίτες βρίσκονται κοντά στο ταβάνι τους και για τα δύο μοντέλα, και κάθε εργασία είναι ένας καινούργιος, καθαρός κατάλογος: ελάχιστα πράγματα επανέρχονται ώστε να έχει κάτι να μάθει ένα harness.

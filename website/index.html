@@ -35,9 +35,9 @@
     </div>
 
     <figure class="reel">
-      <img lang="zh" src="assets/img/rsi-trace.zh.gif" width="1280" height="720" alt="动画：原版 Harness 在 30 个会话里有 12 个去读不存在的 lib.rs；装上 DSHRSI 后，第三次撞上时模型给 Harness 写了一段代码，36.9 秒后挂载，之后的 22 个会话只再出现 1 次">
-      <img lang="en" src="assets/img/rsi-trace.gif" width="1280" height="720" alt="Animation: on the stock harness 12 of 30 sessions read a lib.rs that is not there; with DSHRSI the model writes harness code the third time it happens, it is mounted 36.9 seconds later, and the next 22 sessions hit it once">
-      <figcaption><span lang="zh">不是演示脚本：取自一次评测运行的日志。<a href="trace.html">逐步看完整实录 →</a></span><span lang="en">Not a scripted demo: lifted from the logs of a benchmark run. <a href="trace.html">The full trace, step by step →</a></span></figcaption>
+      <picture lang="zh"><source media="(prefers-color-scheme: dark)" srcset="assets/img/rsi-trace.zh.dark.gif"><img src="assets/img/rsi-trace.zh.gif" width="1280" height="720" alt="动画：原版 Harness 在 30 个会话里有 12 个去读不存在的 lib.rs；装上 DSHRSI 后，第三次撞上时模型给 Harness 写了一段代码，36.9 秒后挂载，之后的 22 个会话只再出现 1 次"></picture>
+      <picture lang="en"><source media="(prefers-color-scheme: dark)" srcset="assets/img/rsi-trace.dark.gif"><img src="assets/img/rsi-trace.gif" width="1280" height="720" alt="Animation: on the stock harness 12 of 30 sessions read a lib.rs that is not there; with DSHRSI the model writes harness code the third time it happens, it is mounted 36.9 seconds later, and the next 22 sessions hit it once"></picture>
+      <figcaption><span lang="zh">按日志回放的一次真实会话，不是屏幕录像：评测无界面运行，画面照 DeepSeek Harness 的界面重画，名字、时间、报错和代码都取自日志。<a href="trace.html">逐步看完整实录 →</a></span><span lang="en">A real session replayed from its logs, not a screen recording: the benchmark ran headless, and the picture is redrawn after the DeepSeek Harness interface. Names, times, errors and code are the log's. <a href="trace.html">The full trace, step by step →</a></span></figcaption>
     </figure>
   </div>
 </div>
@@ -148,12 +148,12 @@
       <div class="card">
         <h3><span lang="zh">在桌面 App 或 Web 界面里</span><span lang="en">In the desktop app or the Web UI</span></h3>
         <p><span lang="zh">打开 <strong>Plugins → Add plugin → Install a third-party plugin</strong>，粘贴下面的地址，点 <strong>Install</strong>，再点 <strong>Enable now</strong>。</span><span lang="en">Open <strong>Plugins → Add plugin → Install a third-party plugin</strong>, paste the address below, select <strong>Install</strong>, then <strong>Enable now</strong>.</span></p>
-<pre><code>https://github.com/qybaihe/dshrsi/releases/download/v0.1.0/dsh-rsi-0.1.0.tgz</code></pre>
+<pre><code>https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz</code></pre>
       </div>
       <div class="card">
         <h3><span lang="zh">通过命令行</span><span lang="en">From the command line</span></h3>
         <p><span lang="zh">每个 profile 有自己的一套插件。<code>dsh plugin add</code> 会调用 <code>pnpm</code>，它需要在 <code>PATH</code> 上。</span><span lang="en">Each profile keeps its own plugins. <code>dsh plugin add</code> calls <code>pnpm</code>, which has to be on <code>PATH</code>.</span></p>
-<pre><code>dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.0/dsh-rsi-0.1.0.tgz
+<pre><code>dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
 dsh web</code></pre>
       </div>
     </div>

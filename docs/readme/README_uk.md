@@ -10,7 +10,12 @@
 
 ### **Спостерігає → Покращує → Будує на покращеному → І знову. Harness, який дедалі краще вміє бути саме вашим.**
 
-<img src="../../assets/rsi-trace.gif" alt="Анімація за записом реального запуску: на стандартному harness 12 сесій із 30 роблять той самий невдалий виклик; з DSHRSI harness на третій раз покращує сам себе, і в наступних 22 сесіях це трапляється один раз" width="960" />
+<a href="https://qybaihe.github.io/dshrsi/trace.html">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/rsi-trace.dark.gif" />
+    <img src="../../assets/rsi-trace.gif" alt="Анімація за записом реального запуску: на стандартному harness 12 сесій із 30 роблять той самий невдалий виклик; з DSHRSI harness на третій раз покращує сам себе, і в наступних 22 сесіях це трапляється один раз" width="960" />
+  </picture>
+</a>
 
 **RSI — це Recursive Self-Improvement, рекурсивне самовдосконалення, а DSHRSI — плагін з відкритим кодом, який робить його реальністю для DeepSeek Harness. Harness спостерігає за власними запусками, доручає моделі тієї ж сесії написати код harness для знайдених проблем, перевіряє цей код у 5-етапному шлюзі валідації та монтує його ще до завершення ходу. Потім покращений harness веде наступну сесію і покращується знову. Без файнтюнінгу. Без купи промптів. Код, який вимірюють, залишають, переписують або викидають.**
 
@@ -23,7 +28,7 @@
 [![Tests](https://img.shields.io/badge/Tests-130_unit_%C2%B7_29_e2e-1d4ed8?style=for-the-badge)](#contributing)
 [![MIT License](https://img.shields.io/badge/License-MIT-38bdf8?style=for-the-badge)](../../LICENSE)
 
-**[📖 Довідник плагіна](../../packages/dsh-rsi/README.md) · [🧩 Проєктний harness](../../packages/dsh-rsi/README.md#layers-and-the-project-harness) · [🔬 Шлюз валідації](../../packages/dsh-rsi/README.md#the-validation-gate) · [⚠️ Відомі обмеження](../../packages/dsh-rsi/README.md#known-limits) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
+**[🌐 Сайт](https://qybaihe.github.io/dshrsi/) · [📖 Довідник плагіна](../../packages/dsh-rsi/README.md) · [🧩 Проєктний harness](../../packages/dsh-rsi/README.md#layers-and-the-project-harness) · [🔬 Шлюз валідації](../../packages/dsh-rsi/README.md#the-validation-gate) · [⚠️ Відомі обмеження](../../packages/dsh-rsi/README.md#known-limits) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
 
 [Що таке RSI](#rsi) · [Швидкий старт](#quick-start) · [Як це працює](#how-it-works) · [Результати вимірювань](#measured) · [Бенчмарки](#benchmarks) · [Детектори та можливості](#coverage) · [Проєктний harness](#project-harness) · [Типові налаштування безпеки](#security) · [Часті запитання](#faq)
 
@@ -92,13 +97,13 @@
 У десктопному застосунку DeepSeek Harness або у вебінтерфейсі відкрийте **Plugins → Add plugin → Install a third-party plugin**, вставте адресу релізного пакета, натисніть **Install**, а потім **Enable now**:
 
 ```text
-https://github.com/qybaihe/dshrsi/releases/download/v0.1.0/dsh-rsi-0.1.0.tgz
+https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
 ```
 
 Або з командного рядка. Кожен профіль має власний набір плагінів, а `dsh plugin add` викликає `pnpm`, який має бути в `PATH`:
 
 ```bash
-dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.0/dsh-rsi-0.1.0.tgz
+dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
 dsh web
 ```
 
@@ -248,7 +253,10 @@ MIMO_API_KEY=... npm run test:live -- python --sessions 5 --off    # контр�
 <!-- bench:table:end -->
 
 <div align="center">
-<img src="../../assets/bench-flash.png" alt="mimo-v2.6-flash, DSH → DSH + DSHRSI: Aider Polyglot 220 → 223 / 225 (+3), HumanEval 162 → 162 / 164, HumanEval+ 153 → 153 / 164, MBPP 368 → 369 / 378 (+1), MBPP+ 308 → 315 / 378 (+7). Rust lib.rs: 12 / 30 → 5 / 30, 7 / 22 → 1 / 22" width="960" />
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../../assets/bench-flash.dark.png" />
+  <img src="../../assets/bench-flash.png" alt="mimo-v2.6-flash, DSH → DSH + DSHRSI: Aider Polyglot 220 → 223 / 225 (+3), HumanEval 162 → 162 / 164, HumanEval+ 153 → 153 / 164, MBPP 368 → 369 / 378 (+1), MBPP+ 308 → 315 / 378 (+7). Rust lib.rs: 12 / 30 → 5 / 30, 7 / 22 → 1 / 22" width="960" />
+</picture>
 </div>
 
 > **Як це читати:** за кількістю розв'язаних задач два harness **неможливо розрізнити**. Найбільший приріст становить +7 (MBPP+ з `mimo-v2.6-flash`), найбільша втрата становить −3 (MBPP з `mimo-v2.6-pro`), і жодна різниця не витримує точного тесту Макнемара на тих самих задачах (найменше p = 0.17). Коли агент може запускати власний код, ці набори для обох моделей близькі до стелі, а кожна задача — це нова чиста директорія: дуже мало що повторюється, тож harness майже немає на чому вчитися.

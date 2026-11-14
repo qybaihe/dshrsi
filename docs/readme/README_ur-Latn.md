@@ -10,7 +10,12 @@
 
 ### **Dekhna → Behtar Banana → Usi par Aage Banana → Phir Se. Ek harness jo har baar pehle se zyada aap ka apna banta jata hai.**
 
-<img src="../../assets/rsi-trace.gif" alt="Ek asli run ka animated trace: stock harness par 30 mein se 12 sessions wahi fail hone wali call karte hain; DSHRSI ke saath teesri baar harness khud ko behtar bana leta hai, aur agle 22 sessions mein yeh sirf ek baar hota hai" width="960" />
+<a href="https://qybaihe.github.io/dshrsi/trace.html">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/rsi-trace.dark.gif" />
+    <img src="../../assets/rsi-trace.gif" alt="Ek asli run ka animated trace: stock harness par 30 mein se 12 sessions wahi fail hone wali call karte hain; DSHRSI ke saath teesri baar harness khud ko behtar bana leta hai, aur agle 22 sessions mein yeh sirf ek baar hota hai" width="960" />
+  </picture>
+</a>
 
 **RSI ka matlab hai Recursive Self-Improvement, yani khud ko baar baar behtar banana, aur DSHRSI woh open-source plugin hai jo DeepSeek Harness ke liye ise haqeeqat banata hai. Harness apne hi runs par nazar rakhta hai, jo masla use milta hai us ke liye usi session ke model se harness code likhwata hai, us code ko 5-stage gate mein parakhta hai, aur turn khatam hone se pehle use mount kar deta hai. Phir behtar hua harness agla session chalata hai, aur dobara behtar hota hai. Koi fine-tuning nahin. Prompts ka koi dher nahin. Code, jise naapa jata hai, aur phir rakha jata hai, dobara likha jata hai ya phenk diya jata hai.**
 
@@ -23,7 +28,7 @@
 [![Tests](https://img.shields.io/badge/Tests-130_unit_%C2%B7_29_e2e-1d4ed8?style=for-the-badge)](#contributing)
 [![MIT License](https://img.shields.io/badge/License-MIT-38bdf8?style=for-the-badge)](../../LICENSE)
 
-**[📖 Plugin Reference](../../packages/dsh-rsi/README.md) · [🧩 Project Harness](../../packages/dsh-rsi/README.md#layers-and-the-project-harness) · [🔬 Validation Gate](../../packages/dsh-rsi/README.md#the-validation-gate) · [⚠️ Maloom Limits](../../packages/dsh-rsi/README.md#known-limits) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
+**[🌐 Website](https://qybaihe.github.io/dshrsi/) · [📖 Plugin Reference](../../packages/dsh-rsi/README.md) · [🧩 Project Harness](../../packages/dsh-rsi/README.md#layers-and-the-project-harness) · [🔬 Validation Gate](../../packages/dsh-rsi/README.md#the-validation-gate) · [⚠️ Maloom Limits](../../packages/dsh-rsi/README.md#known-limits) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
 
 [RSI ka Matlab](#rsi) · [Quick Start](#quick-start) · [Yeh Kaise Kaam Karta Hai](#how-it-works) · [Naape Hue Results](#measured) · [Benchmarks](#benchmarks) · [Detectors aur Capabilities](#coverage) · [Project Harness](#project-harness) · [Safety ke Defaults](#security) · [FAQ](#faq)
 
@@ -92,13 +97,13 @@ Jo cheez jaan boojh kar recursive **nahin** rakhi gayi: model ke weights kabhi n
 DeepSeek Harness ki desktop app ya Web UI mein **Plugins → Add plugin → Install a third-party plugin** kholein, release package paste karein, **Install** select karein, phir **Enable now**:
 
 ```text
-https://github.com/qybaihe/dshrsi/releases/download/v0.1.0/dsh-rsi-0.1.0.tgz
+https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
 ```
 
 Ya phir command line se. Har profile ke apne alag plugins hote hain, aur `dsh plugin add` jis `pnpm` ko call karta hai, us ka `PATH` par hona zaroori hai:
 
 ```bash
-dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.0/dsh-rsi-0.1.0.tgz
+dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
 dsh web
 ```
 
@@ -248,7 +253,10 @@ Stock DeepSeek Harness banam DeepSeek Harness + DSHRSI, 3,390 asli `dsh` session
 <!-- bench:table:end -->
 
 <div align="center">
-<img src="../../assets/bench-flash.png" alt="mimo-v2.6-flash, DSH → DSH + DSHRSI: Aider Polyglot 220 → 223 / 225 (+3), HumanEval 162 → 162 / 164, HumanEval+ 153 → 153 / 164, MBPP 368 → 369 / 378 (+1), MBPP+ 308 → 315 / 378 (+7). Rust lib.rs: 12 / 30 → 5 / 30, 7 / 22 → 1 / 22" width="960" />
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../../assets/bench-flash.dark.png" />
+  <img src="../../assets/bench-flash.png" alt="mimo-v2.6-flash, DSH → DSH + DSHRSI: Aider Polyglot 220 → 223 / 225 (+3), HumanEval 162 → 162 / 164, HumanEval+ 153 → 153 / 164, MBPP 368 → 369 / 378 (+1), MBPP+ 308 → 315 / 378 (+7). Rust lib.rs: 12 / 30 → 5 / 30, 7 / 22 → 1 / 22" width="960" />
+</picture>
 </div>
 
 > **Ise kaise parhein:** solve hone wale tasks ke lihaz se dono harnesses mein **farq nahin kiya ja sakta**. Sab se bara izafa +7 hai (MBPP+, `mimo-v2.6-flash` ke saath), sab se bari kami −3 hai (MBPP, `mimo-v2.6-pro` ke saath), aur unhi tasks par exact McNemar test mein koi bhi farq tik nahin pata (sab se chhota p = 0.17). Jab agent apna code khud chala sakta hai to yeh suites dono models ke liye apni ceiling ke qareeb hote hain, aur har task ek nayi, saaf directory hota hai: harness ke seekhne ke liye bohat kam cheezein dobara saamne aati hain.

@@ -10,7 +10,12 @@
 
 ### **สังเกต → ปรับปรุง → ต่อยอด → แล้ววนอีกรอบ — harness ที่ยิ่งใช้ ยิ่งเป็นของคุณ**
 
-<img src="../../assets/rsi-trace.gif" alt="ภาพเคลื่อนไหวจากการรันจริง: บน harness เดิม 12 จาก 30 เซสชันเรียก tool แล้วล้มเหลวแบบเดียวกัน เมื่อมี DSHRSI พอเกิดครั้งที่สาม harness ก็ปรับปรุงตัวเอง และอีก 22 เซสชันถัดมาเกิดขึ้นเพียงครั้งเดียว" width="960" />
+<a href="https://qybaihe.github.io/dshrsi/trace.html">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/rsi-trace.dark.gif" />
+    <img src="../../assets/rsi-trace.gif" alt="ภาพเคลื่อนไหวจากการรันจริง: บน harness เดิม 12 จาก 30 เซสชันเรียก tool แล้วล้มเหลวแบบเดียวกัน เมื่อมี DSHRSI พอเกิดครั้งที่สาม harness ก็ปรับปรุงตัวเอง และอีก 22 เซสชันถัดมาเกิดขึ้นเพียงครั้งเดียว" width="960" />
+  </picture>
+</a>
 
 **RSI คือ Recursive Self-Improvement หรือการปรับปรุงตนเองแบบเรียกซ้ำ และ DSHRSI คือ plugin โอเพนซอร์สที่ทำให้เรื่องนี้เกิดขึ้นจริงบน DeepSeek Harness โดย harness จะเฝ้าดูการรันของตัวเอง ให้โมเดลของเซสชันนั้นเองเขียนโค้ด harness มาแก้ปัญหาที่เจอ พิสูจน์โค้ดนั้นด้วยด่านตรวจสอบ 5 ขั้น แล้ว mount ให้เสร็จก่อนเทิร์นจะจบ จากนั้น harness ที่ปรับปรุงแล้วก็ไปรันเซสชันถัดไป แล้วปรับปรุงตัวเองอีกรอบ ไม่มีการ fine-tune ไม่มี prompt กองพะเนิน มีแต่โค้ดที่ถูกวัดผล แล้วเก็บไว้ เขียนใหม่ หรือโยนทิ้ง**
 
@@ -23,7 +28,7 @@
 [![Tests](https://img.shields.io/badge/Tests-130_unit_%C2%B7_29_e2e-1d4ed8?style=for-the-badge)](#contributing)
 [![MIT License](https://img.shields.io/badge/License-MIT-38bdf8?style=for-the-badge)](../../LICENSE)
 
-**[📖 เอกสารอ้างอิงของ Plugin](../../packages/dsh-rsi/README.md) · [🧩 Harness ประจำโปรเจกต์](../../packages/dsh-rsi/README.md#layers-and-the-project-harness) · [🔬 ด่านตรวจสอบ](../../packages/dsh-rsi/README.md#the-validation-gate) · [⚠️ ข้อจำกัดที่ทราบแล้ว](../../packages/dsh-rsi/README.md#known-limits) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
+**[🌐 เว็บไซต์](https://qybaihe.github.io/dshrsi/) · [📖 เอกสารอ้างอิงของ Plugin](../../packages/dsh-rsi/README.md) · [🧩 Harness ประจำโปรเจกต์](../../packages/dsh-rsi/README.md#layers-and-the-project-harness) · [🔬 ด่านตรวจสอบ](../../packages/dsh-rsi/README.md#the-validation-gate) · [⚠️ ข้อจำกัดที่ทราบแล้ว](../../packages/dsh-rsi/README.md#known-limits) · [🐛 Issues](https://github.com/qybaihe/dshrsi/issues)**
 
 [RSI คืออะไร](#rsi) · [เริ่มต้นใช้งาน](#quick-start) · [หลักการทำงาน](#how-it-works) · [ผลที่วัดได้จริง](#measured) · [Benchmark](#benchmarks) · [ตัวตรวจจับและความสามารถ](#coverage) · [Harness ประจำโปรเจกต์](#project-harness) · [ค่าเริ่มต้นด้านความปลอดภัย](#security) · [คำถามที่พบบ่อย](#faq)
 
@@ -92,13 +97,13 @@ adaptation สามารถเพิ่มข้อมูล ปฏิเส�
 ในแอปเดสก์ท็อปหรือ Web UI ของ DeepSeek Harness ให้เปิด **Plugins → Add plugin → Install a third-party plugin** วางลิงก์ของแพ็กเกจ release เลือก **Install** แล้วเลือก **Enable now**:
 
 ```text
-https://github.com/qybaihe/dshrsi/releases/download/v0.1.0/dsh-rsi-0.1.0.tgz
+https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
 ```
 
 หรือจะใช้ command line ก็ได้ แต่ละ profile เก็บ plugin ของตัวเองแยกกัน และ `dsh plugin add` จะเรียก `pnpm` ซึ่งต้องอยู่ใน `PATH`:
 
 ```bash
-dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.0/dsh-rsi-0.1.0.tgz
+dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
 dsh web
 ```
 
@@ -248,7 +253,10 @@ DeepSeek Harness ตัวมาตรฐาน เทียบกับ DeepSee
 <!-- bench:table:end -->
 
 <div align="center">
-<img src="../../assets/bench-flash.png" alt="mimo-v2.6-flash, DSH → DSH + DSHRSI: Aider Polyglot 220 → 223 / 225 (+3), HumanEval 162 → 162 / 164, HumanEval+ 153 → 153 / 164, MBPP 368 → 369 / 378 (+1), MBPP+ 308 → 315 / 378 (+7). Rust lib.rs: 12 / 30 → 5 / 30, 7 / 22 → 1 / 22" width="960" />
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../../assets/bench-flash.dark.png" />
+  <img src="../../assets/bench-flash.png" alt="mimo-v2.6-flash, DSH → DSH + DSHRSI: Aider Polyglot 220 → 223 / 225 (+3), HumanEval 162 → 162 / 164, HumanEval+ 153 → 153 / 164, MBPP 368 → 369 / 378 (+1), MBPP+ 308 → 315 / 378 (+7). Rust lib.rs: 12 / 30 → 5 / 30, 7 / 22 → 1 / 22" width="960" />
+</picture>
 </div>
 
 > **วิธีอ่านตารางนี้:** ในแง่จำนวนโจทย์ที่แก้ได้ harness ทั้งสองตัว **แยกความแตกต่างกันไม่ออก** ส่วนที่เพิ่มขึ้นมากที่สุดคือ +7 (MBPP+ กับ `mimo-v2.6-flash`) ส่วนที่ลดลงมากที่สุดคือ −3 (MBPP กับ `mimo-v2.6-pro`) และไม่มีความแตกต่างใดที่ยังคงอยู่เมื่อทดสอบด้วย exact McNemar test บนโจทย์ชุดเดียวกัน (p ต่ำสุด = 0.17) เมื่อ agent รันโค้ดของตัวเองได้ ชุดทดสอบเหล่านี้ก็เข้าใกล้เพดานแล้วสำหรับทั้งสองโมเดล และทุกโจทย์เป็นไดเรกทอรีใหม่ที่สะอาด: แทบไม่มีอะไรวนกลับมาให้ harness ได้เรียนรู้

@@ -6,52 +6,56 @@
 <!-- The picture in the README's benchmark section. scripts/hero/render.mjs screenshots this page. Every number is
      computed here from website/assets/bench-data.js and trace-data.js, which the benchmark scripts write. -->
 <style>
-  :root { --bg: #0d1117; --panel: #161b22; --line: #30363d; --text: #f0f6fc; --dim: #9198a1; --bad: #ff7b72; --brand: #7b93ff; --idle: #2a313c; }
+  /* The same look as the animation above it in the README (scripts/hero/trace.html): ?theme=dark for the dark picture. */
+  :root { --bg: #eef1f7; --panel: #ffffff; --line: #e2e5ea; --text: #0f1115; --dim: #6b7078; --bad: #e5383b; --brand: #4176e6; --idle: #dde1e8; --idle-plugin: #c9d8fd; --shadow: 0 1px 2px rgba(16, 24, 40, .05), 0 14px 30px rgba(16, 24, 40, .08); }
+  html[data-theme="dark"] { --bg: #0a0b0d; --panel: #151517; --line: #2b2c30; --text: #f9fafb; --dim: #8d939c; --bad: #f25a5a; --brand: #6590ff; --idle: #2d2f34; --idle-plugin: #253768; --shadow: 0 16px 34px rgba(0, 0, 0, .45); }
   * { box-sizing: border-box; }
   html, body { margin: 0; background: var(--bg); }
-  body { width: 1280px; color: var(--text); font: 22px/1.35 "SF Pro Display", -apple-system, "Helvetica Neue", "PingFang SC", sans-serif; -webkit-font-smoothing: antialiased; }
-  .bar { display: flex; align-items: center; gap: 16px; height: 68px; padding: 0 44px; border-bottom: 2px solid var(--line); font-size: 23px; color: var(--dim); }
-  .bar .mark { display: inline-flex; align-items: center; gap: 12px; color: var(--text); font-weight: 700; font-size: 27px; letter-spacing: .02em; }
-  .bar .mark i { width: 18px; height: 18px; border-radius: 50%; background: var(--brand); }
-  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 44px; padding: 34px 44px 30px; }
-  h2 { margin: 0 0 6px; font-size: 32px; line-height: 1.2; font-weight: 700; }
-  .sub { margin: 0 0 24px; color: var(--dim); font-size: 21px; }
-  .delta { display: grid; gap: 15px; }
-  .delta .row { display: grid; grid-template-columns: 196px 1fr; align-items: center; gap: 14px; }
-  .delta .name { font-size: 22px; line-height: 1.15; }
-  .delta .name small { display: block; color: var(--dim); font-size: 17px; }
+  body { width: 1280px; padding: 0 36px 36px; color: var(--text); font: 22px/1.35 -apple-system, "SF Pro Text", "Helvetica Neue", "PingFang SC", sans-serif; -webkit-font-smoothing: antialiased; }
+  .bar { display: flex; align-items: center; gap: 12px; height: 78px; padding: 0 4px; font-size: 21px; color: var(--dim); white-space: nowrap; }
+  .bar .mark { display: inline-flex; align-items: center; gap: 10px; color: var(--text); font-weight: 700; font-size: 25px; letter-spacing: .03em; margin-right: 4px; }
+  .bar .mark svg { color: var(--brand); }
+  .cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+  .cols > div, .foot > div { border-radius: 20px; background: var(--panel); border: 1px solid var(--line); box-shadow: var(--shadow); }
+  .cols > div { padding: 28px 30px 28px; }
+  h2 { margin: 0 0 6px; font-size: 30px; line-height: 1.2; font-weight: 700; letter-spacing: -.01em; }
+  .sub { margin: 0 0 24px; color: var(--dim); font-size: 19.5px; }
+  .delta { display: grid; gap: 26px; }
+  .delta .row { display: grid; grid-template-columns: 214px 1fr; align-items: center; gap: 14px; }
+  .delta .name { font-size: 21px; line-height: 1.15; font-weight: 500; white-space: nowrap; }
+  .delta .name small { display: block; color: var(--dim); font-size: 16.5px; font-weight: 400; }
   .delta .track { position: relative; height: 36px; border-left: 2px solid var(--dim); }
   .delta .fill { position: absolute; left: 0; top: 4px; height: 28px; border-radius: 0 6px 6px 0; background: var(--brand); }
   .delta .fill.none { width: 10px; height: 10px; top: 13px; left: -6px; border-radius: 50%; background: var(--dim); }
-  .delta .val { position: absolute; top: 50%; transform: translateY(-50%); white-space: nowrap; color: var(--dim); font-size: 20px; font-variant-numeric: tabular-nums; }
-  .delta .val b { color: var(--text); font-size: 26px; margin-right: 8px; }
+  .delta .val { position: absolute; top: 50%; transform: translateY(-50%); white-space: nowrap; color: var(--dim); font-size: 19px; font-variant-numeric: tabular-nums; }
+  .delta .val b { color: var(--text); font-size: 25px; margin-right: 8px; }
   .lane { display: grid; grid-template-columns: 1fr 96px; align-items: center; gap: 14px; margin-bottom: 8px; }
-  .lane .who { grid-column: 1 / -1; font-size: 21px; font-weight: 600; margin-top: 10px; }
+  .lane .who { grid-column: 1 / -1; font-size: 20px; font-weight: 600; margin-top: 10px; }
   .cells { display: grid; grid-template-columns: repeat(30, 1fr); gap: 3px; }
   .cells i { height: 46px; border-radius: 5px; background: var(--idle); }
-  .cells i.hit { background: var(--bad); }
-  .lane.plugin .cells i { background: #24305e; } .lane.plugin .cells i.hit { background: var(--bad); }
-  .cells i.wrote { box-shadow: 0 0 0 2px var(--bg), 0 0 0 5px var(--brand); }
-  .lane .n { text-align: right; font-size: 36px; font-weight: 800; white-space: nowrap; }
-  .lane .n small { font-size: 19px; font-weight: 500; color: var(--dim); }
-  .marks { display: grid; grid-template-columns: repeat(30, 1fr); gap: 3px; margin-right: 110px; font-size: 18px; color: var(--brand); }
+  .lane.plugin .cells i { background: var(--idle-plugin); }
+  .cells i.hit, .lane.plugin .cells i.hit { background: var(--bad); }
+  .cells i.wrote { box-shadow: 0 0 0 2px var(--panel), 0 0 0 4.5px var(--brand); }
+  .lane .n { text-align: right; font-size: 34px; font-weight: 800; white-space: nowrap; }
+  .lane .n small { font-size: 18px; font-weight: 500; color: var(--dim); }
+  .lane.plugin .n { color: var(--brand); }
+  .marks { display: grid; grid-template-columns: repeat(30, 1fr); gap: 3px; margin-right: 110px; font-size: 17px; color: var(--brand); }
   .marks span { padding: 6px 0 0 8px; border-left: 2px solid var(--brand); white-space: nowrap; }
   .marks span.wide { border-top: 2px solid var(--brand); border-top-left-radius: 6px; }
   .then { display: flex; align-items: baseline; gap: 18px; margin-top: 22px; }
-  .then .v { font-size: 64px; line-height: 1; font-weight: 800; white-space: nowrap; }
-  .then .v span { color: var(--dim); font-weight: 500; } .then .v b { color: var(--brand); }
-  .then .w { font-size: 22px; } .then .w small { display: block; color: var(--dim); font-size: 19px; }
-  .foot { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 2px solid var(--line); }
-  .foot > div { padding: 24px 28px 30px; border-left: 2px solid var(--line); }
-  .foot > div:first-child { border-left: 0; padding-left: 44px; }
-  .foot .v { font-size: 46px; line-height: 1.05; font-weight: 800; white-space: nowrap; }
+  .then .v { font-size: 62px; line-height: 1; font-weight: 800; letter-spacing: -.02em; white-space: nowrap; }
+  .then .v span { color: var(--dim); font-weight: 400; } .then .v b { color: var(--brand); }
+  .then .w { font-size: 21px; font-weight: 600; } .then .w small { display: block; color: var(--dim); font-size: 17.5px; font-weight: 400; }
+  .foot { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-top: 16px; }
+  .foot > div { padding: 22px 24px 24px; }
+  .foot .v { font-size: 46px; line-height: 1.05; font-weight: 800; letter-spacing: -.02em; white-space: nowrap; }
   .foot .v b { color: var(--brand); }
-  .foot .w { margin-top: 6px; font-size: 19px; line-height: 1.3; color: var(--dim); }
-  .foot .w strong { color: var(--text); font-weight: 600; display: block; font-size: 20px; }
+  .foot .w { margin-top: 8px; font-size: 17.5px; line-height: 1.3; color: var(--dim); }
+  .foot .w strong { color: var(--text); font-weight: 600; display: block; font-size: 19px; }
 </style>
 </head>
 <body>
-<div class="bar"><span class="mark"><i></i>DSHRSI</span><span id="where"></span></div>
+<div class="bar"><span class="mark"><svg width="28" height="28" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M28.63 15.15A11 11 0 1 1 24.47 9.1"/><path d="M23.2 4.4 24.6 9.2 19.6 9.5"/><path d="M19.2 11.4 13.6 19h3.8l-.9 5.6L22.4 17h-4l.8-5.6Z" fill="currentColor" stroke="none"/></svg>DSHRSI</span><span id="where"></span></div>
 <div class="cols">
   <div><h2 id="left-title"></h2><p class="sub" id="left-sub"></p><div class="delta" id="delta"></div></div>
   <div><h2 id="right-title"></h2><p class="sub" id="right-sub"></p><div id="lanes"></div><div class="marks" id="marks"></div><div class="then" id="then"></div></div>
@@ -62,6 +66,7 @@
 <script>
 const B = window.DSHRSI_BENCH, T = window.DSHRSI_TRACE
 const zh = new URLSearchParams(location.search).get('lang') === 'zh'
+document.documentElement.dataset.theme = new URLSearchParams(location.search).get('theme') === 'dark' ? 'dark' : 'light'
 const t = (en, inChinese) => (zh ? inChinese : en)
 const set = (id, html) => { document.getElementById(id).innerHTML = html }
 
@@ -85,7 +90,7 @@ set('where', t(`measured · ${T.model} · stock DSH and DSH + DSHRSI on the same
 set('left-title', t('Tasks solved beyond stock DSH', '比原版多解出几道题'))
 set('left-sub', t('Per score, in tasks. The line is zero: no difference.', '每项成绩按题数计。竖线是零：没有差别。'))
 set('delta', rows.map((row) => {
-  const width = (100 * row.difference) / most * 0.62
+  const width = (100 * row.difference) / most * 0.5
   return `<div class="row"><div class="name">${row.name}<small>${row.note ? `${row.note} · ` : ''}${row.tasks} ${t('tasks', '题')}</small></div><div class="track"><span class="fill${row.difference === 0 ? ' none' : ''}" style="${row.difference === 0 ? '' : `width:${width}%`}"></span><span class="val" style="left:calc(${row.difference === 0 ? 0 : width}% + 14px)"><b>${row.difference > 0 ? '+' : ''}${row.difference}</b>${row.stock} → ${row.plugin}</span></div></div>`
 }).join(''))
 
@@ -109,7 +114,7 @@ const p = Math.min(1, (2 * tail) / 2 ** (onlyStock + onlyPlugin))
 const total = (arm, field) => ['polyglot', 'humaneval', 'mbpp'].reduce((value, bench) => value + B[bench].runs.find(run => run.arm === arm)[field], 0)
 const more = field => Math.round(100 * (total('rsi', field) / total('dsh', field) - 1))
 set('foot', [
-  [`<b>+${sum('plugin') - sum('stock')}</b>`, t('tasks on the three strictest scores', '最严的三项成绩上多解出的题'), `${sum('stock')} → ${sum('plugin')} ${t('of', '/')} ${sum('tasks')}`],
+  [`<b>+${sum('plugin') - sum('stock')}</b>`, t('tasks on the three strictest scores', '最严三项成绩多解出的题'), `${sum('stock')} → ${sum('plugin')} ${t('of', '/')} ${sum('tasks')}`],
   [`<b>${onlyPlugin}</b> : ${onlyStock}`, t('tasks only one side solved', '只有一边解出的题'), t(`exact McNemar test, p = ${p.toFixed(2)}`, `精确 McNemar 检验 p = ${p.toFixed(2)}`)],
   [`<b>${rows.filter(row => row.difference < 0).length}</b> / ${rows.length}`, t('scores below stock', '项成绩低于原版'), t(`${rows.filter(row => row.difference > 0).length} higher, ${rows.filter(row => row.difference === 0).length} level`, `${rows.filter(row => row.difference > 0).length} 项更高，${rows.filter(row => row.difference === 0).length} 项持平`)],
   [`+${more('agentSeconds')}%`, t('agent time, the price of it', '用时，这是代价'), t(`input tokens +${more('inputTokens')}%`, `输入 token +${more('inputTokens')}%`)],

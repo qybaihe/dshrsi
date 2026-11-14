@@ -10,7 +10,12 @@
 
 ### **관찰 → 개선 → 그 위에 쌓기 → 다시. 쓸수록 점점 더 내 것이 되어 가는 하네스.**
 
-<img src="../../assets/rsi-trace.gif" alt="실제 실행을 재생한 애니메이션: 기본 하네스에서는 세션 30개 중 12개가 똑같은 실패 호출을 했고, DSHRSI를 쓰면 세 번째에 하네스가 스스로를 개선해 이후 22개 세션에서는 한 번만 발생했습니다" width="960" />
+<a href="https://qybaihe.github.io/dshrsi/trace.html">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/rsi-trace.dark.gif" />
+    <img src="../../assets/rsi-trace.gif" alt="실제 실행을 재생한 애니메이션: 기본 하네스에서는 세션 30개 중 12개가 똑같은 실패 호출을 했고, DSHRSI를 쓰면 세 번째에 하네스가 스스로를 개선해 이후 22개 세션에서는 한 번만 발생했습니다" width="960" />
+  </picture>
+</a>
 
 **RSI는 Recursive Self-Improvement, 즉 재귀적 자기 개선을 뜻하며, DSHRSI는 이를 DeepSeek Harness에서 현실로 만드는 오픈소스 플러그인입니다. 하네스가 자신의 실행을 지켜보고, 발견한 문제에 대해 그 세션의 모델이 직접 하네스 코드를 작성하게 하고, 그 코드를 5단계 게이트에서 검증한 다음, 턴이 끝나기 전에 마운트합니다. 그러면 개선된 하네스가 다음 세션을 실행하고, 또 한 번 개선됩니다. 파인튜닝은 없습니다. 프롬프트 더미도 없습니다. 측정되고, 유지되고, 다시 쓰이거나 버려지는 코드가 있을 뿐입니다.**
 
@@ -23,7 +28,7 @@
 [![Tests](https://img.shields.io/badge/Tests-130_unit_%C2%B7_29_e2e-1d4ed8?style=for-the-badge)](#contributing)
 [![MIT License](https://img.shields.io/badge/License-MIT-38bdf8?style=for-the-badge)](../../LICENSE)
 
-**[📖 플러그인 레퍼런스](../../packages/dsh-rsi/README.md) · [🧩 프로젝트 하네스](../../packages/dsh-rsi/README.md#layers-and-the-project-harness) · [🔬 검증 게이트](../../packages/dsh-rsi/README.md#the-validation-gate) · [⚠️ 알려진 한계](../../packages/dsh-rsi/README.md#known-limits) · [🐛 이슈](https://github.com/qybaihe/dshrsi/issues)**
+**[🌐 웹사이트](https://qybaihe.github.io/dshrsi/) · [📖 플러그인 레퍼런스](../../packages/dsh-rsi/README.md) · [🧩 프로젝트 하네스](../../packages/dsh-rsi/README.md#layers-and-the-project-harness) · [🔬 검증 게이트](../../packages/dsh-rsi/README.md#the-validation-gate) · [⚠️ 알려진 한계](../../packages/dsh-rsi/README.md#known-limits) · [🐛 이슈](https://github.com/qybaihe/dshrsi/issues)**
 
 [RSI의 의미](#rsi) · [빠른 시작](#quick-start) · [동작 원리](#how-it-works) · [실측 결과](#measured) · [벤치마크](#benchmarks) · [감지기와 기능](#coverage) · [프로젝트 하네스](#project-harness) · [안전 기본값](#security) · [자주 묻는 질문](#faq)
 
@@ -92,13 +97,13 @@
 DeepSeek Harness 데스크톱 앱이나 Web UI에서 **Plugins → Add plugin → Install a third-party plugin**을 열고, 아래 릴리스 패키지 주소를 붙여 넣은 다음 **Install**, 이어서 **Enable now**를 선택합니다:
 
 ```text
-https://github.com/qybaihe/dshrsi/releases/download/v0.1.0/dsh-rsi-0.1.0.tgz
+https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
 ```
 
 명령줄에서도 설치할 수 있습니다. 프로필마다 플러그인을 따로 관리하며, `dsh plugin add`가 호출하는 `pnpm`이 `PATH`에 있어야 합니다:
 
 ```bash
-dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.0/dsh-rsi-0.1.0.tgz
+dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
 dsh web
 ```
 
@@ -248,7 +253,10 @@ MIMO_API_KEY=... npm run test:live -- python --sessions 5 --off    # 플러그�
 <!-- bench:table:end -->
 
 <div align="center">
-<img src="../../assets/bench-flash.png" alt="mimo-v2.6-flash, DSH → DSH + DSHRSI: Aider Polyglot 220 → 223 / 225 (+3), HumanEval 162 → 162 / 164, HumanEval+ 153 → 153 / 164, MBPP 368 → 369 / 378 (+1), MBPP+ 308 → 315 / 378 (+7). Rust lib.rs: 12 / 30 → 5 / 30, 7 / 22 → 1 / 22" width="960" />
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../../assets/bench-flash.dark.png" />
+  <img src="../../assets/bench-flash.png" alt="mimo-v2.6-flash, DSH → DSH + DSHRSI: Aider Polyglot 220 → 223 / 225 (+3), HumanEval 162 → 162 / 164, HumanEval+ 153 → 153 / 164, MBPP 368 → 369 / 378 (+1), MBPP+ 308 → 315 / 378 (+7). Rust lib.rs: 12 / 30 → 5 / 30, 7 / 22 → 1 / 22" width="960" />
+</picture>
 </div>
 
 > **읽는 법:** 해결한 태스크 수로는 두 하네스를 **구분할 수 없습니다**. 가장 큰 증가는 +7(`mimo-v2.6-flash`의 MBPP+), 가장 큰 감소는 −3(`mimo-v2.6-pro`의 MBPP)이며, 같은 태스크에 대한 정확 McNemar 검정에서 버텨 내는 차이는 하나도 없습니다(가장 작은 p = 0.17). 에이전트가 자기 코드를 직접 실행할 수 있으면 이 스위트들은 두 모델 모두에서 천장에 가깝고, 태스크마다 새로 만든 깨끗한 디렉터리에서 시작하기 때문에 하네스가 배울 만큼 되풀이되는 것이 거의 없습니다.
