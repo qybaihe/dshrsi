@@ -4,7 +4,8 @@ import path from 'node:path'
 import test from 'node:test'
 import vm from 'node:vm'
 import { createEngine } from '../../packages/dsh-rsi/src/engine.js'
-import { PROJECTION_KEY, projection, standingIn, statusText } from '../../packages/dsh-rsi/src/surface.js'
+import { WITHDREW } from '../../packages/dsh-rsi/src/marks.js'
+import { PROJECTION_KEY, projection, standingIn, statusText, stockText, undoText } from '../../packages/dsh-rsi/src/surface.js'
 import { drive, fakeHost, missingCommandWorld, tempLibrary } from '../support/drive.mjs'
 
 const text = value => [{ type: 'text', text: value }]
@@ -40,7 +41,7 @@ test('prompt sections written by adaptations are found with their titles and tex
 test('the session read model is folded from what the plugin already writes into the log', () => {
   const state = fold(EVENTS)
   assert.equal(projection.key, PROJECTION_KEY)
-  assert.deepEqual(state.counts, { evolved: 1, refused: 1, notes: 1 })
+  assert.deepEqual(state.counts, { evolved: 1, refused: 1, notes: 1, withdrawn: 0 })
   assert.deepEqual(state.last, { seq: 7, type: 'note', title: 'Stop retrying frobnicate' })
   assert.deepEqual(state.adaptations.map(entry => [entry.title, entry.standing, entry.evolved, entry.refused, entry.notes]), [
     ['Use pnpm here', true, false, 0, 0],
@@ -65,6 +66,21 @@ test('events that are not the plugin\'s leave the state untouched, by reference'
   assert.equal(later.adaptations[1].refused, 1)
 })
 
+test('an adaptation the harness took back stays in the read model, marked as taken back', () => {
+  const notice = (seq, body) => ({ type: 'user/message', seq, data: { content: text(`[harness adaptation: Route python to python3] ${body}`), source: { kind: 'dsh-rsi', form: 'notice', summary: 't' } } })
+  const state = projection.apply(fold(EVENTS), notice(9, `${WITHDREW}: it refused this call, and the call works.`))
+  assert.deepEqual(state.counts, { evolved: 1, refused: 1, notes: 1, withdrawn: 1 })
+  assert.deepEqual(state.last, { seq: 9, type: 'withdrawn', title: 'Route python to python3' })
+  const entry = state.adaptations.find(item => item.title === 'Route python to python3')
+  assert.deepEqual([entry.withdrawn, entry.refused, entry.text], [true, 1, 'it refused this call, and the call works.'])
+  // A read model stored before withdrawals were counted is carried on, not broken.
+  const older = { ...fold(EVENTS), counts: { evolved: 1, refused: 1, notes: 1 } }
+  assert.equal(projection.apply(older, notice(9, `${WITHDREW}: x`)).counts.withdrawn, 1)
+  // Learned again later, it is no longer shown as taken back.
+  const again = projection.apply(state, notice(10, 'The harness adapted itself after noticing that python failed. Use python3.'))
+  assert.equal(again.adaptations.find(item => item.title === 'Route python to python3').withdrawn, false)
+})
+
 test('a long session keeps a bounded read model', () => {
   let state = projection.init()
   for (let index = 0; index < 120; index += 1) {
@@ -87,6 +103,19 @@ test('/rsi answers with what is at work in the asking session and what waits in 
   assert.match(answer, /^1 adaptation\(s\) at work in this session:\n {2}Stop retrying the missing command frobnicate\n {6}a-\S+ · machine layer · \S+/)
   assert.match(answer, /Library: 0 active, 1 on trial, 0 waiting for approval/)
   assert.match(answer, /dsh-rsi status/)
+  assert.match(answer, /Going back: \/rsi undo takes back the last thing the harness put to work; \/rsi off runs the stock harness\./)
+
+  // Going back, from inside the session.
+  assert.match(stockText(true, engine.setStock(true), 0), /^The harness now runs as stock: nothing is mounted and nothing is written/)
+  const off = statusText({ session: run.session, library: lib.library })
+  assert.match(off, /^The harness is OFF: it runs as stock/)
+  assert.match(off, /\/rsi on ends stock mode/)
+  assert.match(stockText(true, engine.setStock(true), 0), /^The harness already runs as stock/)
+  assert.equal(stockText(false, engine.setStock(false), run.session.mounted().length), 'Adapting again: 1 adaptation(s) at work in this session.')
+  const undone = undoText(engine.undo({ sessionId: 's1' }))
+  assert.match(undone, /^Undone \(create\): "Stop retrying the missing command frobnicate"\. It no longer runs, and its cause will not be learned again/)
+  assert.equal(run.session.mounted().length, 0)
+  assert.equal(undoText(engine.undo()), 'Nothing to undo: the harness has put nothing to work that is still in place.')
 })
 
 // ---- the browser half, run against stand-ins for the page and for React ----
