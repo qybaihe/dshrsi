@@ -320,6 +320,12 @@ Yeh ek aam third-party plugin ke taur par aata hai, us metadata ke saath jo plug
 </details>
 
 <details>
+<summary><strong>Agar koi behtari ghalat nikle to kya hoga?</strong></summary>
+
+Ise hamesha wapas liya ja sakta hai: harness ke apne code ko kabhi haath nahin lagaya jata, aur kisi adaptation ka koi version kabhi delete nahin hota. Jab koi adaptation baar baar fail hoti rahe, ya jis call se us ne inkaar kiya tha woh kaamyab nikle, to harness khud hi peeche hat jata hai. Aap bhi yeh kar sakte hain: `/rsi undo` aakhri tabdeeli wapas le leta hai, `dsh-rsi restore` poore harness ko kisi pehle wale point par wapas le jata hai, aur `/rsi off` stock harness chalata hai. Yeh sab usi session mein lagu ho jata hai jo pehle se chal raha hai. [Wapas jana kaise kaam karta hai](../../packages/dsh-rsi/README.md#going-back).
+</details>
+
+<details>
 <summary><strong>Jo kuch is ne seekha use kaise dekhun, undo karun ya band karun?</strong></summary>
 
 Session mein `/rsi`, ya terminal mein `dsh-rsi status`. `dsh-rsi show <id>` adaptation ka source aur validation report print karta hai; `disable`, `retire` aur `rollback` use hata dete hain ya peeche le jate hain. Kuch bhi badle baghair sirf record karne ke liye `mode: observe` set karein.
