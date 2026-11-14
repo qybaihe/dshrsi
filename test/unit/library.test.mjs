@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import path from 'node:path'
 import test from 'node:test'
-import { scopeCovers } from '../../packages/dsh-rsi/src/library.js'
+import { openLibrary, scopeCovers } from '../../packages/dsh-rsi/src/library.js'
 import { judge, priorSessions, recurrence, summarize, workspacesHit } from '../../packages/dsh-rsi/src/metrics.js'
 import { DEFAULT_POLICY, RECORD_ONLY, decide } from '../../packages/dsh-rsi/src/trigger.js'
 import { tempLibrary } from '../support/drive.mjs'
@@ -56,6 +56,157 @@ test('library: revise keeps every earlier version, rollback restores the previou
   assert.equal(library.readSource(created.id), SOURCE_1)
   assert.equal(fs.readFileSync(path.join(home, 'adaptations', created.id, 'versions', '2.js'), 'utf8'), SOURCE_2)
   assert.throws(() => library.rollback(created.id), /no earlier version/)
+})
+
+const revision = (title, capabilities) => ({ title, description: title, capabilities, tier: 'tighten', status: 'candidate', revision: { generator: 'model' } })
+
+test('library: a version number means one source for good, and going back brings back what that version was accepted as', (t) => {
+  const { library, home, cleanup } = tempLibrary()
+  t.after(cleanup)
+  const { id } = make(library)
+  library.revise(id, revision('Two', ['deny']), SOURCE_2)
+  const back = library.rollback(id)
+  // Version 1 declared "annotate"; a record still saying "deny" would have its own source refused at mount.
+  assert.deepEqual([back.version, back.title, back.capabilities], [1, 'One', ['annotate']])
+
+  const SOURCE_3 = SOURCE_2.replace('Two', 'Three')
+  const third = library.revise(id, revision('Three', ['deny']), SOURCE_3)
+  assert.equal(third.version, 3)
+  assert.equal(third.rolledBackFrom, undefined)
+  assert.deepEqual(library.versions(id), [1, 2, 3])
+  const version = number => fs.readFileSync(path.join(home, 'adaptations', id, 'versions', `${number}.js`), 'utf8')
+  assert.deepEqual([version(1), version(2), version(3)], [SOURCE_1, SOURCE_2, SOURCE_3])
+
+  // Any stored version can be pointed at, forwards as well as back.
+  assert.deepEqual([library.rollback(id, 2).version, library.readSource(id)], [2, SOURCE_2])
+  assert.deepEqual([library.rollback(id, 3).version, library.readSource(id)], [3, SOURCE_3])
+  assert.throws(() => library.rollback(id, 3), /already at version 3/)
+  assert.throws(() => library.rollback(id, 7), /has no version 7; it has 1, 2, 3/)
+  // A version withdrawn for doing harm is not what "the previous one" means.
+  library.update(id, { condemned: [2] })
+  assert.equal(library.rollback(id).version, 1)
+})
+
+test('library: a library from before versions kept their own description gets it from the source', (t) => {
+  const { home, cleanup } = tempLibrary()
+  t.after(cleanup)
+  const describe = source => ({ title: /title: '(\w+)'/.exec(source)[1], capabilities: [/capabilities: \['(\w+)'\]/.exec(source)[1]] })
+  const library = openLibrary(home, { describe })
+  const { id } = make(library)
+  library.revise(id, revision('Two', ['deny']), SOURCE_2)
+  fs.rmSync(path.join(home, 'adaptations', id, 'versions', '1.json'))
+  const back = library.rollback(id)
+  assert.deepEqual([back.title, back.capabilities], ['One', ['annotate']])
+})
+
+test('library: every change to what runs is a generation, and the harness can be put back to any of them', (t) => {
+  const { library, cleanup } = tempLibrary()
+  t.after(cleanup)
+  const a = make(library)                                                             // 1
+  library.setStatus(a.id, 'active', 'worked', { change: 'promote' })                   // 2
+  const b = make(library, { signature: 'read:thrash:a.js' })                          // 3
+  library.revise(a.id, revision('Two', ['deny']), SOURCE_2, { sessionId: 's2' })      // 4
+  library.setScope(a.id, { kind: 'global' }, { change: 'generalize' })                // 5
+  library.update(a.id, { project: { root: '/work/alpha' } })                          // bookkeeping: no generation
+
+  const timeline = library.timeline()
+  assert.deepEqual(timeline.map(entry => [entry.generation, entry.change]), [[1, 'create'], [2, 'promote'], [3, 'create'], [4, 'revise'], [5, 'generalize']])
+  assert.deepEqual([timeline[3].before, timeline[3].after], [
+    { version: 1, status: 'active', scope: { kind: 'workspace', cwd: '/work/alpha' } },
+    { version: 2, status: 'candidate', scope: { kind: 'workspace', cwd: '/work/alpha' } },
+  ])
+  assert.equal(timeline[3].sessionId, 's2')
+  assert.deepEqual(timeline[4].state, { [a.id]: [2, 'candidate', null], [b.id]: [1, 'candidate', '/work/alpha'] })
+
+  const result = library.restore(2)
+  assert.deepEqual([result.generation, result.to, result.changes.length], [6, 2, 2])
+  const now = id => { const record = library.get(id); return [record.version, record.status, record.scope.kind, record.title] }
+  assert.deepEqual(now(a.id), [1, 'active', 'workspace', 'One'])
+  assert.equal(library.readSource(a.id), SOURCE_1)
+  // What was learned later is switched off, not deleted.
+  assert.deepEqual(now(b.id), [1, 'disabled', 'workspace', 'One'])
+  assert.match(library.get(b.id).statusReason, /not yet learned at generation 2/)
+
+  // Going back is a generation too, so it can be taken back: forward again to where things were.
+  library.restore(5)
+  assert.deepEqual([now(a.id), now(b.id)], [[2, 'candidate', 'global', 'Two'], [1, 'candidate', 'workspace', 'One']])
+  assert.equal(library.readSource(a.id), SOURCE_2)
+  // Generation 0 is the harness before it learned anything.
+  assert.equal(library.restore(0).changes.length, 2)
+  assert.deepEqual(library.forSession('/work/alpha'), [])
+  assert.throws(() => library.restore(99), /no generation 99: the timeline runs from 0 \(nothing learned yet\) to 8/)
+  assert.throws(() => library.restore(1.5), /no generation/)
+})
+
+test('library: undo takes back the last thing that was put to work, one step at a time', (t) => {
+  const { library, cleanup } = tempLibrary()
+  t.after(cleanup)
+  assert.equal(library.undo(), undefined)
+  const a = make(library)
+  library.setStatus(a.id, 'active', 'worked', { change: 'promote' })
+  library.revise(a.id, { ...revision('Two', ['deny']), status: 'candidate' }, SOURCE_2)
+  library.setScope(a.id, { kind: 'global' }, { change: 'generalize' })
+  const state = () => { const record = library.get(a.id); return [record.version, record.status, record.scope.kind] }
+
+  // The widening goes first, then the revision, then the adaptation itself. A promotion changes nothing that runs.
+  assert.deepEqual([library.undo().change, state()], ['generalize', [2, 'candidate', 'workspace']])
+  assert.deepEqual([library.undo().change, state()], ['revise', [1, 'active', 'workspace']])
+  assert.equal(library.readSource(a.id), SOURCE_1)
+  assert.deepEqual([library.undo().change, state()], ['create', [1, 'disabled', 'workspace']])
+  assert.equal(library.undo(), undefined)
+  assert.deepEqual(library.timeline().slice(-3).map(entry => [entry.change, entry.by]), [['undo', 'user'], ['undo', 'user'], ['undo', 'user']])
+})
+
+test('library: undo leaves alone what has changed since, and takes back a restore only while it is the last thing done', (t) => {
+  const { library, cleanup } = tempLibrary()
+  t.after(cleanup)
+  const a = make(library)
+  const b = make(library, { signature: 'read:thrash:a.js' })
+  // b was taken out of use by something else; undo does not bring it back, it goes on to a.
+  library.setStatus(b.id, 'quarantined', '3 handler faults', { change: 'quarantine' })
+  assert.equal(library.undo().record.id, a.id)
+  assert.deepEqual([library.get(a.id).status, library.get(b.id).status], ['disabled', 'quarantined'])
+
+  library.setStatus(a.id, 'candidate', 'switched on by the user', { by: 'user', change: 'enable' })
+  library.restore(0)
+  assert.equal(library.get(a.id).status, 'disabled')
+  const undone = library.undo()
+  assert.deepEqual([undone.change, undone.restored.to, library.get(a.id).status], ['restore', 5, 'candidate'])
+  // That undo is not undone in turn; the next one goes further back.
+  assert.equal(library.undo().change, 'enable')
+})
+
+test('library: the stock switch is a file other processes can see, and changes nothing else', (t) => {
+  const { library, home, cleanup } = tempLibrary()
+  t.after(cleanup)
+  const a = make(library)
+  const before = library.pulse()
+  assert.equal(library.stock(), undefined)
+  assert.equal(library.setStock(true, { reason: 'something is wrong' }), true)
+  assert.equal(library.setStock(true), false)
+  assert.deepEqual([library.stock().off, library.stock().reason], [true, 'something is wrong'])
+  assert.equal(openLibrary(home).stock().off, true)
+  assert.notEqual(library.pulse(), before)
+  assert.equal(library.get(a.id).status, 'candidate')
+  assert.equal(library.setStock(false), true)
+  assert.equal(library.stock(), undefined)
+  assert.deepEqual(library.timeline().slice(-2).map(entry => entry.change), ['off', 'on'])
+})
+
+test('library: a library that had no timeline starts one with what it holds; a record that cannot be read does not run', (t) => {
+  const { library, home, cleanup } = tempLibrary()
+  t.after(cleanup)
+  const a = make(library)
+  const b = make(library, { signature: 'read:thrash:a.js' })
+  fs.rmSync(path.join(home, 'timeline.jsonl'))
+  library.setStatus(a.id, 'disabled', 'switched off by the user', { by: 'user', change: 'disable' })
+  assert.deepEqual(library.timeline().map(entry => entry.change), ['baseline', 'disable'])
+  library.restore(1)
+  assert.equal(library.get(a.id).status, 'candidate')
+
+  fs.writeFileSync(path.join(home, 'adaptations', b.id, 'adaptation.json'), '{ "id": ')
+  assert.equal(library.get(b.id), undefined)
+  assert.deepEqual(library.list().map(record => record.id), [a.id])
 })
 
 test('library: status, scope and approval changes; unknown ids and states are refused', (t) => {
