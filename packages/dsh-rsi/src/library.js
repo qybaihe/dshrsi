@@ -333,6 +333,8 @@ export function openLibrary(home, options = {}) {
       store({ ...next, updatedAt: now() })
       changes.push({ id: record.id, title: next.title, before: brief(record), after: brief(next) })
     }
+    // Nothing differed: there is no step to record, and none to take back.
+    if (changes.length === 0) return { generation: entries.length, to: generation, changes }
     append(timelineFile, {
       key: randomBytes(4).toString('hex'), change: meta.change ?? 'restore', to: generation, by: meta.by ?? 'user', sessionId: meta.sessionId,
       reason: meta.reason, changed: changes.length, ...meta.extra, state: snapshot(),
@@ -344,7 +346,8 @@ export function openLibrary(home, options = {}) {
    * Takes back the most recent change that put something new to work: an adaptation that was written, revised,
    * widened, approved or switched back on, or a restore that was the very last thing done. Changes that only took
    * something out of use are not undone by this; `restore` and `enable` bring those back.
-   * @returns {{ undoes: number, change: string, record?: object, restored?: object } | undefined} undefined when there is nothing to undo.
+   * @returns {{ undoes: number, change: string, title?: string, record?: object, restored?: object } | undefined} `title` is what the undone
+   *   change had put to work; undefined when there is nothing to undo.
    */
   function undo(meta = {}) {
     const entries = readJsonLines(timelineFile)
@@ -373,7 +376,7 @@ export function openLibrary(home, options = {}) {
       }
       store(next)
       stamp('undo', record, next, { by: 'user', ...meta, reason, extra: { undoes: entry.key } })
-      return { undoes: index + 1, change: entry.change, record: next }
+      return { undoes: index + 1, change: entry.change, title: entry.title ?? record.title, record: next }
     }
     return undefined
   }
