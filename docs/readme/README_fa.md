@@ -97,13 +97,13 @@
 در اپ دسکتاپ DeepSeek Harness یا رابط وب آن، **Plugins → Add plugin → Install a third-party plugin** را باز کنید، نشانی بسته‌ی انتشار را بچسبانید، **Install** و بعد **Enable now** را انتخاب کنید:
 
 ```text
-https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
+https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
 ```
 
 یا از خط فرمان. هر پروفایل پلاگین‌های خودش را دارد و `dsh plugin add` هم `pnpm` را صدا می‌زند که باید در `PATH` باشد:
 
 ```bash
-dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
+dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
 dsh web
 ```
 
@@ -143,6 +143,13 @@ npx dsh web
 <a id="how-it-works"></a>
 
 ## 🧠 سازوکار DSHRSI: یک حلقه‌ی بسته درون harness که بارها و بارها اجرا می‌شود
+
+<div align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../../assets/pit-stop.dark.svg" />
+  <img src="../../assets/pit-stop.svg" alt="شیوهٔ کار DSHRSI به شکل یک پیت‌استاپ: ماشین همان harness است، راننده مدل است و قطعهٔ تازه کدی برای harness است که وسط نوبت نوشته می‌شود" width="960" />
+</picture>
+</div>
 
 اسکیل‌ها، فایل‌های حافظه و پرامپت‌های سیستمی طولانی‌تر همه در سطح کانتکست کار می‌کنند: متنی اضافه می‌کنند و امیدوارند مدل از آن پیروی کند. وقتی پیروی نکند، همان فراخوانی ناموفق در نشست بعدی دوباره انجام می‌شود.
 

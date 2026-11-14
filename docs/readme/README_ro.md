@@ -97,13 +97,13 @@ Ce **nu** e recursiv, în mod deliberat: ponderile modelului nu se schimbă nici
 În aplicația desktop DeepSeek Harness sau în interfața web, deschide **Plugins → Add plugin → Install a third-party plugin**, lipește pachetul de release, alege **Install**, apoi **Enable now**:
 
 ```text
-https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
+https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
 ```
 
 Sau din linia de comandă. Fiecare profil își ține propriile plugin-uri, iar `dsh plugin add` apelează `pnpm`, care trebuie să fie în `PATH`:
 
 ```bash
-dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
+dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
 dsh web
 ```
 
@@ -143,6 +143,13 @@ Profilurile `desktop` și `headless`, indexurile de plugin-uri, tarball-urile lo
 <a id="how-it-works"></a>
 
 ## 🧠 Cum funcționează DSHRSI: o buclă închisă în interiorul harness-ului, rulată iar și iar
+
+<div align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../../assets/pit-stop.dark.svg" />
+  <img src="../../assets/pit-stop.svg" alt="Cum funcționează DSHRSI, desenat ca o oprire la boxe: mașina este harness-ul, pilotul este modelul, iar piesa nouă este cod de harness scris în mijlocul turei" width="960" />
+</picture>
+</div>
 
 Skill-urile, fișierele de memorie și prompt-urile de sistem tot mai lungi lucrează toate la nivel de context: adaugă text și speră că modelul îl va urma. Când nu-l urmează, același apel eșuat se repetă în sesiunea următoare.
 

@@ -97,13 +97,13 @@ Lo que deliberadamente **no** es recursivo: los pesos del modelo nunca cambian, 
 En la app de escritorio de DeepSeek Harness o en la interfaz web, abre **Plugins → Add plugin → Install a third-party plugin**, pega el enlace al paquete de la release, selecciona **Install** y después **Enable now**:
 
 ```text
-https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
+https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
 ```
 
 O desde la línea de comandos. Cada perfil tiene sus propios plugins, y `dsh plugin add` llama a `pnpm`, que tiene que estar en el `PATH`:
 
 ```bash
-dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
+dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
 dsh web
 ```
 
@@ -143,6 +143,13 @@ Los perfiles `desktop` y `headless`, los índices de plugins, los tarballs local
 <a id="how-it-works"></a>
 
 ## 🧠 Cómo funciona DSHRSI: un bucle cerrado dentro del harness, que se repite una y otra vez
+
+<div align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../../assets/pit-stop.dark.svg" />
+  <img src="../../assets/pit-stop.svg" alt="Cómo funciona DSHRSI, dibujado como una parada en boxes: el coche es el harness, el piloto es el modelo y la pieza nueva es código del harness escrito a mitad del turno" width="960" />
+</picture>
+</div>
 
 Las skills, los archivos de memoria y los prompts de sistema más largos actúan todos a nivel de contexto: añaden texto y esperan que el modelo lo siga. Cuando no lo hace, la misma llamada fallida se repite en la siguiente sesión.
 

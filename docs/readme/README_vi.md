@@ -97,13 +97,13 @@ Phần được cố ý để **không** đệ quy: trọng số của mô hình
 Trong ứng dụng desktop hoặc giao diện Web của DeepSeek Harness, mở **Plugins → Add plugin → Install a third-party plugin**, dán đường dẫn gói phát hành vào, chọn **Install**, rồi **Enable now**:
 
 ```text
-https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
+https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
 ```
 
 Hoặc cài từ dòng lệnh. Mỗi profile giữ bộ plugin riêng của nó, và `dsh plugin add` gọi `pnpm`, công cụ này phải có trên `PATH`:
 
 ```bash
-dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
+dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
 dsh web
 ```
 
@@ -143,6 +143,13 @@ Các profile `desktop` và `headless`, chỉ mục plugin, tarball cục bộ v�
 <a id="how-it-works"></a>
 
 ## 🧠 DSHRSI hoạt động thế nào: một vòng khép kín bên trong harness, chạy đi chạy lại
+
+<div align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../../assets/pit-stop.dark.svg" />
+  <img src="../../assets/pit-stop.svg" alt="Cách DSHRSI hoạt động, vẽ như một lần vào pit: chiếc xe là harness, tay đua là mô hình, linh kiện mới là mã harness được viết ngay giữa lượt" width="960" />
+</picture>
+</div>
 
 Skill, file memory và system prompt dài hơn đều hoạt động ở cấp độ ngữ cảnh: chúng thêm văn bản vào rồi hy vọng mô hình làm theo. Khi mô hình không làm theo, cùng lệnh gọi thất bại ấy lại được thực hiện ở phiên tiếp theo.
 

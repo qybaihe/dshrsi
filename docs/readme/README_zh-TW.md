@@ -97,13 +97,13 @@
 在 DeepSeek Harness 桌面應用程式或 Web UI 中，開啟 **Plugins → Add plugin → Install a third-party plugin**，貼上發行套件的網址，點選 **Install**，再點選 **Enable now**：
 
 ```text
-https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
+https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
 ```
 
 也可以從命令列安裝。每個 profile 各有自己的一套外掛；`dsh plugin add` 會呼叫 `pnpm`，後者必須在 `PATH` 中：
 
 ```bash
-dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
+dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
 dsh web
 ```
 
@@ -143,6 +143,13 @@ npx dsh web
 <a id="how-it-works"></a>
 
 ## 🧠 DSHRSI 如何運作：Harness 內部的封閉迴圈，一遍又一遍地跑
+
+<div align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../../assets/pit-stop.dark.svg" />
+  <img src="../../assets/pit-stop.svg" alt="用一次進站畫出 DSHRSI 的原理：賽車是 Harness，車手是模型，新零件是這一輪進行到一半時寫出的 Harness 程式碼" width="960" />
+</picture>
+</div>
 
 Skill、記憶檔、更長的系統提示詞，全都是在上下文這一層下功夫：加一段文字，然後期待模型照做。模型不照做的時候，同一個失敗的呼叫在下一個工作階段還會再來一次。
 

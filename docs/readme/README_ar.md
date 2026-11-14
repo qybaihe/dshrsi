@@ -97,13 +97,13 @@
 في تطبيق سطح المكتب لـ DeepSeek Harness أو في واجهة الويب، افتح **Plugins → Add plugin → Install a third-party plugin**، والصق رابط حزمة الإصدار، ثم اختر **Install** وبعدها **Enable now**:
 
 ```text
-https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
+https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
 ```
 
 أو من سطر الأوامر. لكل profile (ملف تعريف) إضافاته الخاصة، والأمر `dsh plugin add` يستدعي `pnpm`، فيجب أن يكون موجودًا في `PATH`:
 
 ```bash
-dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
+dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
 dsh web
 ```
 
@@ -143,6 +143,13 @@ npx dsh web
 <a id="how-it-works"></a>
 
 ## 🧠 كيف يعمل DSHRSI: حلقة مغلقة داخل الـ harness، تدور مرة بعد مرة
+
+<div align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../../assets/pit-stop.dark.svg" />
+  <img src="../../assets/pit-stop.svg" alt="طريقة عمل DSHRSI مرسومة كتوقف في منطقة الصيانة: السيارة هي الـ harness، والسائق هو النموذج، والقطعة الجديدة هي كود للـ harness كُتب في منتصف الدور" width="960" />
+</picture>
+</div>
 
 الـ skills وملفات الذاكرة وموجّهات النظام (system prompts) الأطول تعمل كلها على مستوى السياق: تضيف نصًّا وتأمل أن يتبعه النموذج. وحين لا يتبعه، يتكرر الاستدعاء الفاشل نفسه في الجلسة التالية.
 

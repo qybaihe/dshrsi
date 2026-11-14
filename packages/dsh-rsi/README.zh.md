@@ -47,7 +47,7 @@
 
 | 来源 | 填什么 |
 |---|---|
-| 发布包 | `https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz` |
+| 发布包 | `https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz` |
 | 本地 tarball | 在 `packages/dsh-rsi` 里运行 `npm pack`，填生成的 `.tgz` 的绝对路径 |
 | 本地目录 | `packages/dsh-rsi` 的绝对路径 |
 
@@ -85,7 +85,7 @@ dsh --profile headless --patch rsi.yml "run the tests"
 Web 界面（桌面 App 用的是同一套页面）里有三处：
 
 - 会话标题栏右侧的 **RSI** 徽标：本会话里有几个适配在生效。
-- 输入框下方的 **Harness adapted to you** 状态条：几个在生效、几个是本会话学到的、拦下了几次调用。点开是列表，每个适配写着它做了什么。Harness 改进自己的那一刻，徽标和状态条会亮起来，显示 “The harness just improved itself · <适配标题>”。
+- 输入框下方的 **Harness adapted to you** 状态条：几个在生效、几个是本会话学到的、拦下了几次调用。点开是列表，每个适配写着它做了什么。Harness 改进自己的那一刻，徽标和状态条会亮起来，显示 “The harness just improved itself · <适配标题>”，状态条里五盏灯依次点亮，对应新代码刚通过的五道校验。
 - 斜杠命令 **/rsi**：本会话挂载了哪些适配、各属于哪一层、适配库里有什么在等批准。
 
 没有适配在生效时，这三处在页面上都不出现。界面只读会话日志里已有的东西（Harness 的通知、被拦下的工具结果、系统提示词里的适配段），不额外写日志。

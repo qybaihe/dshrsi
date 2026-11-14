@@ -97,13 +97,13 @@
 В десктопном приложении DeepSeek Harness или в веб-интерфейсе откройте **Plugins → Add plugin → Install a third-party plugin**, вставьте ссылку на релизный пакет, нажмите **Install**, затем **Enable now**:
 
 ```text
-https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
+https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
 ```
 
 Или из командной строки. У каждого профиля свой набор плагинов, а `dsh plugin add` вызывает `pnpm`, который должен быть в `PATH`:
 
 ```bash
-dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
+dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
 dsh web
 ```
 
@@ -143,6 +143,13 @@ npx dsh web
 <a id="how-it-works"></a>
 
 ## 🧠 Как работает DSHRSI: замкнутый цикл внутри харнесса, раз за разом
+
+<div align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../../assets/pit-stop.dark.svg" />
+  <img src="../../assets/pit-stop.svg" alt="Как работает DSHRSI, показано как пит-стоп: машина — это harness, пилот — модель, а новая деталь — код harness, написанный посреди хода" width="960" />
+</picture>
+</div>
 
 Скиллы, файлы памяти и всё более длинные системные промпты работают на уровне контекста: добавляют текст и надеются, что модель ему последует. Когда она не следует, тот же неудачный вызов повторяется в следующей сессии.
 

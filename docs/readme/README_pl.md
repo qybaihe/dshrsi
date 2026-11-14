@@ -97,13 +97,13 @@ Co celowo **nie** jest rekurencyjne: wagi modelu nigdy się nie zmieniają, a de
 W aplikacji desktopowej DeepSeek Harness albo w interfejsie webowym otwórz **Plugins → Add plugin → Install a third-party plugin**, wklej adres paczki z wydania, wybierz **Install**, a potem **Enable now**:
 
 ```text
-https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
+https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
 ```
 
 Albo z wiersza poleceń. Każdy profil trzyma własne wtyczki, a `dsh plugin add` wywołuje `pnpm`, który musi być w `PATH`:
 
 ```bash
-dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
+dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
 dsh web
 ```
 
@@ -143,6 +143,13 @@ Profile `desktop` i `headless`, indeksy wtyczek, lokalne tarballe i ładowanie n
 <a id="how-it-works"></a>
 
 ## 🧠 Jak działa DSHRSI: zamknięta pętla wewnątrz harnessu, powtarzana raz za razem
+
+<div align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../../assets/pit-stop.dark.svg" />
+  <img src="../../assets/pit-stop.svg" alt="Jak działa DSHRSI, narysowane jako pit stop: samochód to harness, kierowca to model, a nowa część to kod harnessu napisany w środku tury" width="960" />
+</picture>
+</div>
 
 Skille, pliki pamięci i dłuższe prompty systemowe działają na poziomie kontekstu: dokładają tekst i liczą, że model się do niego zastosuje. Kiedy się nie zastosuje, to samo nieudane wywołanie wraca w następnej sesji.
 

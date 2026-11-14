@@ -97,13 +97,13 @@ Jo cheez jaan boojh kar recursive **nahin** rakhi gayi: model ke weights kabhi n
 DeepSeek Harness ki desktop app ya Web UI mein **Plugins → Add plugin → Install a third-party plugin** kholein, release package paste karein, **Install** select karein, phir **Enable now**:
 
 ```text
-https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
+https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
 ```
 
 Ya phir command line se. Har profile ke apne alag plugins hote hain, aur `dsh plugin add` jis `pnpm` ko call karta hai, us ka `PATH` par hona zaroori hai:
 
 ```bash
-dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
+dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
 dsh web
 ```
 
@@ -143,6 +143,13 @@ npx dsh web
 <a id="how-it-works"></a>
 
 ## 🧠 DSHRSI Kaise Kaam Karta Hai: Harness ke Andar Ek Closed Loop, jo Baar Baar Chalta Hai
+
+<div align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../../assets/pit-stop.dark.svg" />
+  <img src="../../assets/pit-stop.svg" alt="DSHRSI kaise kaam karta hai, ek pit stop ki shakal mein: gaari harness hai, driver model hai, aur naya purza woh harness code hai jo turn ke darmiyan likha gaya" width="960" />
+</picture>
+</div>
 
 Skills, memory files aur lambe system prompts sab context ke level par kaam karte hain: yeh text barhate hain aur umeed rakhte hain ke model us par amal karega. Jab woh amal nahin karta to agle session mein wahi fail hone wali call phir se ki jati hai.
 

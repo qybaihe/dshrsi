@@ -4,7 +4,8 @@
 //   - a badge in the session header, and
 //   - a pill in the row under the composer that opens the list of adaptations at work.
 // Both stay out of the page until there is something to show, and both light up
-// at the moment the harness improves itself.
+// at the moment the harness improves itself: five lights come on in the pill, one
+// for each check of the gate the new adaptation has just passed.
 //
 // Everything displayed comes from the "dshRsi" session projection, which the
 // host half folds from the session log (src/surface.js). This file folds nothing
@@ -23,12 +24,15 @@ window.__ModuleLoader__.load({
     const KEY = 'dshRsi'
     /** How long the "just improved itself" state stays lit. */
     const FRESH_MS = 9000
+    /** The checks of the gate, in order (src/validate.js). An adaptation is mounted only after passing all of them. */
+    const GATE = ['static', 'load', 'rehearsal', 'regression', 'policy']
 
     const DICT = {
       en: {
         'badge.title': 'Harness adaptations at work in this session: {count}',
         'strip.summary': 'Harness adapted to you',
         'strip.evolved': 'The harness just improved itself',
+        'strip.gate': 'Passed all {count} checks: {checks}',
         'strip.count': '{count} at work',
         'strip.learned': '{count} learned here',
         'strip.refused': '{count} stopped',
@@ -46,6 +50,7 @@ window.__ModuleLoader__.load({
         'badge.title': '本会话中有 {count} 个 Harness 自己写的适配在生效',
         'strip.summary': 'Harness 已为你适配',
         'strip.evolved': 'Harness 刚刚改进了自己',
+        'strip.gate': '{count} 道校验全部通过：{checks}',
         'strip.count': '{count} 个在生效',
         'strip.learned': '本会话学到 {count} 个',
         'strip.refused': '拦下 {count} 次调用',
@@ -88,10 +93,16 @@ window.__ModuleLoader__.load({
 .dshrsi-fresh.dshrsi-pill::before{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 0%,color-mix(in srgb,var(--dsw-alias-link) 30%,transparent) 46%,color-mix(in srgb,var(--dsw-alias-link) 10%,transparent) 56%,transparent 100%);background-size:220% 100%;animation:dshrsi-sweep 1.8s ease-in-out 4;pointer-events:none}
 .dshrsi-fresh .dshrsi-bolt{animation:dshrsi-pulse .9s ease-in-out 8}
 .dshrsi-fresh.dshrsi-badge{border-color:var(--dsw-alias-link);color:var(--dsw-alias-label-primary);box-shadow:0 0 0 3px color-mix(in srgb,var(--dsw-alias-link) 22%,transparent)}
+.dshrsi-lights{position:relative;display:inline-flex;align-items:center;gap:3px;flex:none;height:14px;padding:0 5px;border-radius:999px;background:color-mix(in srgb,var(--dsw-alias-label-primary) 9%,transparent)}
+.dshrsi-lights i{width:6px;height:6px;border-radius:50%;background:var(--dsw-alias-state-success-primary,#22c55e);animation:dshrsi-light .42s ease-out both}
+.dshrsi-fresh .dshrsi-facts span:nth-child(n+2){display:none}
+.dshrsi-chip .dshrsi-lights{height:auto;padding:0;margin-right:5px;background:none;vertical-align:1px}
+.dshrsi-chip .dshrsi-lights i{width:5px;height:5px;animation:none}
+@keyframes dshrsi-light{0%{background:color-mix(in srgb,var(--dsw-alias-label-tertiary) 45%,transparent);transform:scale(.7)}60%{transform:scale(1.45)}100%{transform:scale(1)}}
 @keyframes dshrsi-sweep{from{background-position:120% 0}to{background-position:-120% 0}}
 @keyframes dshrsi-pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.3);opacity:.7}}
 @media (hover:hover){.dshrsi-pill:hover{background:var(--dsw-alias-bg-layer-2)}}
-@media (prefers-reduced-motion:reduce){.dshrsi-fresh.dshrsi-pill::before,.dshrsi-fresh .dshrsi-bolt{animation:none}.dshrsi-chevron,.dshrsi-badge,.dshrsi-pill{transition:none}}
+@media (prefers-reduced-motion:reduce){.dshrsi-fresh.dshrsi-pill::before,.dshrsi-fresh .dshrsi-bolt,.dshrsi-lights i{animation:none}.dshrsi-chevron,.dshrsi-badge,.dshrsi-pill{transition:none}}
 @media (max-width:640px){.dshrsi-facts span:nth-child(n+2){display:none}}
 `
 
@@ -101,6 +112,13 @@ window.__ModuleLoader__.load({
         h('defs', null, h('linearGradient', { id: 'dshrsi-bolt-ink', x1: '0', y1: '0', x2: '1', y2: '1' },
           h('stop', { offset: '0', stopColor: '#7c5cff' }), h('stop', { offset: '1', stopColor: '#12b5e5' }))),
         h('path', { d: 'M9.2 1.2 3.4 9h3.9l-.9 5.8L12.6 7H8.5l.7-5.8Z', fill: 'url(#dshrsi-bolt-ink)' }))
+    }
+
+    /** One light for each check of the gate. `run` brings them on one after another; without it they are simply lit. */
+    function Lights(props) {
+      const label = props.t('strip.gate', { count: GATE.length, checks: GATE.join(' · ') })
+      return h('span', { className: 'dshrsi-lights', role: 'img', title: label, 'aria-label': label },
+        GATE.map((check, index) => h('i', { key: check, style: props.run ? { animationDelay: `${0.25 + index * 0.2}s` } : undefined })))
     }
 
     function Chevron() {
@@ -149,7 +167,7 @@ window.__ModuleLoader__.load({
     function Item(props) {
       const { entry, t } = props
       const chips = []
-      if (entry.evolved) chips.push(h('span', { key: 'e', className: 'dshrsi-chip dshrsi-chip-new' }, t('chip.evolved')))
+      if (entry.evolved) chips.push(h('span', { key: 'e', className: 'dshrsi-chip dshrsi-chip-new' }, h(Lights, { t }), t('chip.evolved')))
       if (entry.standing) chips.push(h('span', { key: 's', className: 'dshrsi-chip' }, t('chip.standing')))
       if (entry.refused > 0) chips.push(h('span', { key: 'r', className: 'dshrsi-chip' }, t('chip.refused', { count: entry.refused })))
       if (entry.notes > 0) chips.push(h('span', { key: 'n', className: 'dshrsi-chip' }, t('chip.notes', { count: entry.notes })))
@@ -209,6 +227,7 @@ window.__ModuleLoader__.load({
           onClick: () => setOpen(value => !value),
         },
         h(Bolt, { size: 14 }),
+        lit ? h(Lights, { t, run: true }) : null,
         h('span', { className: 'dshrsi-title' }, lit ? [t('strip.evolved'), fresh ? h('em', { key: 't' }, ` · ${fresh}`) : null] : t('strip.summary')),
         h('span', { className: 'dshrsi-facts' }, facts.map((fact, index) => h('span', { key: index }, fact))),
         h(Chevron, null)),

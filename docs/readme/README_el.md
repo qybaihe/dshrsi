@@ -97,13 +97,13 @@
 Στην εφαρμογή desktop ή στο Web UI του DeepSeek Harness, άνοιξε **Plugins → Add plugin → Install a third-party plugin**, επικόλλησε τη διεύθυνση του πακέτου της έκδοσης, πάτησε **Install** και μετά **Enable now**:
 
 ```text
-https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
+https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
 ```
 
 Ή από τη γραμμή εντολών. Κάθε προφίλ κρατά τα δικά του plugins, και το `dsh plugin add` καλεί το `pnpm`, που πρέπει να βρίσκεται στο `PATH`:
 
 ```bash
-dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
+dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
 dsh web
 ```
 
@@ -143,6 +143,13 @@ npx dsh web
 <a id="how-it-works"></a>
 
 ## 🧠 Πώς δουλεύει το DSHRSI: ένας κλειστός βρόχος μέσα στο harness, ξανά και ξανά
+
+<div align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../../assets/pit-stop.dark.svg" />
+  <img src="../../assets/pit-stop.svg" alt="Πώς λειτουργεί το DSHRSI, σχεδιασμένο ως pit stop: το αυτοκίνητο είναι το harness, ο οδηγός είναι το μοντέλο και το νέο εξάρτημα είναι κώδικας του harness γραμμένος στη μέση του γύρου" width="960" />
+</picture>
+</div>
 
 Τα skills, τα αρχεία μνήμης και τα μακρύτερα system prompts δουλεύουν όλα σε επίπεδο context: προσθέτουν κείμενο και ελπίζουν ότι το μοντέλο θα το ακολουθήσει. Όταν δεν το ακολουθεί, η ίδια αποτυχημένη κλήση γίνεται ξανά στην επόμενη συνεδρία.
 

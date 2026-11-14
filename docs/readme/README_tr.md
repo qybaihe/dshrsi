@@ -97,13 +97,13 @@ Bilerek özyinelemeli **olmayan** kısım: modelin ağırlıkları asla değişm
 DeepSeek Harness masaüstü uygulamasında ya da Web arayüzünde **Plugins → Add plugin → Install a third-party plugin** yolunu izleyin, sürüm paketinin adresini yapıştırın, önce **Install**'ı, ardından **Enable now**'ı seçin:
 
 ```text
-https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
+https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
 ```
 
 Ya da komut satırından. Her profil kendi plugin'lerini ayrı tutar; `dsh plugin add` ise `pnpm`'i çağırır, onun da `PATH` üzerinde olması gerekir:
 
 ```bash
-dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
+dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
 dsh web
 ```
 
@@ -143,6 +143,13 @@ npx dsh web
 <a id="how-it-works"></a>
 
 ## 🧠 DSHRSI Nasıl Çalışır: Harness'in İçinde Tekrar Tekrar Dönen Kapalı Bir Döngü
+
+<div align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../../assets/pit-stop.dark.svg" />
+  <img src="../../assets/pit-stop.svg" alt="DSHRSI'nin çalışma şekli bir pit stop olarak çizildi: araba harness, pilot model, yeni parça ise turun ortasında yazılan harness kodu" width="960" />
+</picture>
+</div>
 
 Skill'ler, bellek dosyaları ve daha uzun sistem prompt'ları bağlam düzeyinde çalışır: metin eklerler ve modelin buna uymasını umarlar. Model uymadığında, aynı başarısız çağrı bir sonraki oturumda yeniden yapılır.
 

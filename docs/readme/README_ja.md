@@ -97,13 +97,13 @@
 DeepSeek Harness のデスクトップアプリまたは Web UI で **Plugins → Add plugin → Install a third-party plugin** を開き、リリースパッケージの URL を貼り付けて **Install** を選び、続けて **Enable now** を選びます。
 
 ```text
-https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
+https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
 ```
 
 コマンドラインからもインストールできます。プラグインはプロファイルごとに別々に管理されます。また `dsh plugin add` は `pnpm` を呼び出すため、これが `PATH` 上にある必要があります。
 
 ```bash
-dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
+dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
 dsh web
 ```
 
@@ -143,6 +143,13 @@ npx dsh web
 <a id="how-it-works"></a>
 
 ## 🧠 DSHRSI の仕組み：ハーネスの中で何度も回る閉ループ
+
+<div align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../../assets/pit-stop.dark.svg" />
+  <img src="../../assets/pit-stop.svg" alt="DSHRSI の仕組みをピットストップに見立てた図：マシンがハーネス、ドライバーがモデル、新しいパーツはターンの途中で書かれたハーネスのコード" width="960" />
+</picture>
+</div>
 
 スキル、メモリファイル、より長いシステムプロンプトは、どれもコンテキストのレベルで働きます。テキストを足して、モデルが従ってくれることを期待するわけです。従わなかったときは、次のセッションでも同じ失敗する呼び出しが繰り返されます。
 

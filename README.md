@@ -97,13 +97,13 @@ What is deliberately **not** recursive: the model's weights never change, and th
 In the DeepSeek Harness desktop app or Web UI, open **Plugins → Add plugin → Install a third-party plugin**, paste the release package, select **Install**, then **Enable now**:
 
 ```text
-https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
+https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
 ```
 
 Or from the command line. Each profile keeps its own plugins, and `dsh plugin add` calls `pnpm`, which has to be on `PATH`:
 
 ```bash
-dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
+dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
 dsh web
 ```
 
@@ -143,6 +143,13 @@ The `desktop` and `headless` profiles, plugin indexes, local tarballs and loadin
 <a id="how-it-works"></a>
 
 ## 🧠 How DSHRSI Works: a Closed Loop Inside the Harness, Run Again and Again
+
+<div align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/pit-stop.dark.svg" />
+  <img src="assets/pit-stop.svg" alt="How DSHRSI works, drawn as a pit stop: the car is the harness, the driver is the model, and the new part is harness code written in the middle of a turn" width="960" />
+</picture>
+</div>
 
 Skills, memory files and longer system prompts all work at the level of context: they add text and hope the model follows it. When it does not, the same failed call is made again in the next session.
 

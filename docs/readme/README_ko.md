@@ -97,13 +97,13 @@
 DeepSeek Harness 데스크톱 앱이나 Web UI에서 **Plugins → Add plugin → Install a third-party plugin**을 열고, 아래 릴리스 패키지 주소를 붙여 넣은 다음 **Install**, 이어서 **Enable now**를 선택합니다:
 
 ```text
-https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
+https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
 ```
 
 명령줄에서도 설치할 수 있습니다. 프로필마다 플러그인을 따로 관리하며, `dsh plugin add`가 호출하는 `pnpm`이 `PATH`에 있어야 합니다:
 
 ```bash
-dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
+dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
 dsh web
 ```
 
@@ -143,6 +143,13 @@ npx dsh web
 <a id="how-it-works"></a>
 
 ## 🧠 DSHRSI의 동작 원리: 하네스 안에서 돌고 또 도는 닫힌 루프
+
+<div align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../../assets/pit-stop.dark.svg" />
+  <img src="../../assets/pit-stop.svg" alt="DSHRSI의 동작을 피트 스톱으로 그린 그림: 차는 하네스, 드라이버는 모델, 새 부품은 턴 도중에 작성된 하네스 코드" width="960" />
+</picture>
+</div>
 
 스킬, 메모리 파일, 더 긴 시스템 프롬프트는 모두 컨텍스트 수준에서 작동합니다. 텍스트를 덧붙이고 모델이 따라 주기를 바랄 뿐입니다. 모델이 따르지 않으면 다음 세션에서 똑같은 실패 호출이 또 나옵니다.
 

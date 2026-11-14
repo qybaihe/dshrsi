@@ -17,7 +17,7 @@
     --canvas: #eef1f7; --win: #ffffff; --side: #f7f8fa; --line: #e2e5ea; --text: #0f1115; --text-2: #4b5057; --text-3: #858a92;
     --accent: #4176e6; --accent-soft: #edf3fe; --accent-line: #b7c8fe; --bubble: #e8effe; --sel: #e9ecf1;
     --bad: #e5383b; --bad-soft: #fdeeee; --bad-line: #f5c4c5; --good: #16a34a; --good-soft: #e7f6ec; --good-line: #b1e0c1;
-    --chip: #f1f3f5; --idle: #dde1e8; --idle-plugin: #c9d8fd; --code: #0f1115; --code-line: #0f1115;
+    --housing: #12151c; --housing-line: #12151c; --chip: #f1f3f5; --idle: #dde1e8; --idle-plugin: #c9d8fd; --code: #0f1115; --code-line: #0f1115;
     --shadow: 0 1px 2px rgba(16, 24, 40, .05), 0 14px 30px rgba(16, 24, 40, .08);
     --k: #c4a7ff; --s: #9ad88a; --r: #ffb86b; --f: #7fb4ff; --p: #e6e9ef; --d: #7f8794;
   }
@@ -25,14 +25,14 @@
     --canvas: #0a0b0d; --win: #151517; --side: #1a1a1c; --line: #2b2c30; --text: #f9fafb; --text-2: #cfd3d6; --text-3: #8d939c;
     --accent: #6590ff; --accent-soft: #18213c; --accent-line: #34467d; --bubble: #26272a; --sel: #28292d;
     --bad: #f25a5a; --bad-soft: #321a1c; --bad-line: #5e2b2e; --good: #4ed17e; --good-soft: #14281c; --good-line: #235a37;
-    --chip: #232426; --idle: #2d2f34; --idle-plugin: #253768; --code: #0c0d10; --code-line: #2b2c30;
+    --housing: #08090b; --housing-line: #2b2c30; --chip: #232426; --idle: #2d2f34; --idle-plugin: #253768; --code: #0c0d10; --code-line: #2b2c30;
     --shadow: 0 16px 34px rgba(0, 0, 0, .45);
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; background: var(--canvas); }
   body { position: relative; width: 1280px; height: 720px; overflow: hidden; color: var(--text); font: 20px/1.4 -apple-system, "SF Pro Text", "Helvetica Neue", "PingFang SC", sans-serif; -webkit-font-smoothing: antialiased; }
   .mono { font-family: ui-monospace, "SF Mono", Menlo, "PingFang SC", monospace; }
-  svg { display: block; flex: none; }
+  svg, img { display: block; flex: none; }
 
   /* ---------- the line above the window ---------- */
   .kick { position: absolute; left: 40px; right: 40px; top: 20px; height: 28px; display: flex; align-items: center; gap: 10px; font-size: 17px; color: var(--text-3); white-space: nowrap; }
@@ -99,7 +99,7 @@
   .panel .in { width: 640px; height: 100%; display: flex; flex-direction: column; }
   .panel .head { padding: 0 24px; }
   .panel .head svg { color: var(--accent); }
-  .timer { font-size: 18px; font-weight: 600; color: var(--accent); min-width: 68px; text-align: right; }
+  .timer { font-size: 18px; font-weight: 600; color: var(--accent); min-width: 64px; margin-left: -4px; text-align: right; }
   .body { flex: 1; padding: 16px 24px 0; }
   .draft { height: 30px; display: flex; align-items: center; gap: 12px; white-space: nowrap; }
   .draft .n { font-size: 18.5px; font-weight: 650; }
@@ -109,16 +109,23 @@
   .tag.no { background: var(--bad-soft); color: var(--bad); border: 1px solid var(--bad-line); }
   .tag.yes { background: var(--good-soft); color: var(--good); border: 1px solid var(--good-line); }
   .why { height: 24px; margin-bottom: 14px; font-size: 15px; line-height: 24px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .code { margin: 8px 0 14px; padding: 13px 18px; height: 236px; border-radius: 12px; background: var(--code); border: 1px solid var(--code-line); color: var(--p); font-size: 16.5px; line-height: 26px; overflow: hidden; }
+  .code { margin: 8px 0 14px; padding: 13px 18px; height: 210px; border-radius: 12px; background: var(--code); border: 1px solid var(--code-line); color: var(--p); font-size: 16.5px; line-height: 26px; overflow: hidden; }
   .code div { height: 26px; white-space: pre; overflow: hidden; text-overflow: ellipsis; }
   .code .k { color: var(--k); } .code .s { color: var(--s); } .code .r { color: var(--r); } .code .f { color: var(--f); } .code .d { color: var(--d); }
   .code .caret { display: inline-block; width: 9px; height: 19px; margin-left: 1px; vertical-align: -3px; background: var(--f); }
-  .gate { height: 34px; display: flex; align-items: center; gap: 6px; margin-bottom: 14px; white-space: nowrap; }
-  .gate .l { font-size: 13.5px; font-weight: 600; letter-spacing: .07em; color: var(--text-3); margin-right: 4px; }
-  .stage { display: inline-flex; align-items: center; gap: 5px; height: 30px; padding: 0 10px; border-radius: 100px; border: 1px solid var(--line); font-size: 15px; color: var(--text-3); }
-  .stage i { width: 10px; font-style: normal; font-weight: 700; text-align: center; }
-  .stage.now { border-color: var(--accent); color: var(--accent); }
-  .stage.ok { border-color: var(--good-line); background: var(--good-soft); color: var(--good); }
+  /* the gate: five lights, one for each check, as in the pit-stop picture */
+  .gate { height: 62px; display: grid; grid-template-columns: 66px repeat(5, 1fr); align-items: center; margin-bottom: 12px; padding: 0 8px 0 18px; border-radius: 14px; background: var(--housing); border: 1px solid var(--housing-line); white-space: nowrap; }
+  .gate .l { font-size: 13px; font-weight: 600; letter-spacing: .08em; color: #8d95a8; }
+  .stage { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 13.5px; line-height: 16px; color: #717a8b; }
+  .stage i { width: 18px; height: 18px; border-radius: 50%; background: #2c323e; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .07); }
+  .stage.now { color: #fbbf24; }
+  .stage.now i { background: #fbbf24; box-shadow: 0 0 0 4px rgba(251, 191, 36, .2), 0 0 12px rgba(251, 191, 36, .65); }
+  .stage.ok { color: #7ee2a8; }
+  .stage.ok i { background: #22c55e; box-shadow: 0 0 0 4px rgba(34, 197, 94, .22), 0 0 12px rgba(34, 197, 94, .75); }
+  .mini { display: inline-flex; align-items: center; gap: 5px; margin-right: 2px; }
+  .mini i { width: 10px; height: 10px; border-radius: 50%; background: var(--idle); }
+  .mini i.ok { background: var(--good); }
+  .mini i.no { background: var(--bad); box-shadow: 0 0 0 3px var(--bad-soft); }
   .done { height: 50px; display: flex; align-items: center; gap: 10px; padding: 0 16px; border-radius: 12px; background: var(--accent-soft); border: 1px solid var(--accent-line); font-size: 19px; font-weight: 650; white-space: nowrap; }
   .done svg { color: var(--accent); }
   .done span { font-weight: 400; color: var(--text-2); font-size: 16.5px; }
@@ -185,7 +192,6 @@ const $ = id => document.getElementById(id)
 const icon = (body, size = 20) => `<svg width="${size}" height="${size}" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${body}</svg>`
 const ICON = {
   bolt: (size = 18) => `<svg width="${size}" height="${size}" viewBox="0 0 20 20" fill="currentColor"><path d="M11.6 1.6 4.2 11.4h4.5l-1 7 7.9-10.2h-4.7l.7-6.6Z"/></svg>`,
-  mark: (size = 24) => `<svg width="${size}" height="${size}" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M28.63 15.15A11 11 0 1 1 24.47 9.1"/><path d="M23.2 4.4 24.6 9.2 19.6 9.5"/><path d="M19.2 11.4 13.6 19h3.8l-.9 5.6L22.4 17h-4l.8-5.6Z" fill="currentColor" stroke="none"/></svg>`,
   read: icon('<path d="M5 2.8h6.6L15 6.2v11H5z"/><path d="M11.4 2.8v3.6H15M7.6 10h4.8M7.6 13h4.8"/>'),
   glob: icon('<circle cx="8.8" cy="8.8" r="5"/><path d="m12.6 12.6 4.2 4.2"/>'),
   bash: icon('<path d="m3.6 6 4.4 4-4.4 4M10.4 14.4h6"/>'),
@@ -197,6 +203,8 @@ const ICON = {
   plus: icon('<circle cx="10" cy="10" r="7.2"/><path d="M10 6.8v6.4M6.8 10h6.4"/>', 19),
 }
 ICON.edit = ICON.write
+// The mark is the site's own file, so the animation always carries the current one.
+const MARK = size => `<img src="../../website/assets/logo.svg" width="${size}" height="${size}" alt="">`
 
 // ---------- what the logs say ----------
 const made = T.adaptation, stock = T.arms.dsh, plugin = T.arms.rsi
@@ -223,7 +231,7 @@ const NEXT = 15000, AFTER = 19000, LANES = 19600, TILES = 21900, END = 27200
 const SCENES = [0, TRIGGER - 100, NEXT, AFTER, END]
 
 // ---------- above the window ----------
-$('kick').innerHTML = `<span style="color:var(--accent)">${ICON.mark(24)}</span><strong>DSHRSI</strong><span>${t('replay of a real session', '真实会话回放')} · Aider Polyglot · Rust · ${esc(T.model)}</span><span class="grow"></span>${SCENES.slice(1).map(() => '<span class="seg"><i></i></span>').join('')}`
+$('kick').innerHTML = `${MARK(27)}<strong>DSHRSI</strong><span>${t('replay of a real session', '真实会话回放')} · Aider Polyglot · Rust · ${esc(T.model)}</span><span class="grow"></span>${SCENES.slice(1).map(() => '<span class="seg"><i></i></span>').join('')}`
 const CAPTIONS = [
   [0, ACT[2], t('The task says <b>lib.rs</b>. The file is <b>src/lib.rs</b>.', '题目写的是 <b>lib.rs</b>，文件其实在 <b>src/lib.rs</b>')],
   [ACT[2], TRIGGER - 100, t('Third session, <b class="bad">the same failed call</b>.', '第三个会话，<b class="bad">又是同一个失败调用</b>')],
@@ -270,7 +278,7 @@ const laterRows = [
 $('chat').innerHTML = ACTS.map((act, index) => `<div class="act" id="act-${index}" data-at="${ACT[index]}" data-out="${index < 2 ? ACT[index + 1] - 130 : Infinity}" data-dy="0"><div class="scroll">${opening(act, ACT[index], index < 2)}${index === 2 ? laterRows.join('') : ''}</div></div>`).join('')
 
 // ---------- the side panel ----------
-const SHOWN = 8
+const SHOWN = 7
 const source = made.source.split('\n').slice(0, SHOWN)
 const TOKEN = /('(?:\\.|[^'\\])*'|"(?:\\.|[^"\\])*")|((?<=[:(!]\s?)\/(?:\\.|\[(?:\\.|[^\]\\])*\]|[^/\\\n[])+\/[a-z]*)|\b(if|return|undefined)\b|(\b[A-Za-z_]\w*(?=\())|(\b[A-Za-z_]\w*(?=:))/g
 const tokens = source.map((line) => {
@@ -289,13 +297,13 @@ const SEEN = 58
 const typed = source.map(line => Math.min(line.length, SEEN))
 const typedTotal = typed.reduce((sum, count) => sum + count, 0)
 $('panel-in').innerHTML = `
-  <div class="head">${ICON.bolt(20)}<span class="title">${t('Harness adaptation', 'Harness 适配')}</span><span class="grow"></span><span class="timer mono" id="timer"></span></div>
+  <div class="head">${ICON.bolt(20)}<span class="title">${t('Harness adaptation', 'Harness 适配')}</span><span class="grow"></span>${icon('<circle cx="10" cy="11.4" r="6.4"/><path d="M8.2 2.4h3.6M10 2.4v2.6M15 6.2l1.1-1.1"/><path id="hand" d="M10 11.4V7.4"/>', 22)}<span class="timer mono" id="timer"></span></div>
   <div class="body">
-    <div class="draft" data-at="${DRAFT1}"><span class="n">${t('Draft 1', '第 1 稿')}</span><span class="by">${t(`written by ${T.model}`, `由 ${T.model} 写出`)}</span><span class="grow"></span><span class="tag no" data-at="${DRAFT1 + 750}" data-dy="0">✗ ${t(`rejected at ${rejected.failedAt}`, `校验打回 · ${rejected.failedAt}`)}</span></div>
+    <div class="draft" data-at="${DRAFT1}"><span class="n">${t('Draft 1', '第 1 稿')}</span><span class="by">${t(`written by ${T.model}`, `由 ${T.model} 写出`)}</span><span class="grow"></span><span class="mini" data-at="${DRAFT1 + 200}" data-dy="0">${stages.map(() => '<i data-mini></i>').join('')}</span><span class="tag no" data-at="${DRAFT1 + 750}" data-dy="0">✗ ${t(`rejected at ${rejected.failedAt}`, `校验打回 · ${rejected.failedAt}`)}</span></div>
     <div class="why mono" data-at="${DRAFT1 + 950}" data-dy="4">${esc(rejected.problems[0])}</div>
     <div class="draft" data-at="${DRAFT2}"><span class="n">${t('Draft 2', '第 2 稿')}</span><span class="by">${t('rewritten with the error in hand', '带着报错重写')}</span><span class="grow"></span><span class="tag yes" data-at="${GATE + 300 * stages.length + 100}" data-dy="0">✓ ${t('passed the gate', '通过校验')}</span></div>
     <div class="code mono" data-at="${DRAFT2 + 100}" data-dy="6">${source.map((_, index) => `<div id="line-${index}"></div>`).join('')}</div>
-    <div class="gate" data-at="${GATE - 100}"><span class="l">${t('GATE', '校验')}</span>${stages.map(stage => `<span class="stage mono" data-stage><i>·</i>${esc(stage)}</span>`).join('')}</div>
+    <div class="gate" data-at="${GATE - 100}"><span class="l">${t('GATE', '校验')}</span>${stages.map(stage => `<span class="stage mono" data-stage><i></i>${esc(stage)}</span>`).join('')}</div>
     <div class="done" data-at="${MOUNT}">${ICON.bolt(20)}${t('Mounted mid-turn', '已挂载，这一轮还没结束')}<span>· ${t(`${made.secondsToMount} s after the failed call`, `距失败的调用 ${made.secondsToMount} 秒`)}</span></div>
   </div>`
 
@@ -315,7 +323,7 @@ $('after').innerHTML = `
     ${tile(TILES + 450, `${stock.afterWidening.hit} <span>→</span> <b>${plugin.afterWidening.hit}</b>`, t('once the fix was machine-wide', '适配全机生效之后'), t(`the same ${plugin.afterWidening.total} tasks on both sides`, `两边是同样的 ${plugin.afterWidening.total} 道题`))}
     ${tile(TILES + 900, `<b>${made.secondsToMount}</b> <small>${t('s', '秒')}</small>`, t('from failed call to mounted fix', '从失败的调用到挂载'), t(`the session's own model wrote it`, `会话里的模型自己写的 · ${stages.length} 道校验`))}
   </div>
-  <div class="sign" data-at="${TILES + 1500}" data-dy="0">${ICON.mark(28)}<strong>DSHRSI</strong><span>${t('Recursive Self-Improvement for DeepSeek Harness', 'DeepSeek Harness 上的递归自我改进')}</span><span class="grow"></span><span class="url mono">github.com/qybaihe/dshrsi</span></div>`
+  <div class="sign" data-at="${TILES + 1500}" data-dy="0">${MARK(34)}<strong>DSHRSI</strong><span>${t('Recursive Self-Improvement for DeepSeek Harness', 'DeepSeek Harness 上的递归自我改进')}</span><span class="grow"></span><span class="url mono">github.com/qybaihe/dshrsi</span></div>`
 
 // ---------- one moment ----------
 const clamp = value => Math.min(1, Math.max(0, value))
@@ -328,6 +336,8 @@ const faders = [...document.querySelectorAll('[data-at]')].map(element => ({
 }))
 const sessionRows = [...document.querySelectorAll('.sess')]
 const stageChips = [...document.querySelectorAll('[data-stage]')]
+const miniLights = [...document.querySelectorAll('[data-mini]')]
+const failedStage = stages.indexOf(rejected.failedAt)
 const segments = [...document.querySelectorAll('.seg i')]
 const laneCells = [...document.querySelectorAll('.lane .cells')].map(cells => [...cells.children])
 const scroller = document.querySelector('#act-2 .scroll')
@@ -388,6 +398,7 @@ function render(now) {
   // the timer runs from the failed call to the mount
   const seconds = made.secondsToMount * span(now, TRIGGER, MOUNT - TRIGGER)
   put($('timer'), `${seconds.toFixed(1)} s`)
+  $('hand').setAttribute('transform', `rotate(${(seconds * 6).toFixed(1)} 10 11.4)`)
 
   // the code is typed, a line at a time
   let budget = Math.round(typedTotal * span(now, TYPE[0], TYPE[1] - TYPE[0]))
@@ -407,11 +418,19 @@ function render(now) {
     budget -= mine
   })
 
-  // the gate, a stage at a time
+  // draft 1 at the gate: green up to the check that stopped it, which is red
+  miniLights.forEach((light, index) => {
+    const at = DRAFT1 + 300 + 220 * index
+    light.className = now < at || index > failedStage ? '' : index === failedStage ? 'no' : 'ok'
+  })
+  // draft 2: a light at a time, each one swelling as it comes on, and all five once more when the last is lit
+  const allLit = GATE + 300 * stageChips.length
   stageChips.forEach((chip, index) => {
-    const passed = now >= GATE + 300 * (index + 1), checking = !passed && now >= GATE + 300 * index
+    const on = GATE + 300 * (index + 1)
+    const passed = now >= on, checking = !passed && now >= GATE + 300 * index
     chip.className = `stage mono${passed ? ' ok' : checking ? ' now' : ''}`
-    put(chip.firstElementChild, passed ? '✓' : checking ? '›' : '·')
+    const swell = Math.max(Math.sin(Math.PI * span(now, on, 260)), now >= allLit + 120 ? Math.sin(Math.PI * span(now, allLit + 120, 380)) : 0)
+    chip.firstElementChild.style.transform = swell > 0.01 ? `scale(${(1 + 0.3 * swell).toFixed(3)})` : ''
   })
 
   // the two rows of sessions fill in start order

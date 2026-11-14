@@ -97,13 +97,13 @@ adaptation สามารถเพิ่มข้อมูล ปฏิเส�
 ในแอปเดสก์ท็อปหรือ Web UI ของ DeepSeek Harness ให้เปิด **Plugins → Add plugin → Install a third-party plugin** วางลิงก์ของแพ็กเกจ release เลือก **Install** แล้วเลือก **Enable now**:
 
 ```text
-https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
+https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
 ```
 
 หรือจะใช้ command line ก็ได้ แต่ละ profile เก็บ plugin ของตัวเองแยกกัน และ `dsh plugin add` จะเรียก `pnpm` ซึ่งต้องอยู่ใน `PATH`:
 
 ```bash
-dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
+dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
 dsh web
 ```
 
@@ -143,6 +143,13 @@ npx dsh web
 <a id="how-it-works"></a>
 
 ## 🧠 DSHRSI ทำงานอย่างไร: ลูปปิดภายใน harness ที่วนซ้ำแล้วซ้ำอีก
+
+<div align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../../assets/pit-stop.dark.svg" />
+  <img src="../../assets/pit-stop.svg" alt="การทำงานของ DSHRSI วาดเป็นการเข้าพิต: รถคือ harness นักขับคือโมเดล และชิ้นส่วนใหม่คือโค้ดของ harness ที่เขียนขึ้นกลางเทิร์น" width="960" />
+</picture>
+</div>
 
 Skill, ไฟล์ memory และ system prompt ที่ยาวขึ้น ล้วนทำงานในระดับ context: เพิ่มข้อความเข้าไปแล้วหวังว่าโมเดลจะทำตาม เมื่อโมเดลไม่ทำตาม การเรียกที่ล้มเหลวแบบเดิมก็เกิดขึ้นอีกในเซสชันถัดไป
 

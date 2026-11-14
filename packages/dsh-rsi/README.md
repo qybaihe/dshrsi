@@ -45,7 +45,7 @@ The scenario was run three times, each with an empty library. Before the adaptat
 
 | Source | What to enter |
 |---|---|
-| Release package | `https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz` |
+| Release package | `https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz` |
 | Local tarball | Run `npm pack` in `packages/dsh-rsi` and enter the absolute path of the resulting `.tgz` |
 | Local folder | The absolute path of `packages/dsh-rsi` |
 
@@ -81,7 +81,7 @@ The adaptation library is stored in `$DSH_HOME/rsi` (`~/.dsh/rsi` when `DSH_HOME
 The Web UI (the desktop app uses the same pages) shows the plugin in three places:
 
 - The **RSI** badge at the right of the session header: how many adaptations are at work in this session.
-- The **Harness adapted to you** pill under the composer: how many are at work, how many were learned in this session, how many calls were refused. Selecting it opens a list that says what each adaptation does. At the moment the harness improves itself, the badge and the pill light up and read "The harness just improved itself · <adaptation title>".
+- The **Harness adapted to you** pill under the composer: how many are at work, how many were learned in this session, how many calls were refused. Selecting it opens a list that says what each adaptation does. At the moment the harness improves itself, the badge and the pill light up and read "The harness just improved itself · <adaptation title>", and five lights come on in the pill, one for each check of the gate the new code has just passed.
 - The slash command **/rsi**: which adaptations are mounted in this session, which layer each belongs to, and what in the library is waiting for approval.
 
 When no adaptation is at work, none of the three appears on the page. The UI reads only what is already in the session log (the harness's notices, refused tool results, the adaptation sections of the system prompt) and logs nothing of its own.

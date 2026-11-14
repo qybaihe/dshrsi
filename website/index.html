@@ -76,6 +76,11 @@
       <div class="kicker"><span lang="zh">闭环</span><span lang="en">The loop</span></div>
       <h2><span lang="zh">从踩坑到改好，发生在同一轮任务里</span><span lang="en">From hitting the wall to fixing it, inside one turn</span></h2>
     </div>
+    <figure class="pit">
+      <picture lang="zh"><source media="(prefers-color-scheme: dark)" srcset="assets/img/pit-stop.zh.dark.svg"><img src="assets/img/pit-stop.zh.svg" width="1280" height="752" loading="lazy" alt="用一次进站画出 DSHRSI 的原理：赛车是 Harness，车手是模型，新零件是这一轮进行到一半时写出的 Harness 代码"></picture>
+      <picture lang="en"><source media="(prefers-color-scheme: dark)" srcset="assets/img/pit-stop.dark.svg"><img src="assets/img/pit-stop.svg" width="1280" height="752" loading="lazy" alt="How DSHRSI works, drawn as a pit stop: the car is the harness, the driver is the model, and the new part is harness code written in the middle of a turn"></picture>
+      <figcaption><span lang="zh">赛车手觉得车不对劲，不会等到下一场比赛。图里的 36.9 秒和 7 → 1 来自同一次真实运行。</span><span lang="en">A driver who feels the car is wrong does not wait for the next race. The 36.9 s and the 7 → 1 in the picture come from one real run.</span></figcaption>
+    </figure>
     <ol class="steps">
       <li><h3><span lang="zh">观察</span><span lang="en">Observe</span></h3><p><span lang="zh">16 个判断点读会话事件：重复失败的调用、反复出现的失败原因、用户的纠正、没验证就收工的一轮。</span><span lang="en">16 detectors read the session's events: calls that fail again, causes that keep coming back, corrections from the user, turns that end with nothing verified.</span></p></li>
       <li><h3><span lang="zh">决策</span><span lang="en">Decide</span></h3><p><span lang="zh">每个麻烦有一个跨会话稳定的签名。以前的会话见过它，这次动手的门槛就更低。</span><span lang="en">Every trouble has a signature that is stable across sessions. If earlier sessions met it, the threshold for acting drops.</span></p></li>
@@ -148,12 +153,12 @@
       <div class="card">
         <h3><span lang="zh">在桌面 App 或 Web 界面里</span><span lang="en">In the desktop app or the Web UI</span></h3>
         <p><span lang="zh">打开 <strong>Plugins → Add plugin → Install a third-party plugin</strong>，粘贴下面的地址，点 <strong>Install</strong>，再点 <strong>Enable now</strong>。</span><span lang="en">Open <strong>Plugins → Add plugin → Install a third-party plugin</strong>, paste the address below, select <strong>Install</strong>, then <strong>Enable now</strong>.</span></p>
-<pre><code>https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz</code></pre>
+<pre><code>https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz</code></pre>
       </div>
       <div class="card">
         <h3><span lang="zh">通过命令行</span><span lang="en">From the command line</span></h3>
         <p><span lang="zh">每个 profile 有自己的一套插件。<code>dsh plugin add</code> 会调用 <code>pnpm</code>，它需要在 <code>PATH</code> 上。</span><span lang="en">Each profile keeps its own plugins. <code>dsh plugin add</code> calls <code>pnpm</code>, which has to be on <code>PATH</code>.</span></p>
-<pre><code>dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
+<pre><code>dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
 dsh web</code></pre>
       </div>
     </div>

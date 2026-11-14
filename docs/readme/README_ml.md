@@ -97,13 +97,13 @@
 DeepSeek Harness desktop app-ലോ Web UI-യിലോ **Plugins → Add plugin → Install a third-party plugin** തുറക്കുക, താഴെയുള്ള release package paste ചെയ്യുക, **Install** തിരഞ്ഞെടുക്കുക, പിന്നെ **Enable now**:
 
 ```text
-https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
+https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
 ```
 
 അല്ലെങ്കിൽ command line-ൽ നിന്ന്. ഓരോ profile-നും സ്വന്തം plugins ഉണ്ട്; `dsh plugin add` വിളിക്കുന്നത് `pnpm` ആണ്, അത് `PATH`-ൽ ഉണ്ടായിരിക്കണം:
 
 ```bash
-dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.1/dsh-rsi-0.1.1.tgz
+dsh plugin --profile web add https://github.com/qybaihe/dshrsi/releases/download/v0.1.2/dsh-rsi-0.1.2.tgz
 dsh web
 ```
 
@@ -143,6 +143,13 @@ npx dsh web
 <a id="how-it-works"></a>
 
 ## 🧠 DSHRSI പ്രവർത്തിക്കുന്ന വിധം: Harness-നുള്ളിലെ ഒരു Closed Loop, വീണ്ടും വീണ്ടും
+
+<div align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../../assets/pit-stop.dark.svg" />
+  <img src="../../assets/pit-stop.svg" alt="DSHRSI പ്രവർത്തിക്കുന്ന വിധം ഒരു പിറ്റ് സ്റ്റോപ്പായി വരച്ചത്: കാർ harness ആണ്, ഡ്രൈവർ മോഡലാണ്, പുതിയ ഭാഗം ടേണിന്റെ മധ്യത്തിൽ എഴുതിയ harness കോഡാണ്" width="960" />
+</picture>
+</div>
 
 Skills, memory files, കൂടുതൽ നീണ്ട system prompts എന്നിവയെല്ലാം പ്രവർത്തിക്കുന്നത് context തലത്തിലാണ്: അവ text ചേർക്കുന്നു, model അത് അനുസരിക്കുമെന്ന് പ്രതീക്ഷിക്കുന്നു. അനുസരിച്ചില്ലെങ്കിൽ അതേ പരാജയപ്പെട്ട call അടുത്ത session-ലും ആവർത്തിക്കും.
 
